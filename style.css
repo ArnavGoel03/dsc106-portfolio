@@ -3,6 +3,9 @@
   --color-accent: oklch(65% 50% 0);
   --border-gray: oklch(80% 3% 200);
   accent-color: var(--color-accent);
+  /* Declare both schemes so text, links and form controls follow the OS theme
+     instead of rendering black-on-dark under Chrome's forced dark mode */
+  color-scheme: light dark;
 }
 
 /* Lab 1, Step 5 + Lab 2, Step 1: readable width that still adapts to small viewports */
@@ -52,7 +55,8 @@ nav {
     &:hover {
       border-bottom: 0.4em solid var(--color-accent);
       padding-bottom: 0.1em;
-      background-color: oklch(from var(--color-accent) 95% 5% h);
+      /* Tint toward the page background so the hover stays readable in both schemes */
+      background-color: color-mix(in oklch, var(--color-accent), canvas 85%);
     }
   }
 }
@@ -110,7 +114,7 @@ section {
 
   h2 {
     color: var(--color-accent);
-    border-bottom: 2px solid oklch(from var(--color-accent) 90% 10% h);
+    border-bottom: 2px solid color-mix(in oklch, var(--color-accent), canvas 70%);
     padding-bottom: 0.2em;
   }
 }
