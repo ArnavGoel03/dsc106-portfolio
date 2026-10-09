@@ -13,6 +13,8 @@ body {
   font: 100% / 1.5 system-ui;
   max-width: 100ch;
   margin-inline: max(1em, (100% - 100ch) / 2);
+  /* Break long unbreakable strings (emails, URLs) rather than scroll sideways */
+  overflow-wrap: break-word;
 }
 
 img {
@@ -22,7 +24,8 @@ img {
 
 /* Lab 2, Step 4.4: clear heading hierarchy */
 h1 {
-  font-size: 400%;
+  /* 400% per the lab, capped by viewport width so one long word never overflows a phone */
+  font-size: min(400%, 15vw);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -33,6 +36,8 @@ h1, h2, h3, h4, h5, h6 {
 /* Lab 2, Step 2: navigation bar */
 nav {
   display: flex;
+  /* Wrap instead of overflowing on narrow screens or enlarged text */
+  flex-wrap: wrap;
   margin-bottom: 1em;
   border-bottom: 1px solid var(--border-gray);
 
@@ -71,6 +76,11 @@ form {
     font: inherit;
   }
 
+  /* Let controls shrink below their intrinsic width so the 1fr column never overflows */
+  input, textarea {
+    min-width: 0;
+  }
+
   label {
     display: grid;
     grid-template-columns: subgrid;
@@ -85,7 +95,7 @@ form {
 /* Lab 2, Step 4: responsive project grid with subgrid alignment */
 .projects {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(15em, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(15em, 100%), 1fr));
   gap: 1em;
 
   article {
@@ -129,6 +139,7 @@ article {
 
 .meta {
   margin-top: 0;
-  color: oklch(50% 2% 200);
+  /* Muted text derived from the active scheme so contrast holds in light and dark */
+  color: color-mix(in oklch, canvastext 70%, canvas);
   font-size: 90%;
 }
