@@ -24,8 +24,7 @@ img {
 
 /* Lab 2, Step 4.4: clear heading hierarchy */
 h1 {
-  /* 400% per the lab, capped by viewport width so one long word never overflows a phone */
-  font-size: min(400%, 15vw);
+  font-size: 400%;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -95,7 +94,7 @@ form {
 /* Lab 2, Step 4: responsive project grid with subgrid alignment */
 .projects {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(15em, 100%), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(15em, 1fr));
   gap: 1em;
 
   article {
@@ -129,7 +128,8 @@ section {
   }
 }
 
-article {
+/* Scoped to the CV so project cards keep only the grid gap */
+section article {
   margin-block: 1em;
 
   header h3 {
