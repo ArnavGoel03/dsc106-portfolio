@@ -38,7 +38,9 @@ nav {
   /* Wrap instead of overflowing on narrow screens or enlarged text */
   flex-wrap: wrap;
   margin-bottom: 1em;
-  border-bottom: 1px solid var(--border-gray);
+  /* Lab 3, Step 4.1: translucent so the border stays subtle on light and dark backgrounds */
+  --border-color: oklch(50% 10% 200 / 40%);
+  border-bottom: 1px solid var(--border-color);
 
   ul, li {
     display: contents;
@@ -52,7 +54,7 @@ nav {
     padding: 0.5em;
 
     &.current {
-      border-bottom: 0.4em solid var(--border-gray);
+      border-bottom: 0.4em solid var(--border-color);
       padding-bottom: 0.1em;
     }
 
@@ -65,13 +67,25 @@ nav {
   }
 }
 
+/* Lab 3, Step 4.3: theme switcher pinned to the top right corner */
+.color-scheme {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 80%;
+
+  select {
+    font: inherit;
+  }
+}
+
 /* Lab 2, Step 3: contact form on a grid, labels left and fields right */
 form {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 1em;
 
-  input, textarea, button {
+  input, textarea, button, select {
     font: inherit;
   }
 
