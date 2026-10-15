@@ -14,5 +14,6 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
 - Lab 4 (JavaScript II): NOT OUT. https://dsc106.com/labs/lab04/ reads "Page under construction!" as of 2026-10-15.
 
 ## Other coursework asked for in the same session
-- DSC 102 second assignment: BLOCKED on the course website URL. Not on this machine, not in the yashgoel0304
-  inbox, Canvas needs SSO login. PA0 was done earlier (~/dev/dsc102-pa0/NOTES.md).
+- ~~DSC 102 second assignment: BLOCKED on the course website URL.~~ Cleared 2026-10-15: it is PA1 (site
+  https://aismithlab.com/DSC102FA26/assignments/), verified 80/80 against the TA answers on the real data and
+  submitted on Canvas. Record lives in ~/dev/dsc102-pa1/NOTES.md.
