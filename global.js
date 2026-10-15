@@ -20,6 +20,9 @@ const BASE_PATH =
     ? '/'
     : '/dsc106-portfolio/';
 
+// Treat /cv/index.html as /cv/ so the current link still matches
+const currentPath = location.pathname.replace(/index\.html$/, '');
+
 const nav = document.createElement('nav');
 document.body.prepend(nav);
 
@@ -31,7 +34,7 @@ for (const p of pages) {
   a.textContent = p.title;
 
   // Lab 3, Step 3.2: highlight the current page, open external links in a new tab
-  const isCurrent = a.host === location.host && a.pathname === location.pathname;
+  const isCurrent = a.host === location.host && a.pathname === currentPath;
   a.classList.toggle('current', isCurrent);
   if (isCurrent) a.setAttribute('aria-current', 'page');
   if (a.host !== location.host) a.target = '_blank';
@@ -61,14 +64,21 @@ function setColorScheme(colorScheme) {
   select.value = colorScheme;
 }
 
-if ('colorScheme' in localStorage) {
-  setColorScheme(localStorage.colorScheme);
-}
+// Storage can throw (blocked site data); the theme still works for this page view
+const COLOR_SCHEMES = Array.from(select.options, (o) => o.value);
+
+try {
+  if ('colorScheme' in localStorage && COLOR_SCHEMES.includes(localStorage.colorScheme)) {
+    setColorScheme(localStorage.colorScheme);
+  }
+} catch {}
 
 select.addEventListener('input', (event) => {
   console.log('color scheme changed to', event.target.value);
   setColorScheme(event.target.value);
-  localStorage.colorScheme = event.target.value;
+  try {
+    localStorage.colorScheme = event.target.value;
+  } catch {}
 });
 
 // Lab 3, Step 5: build the mailto URL ourselves so spaces encode as %20, not +

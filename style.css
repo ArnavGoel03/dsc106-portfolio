@@ -38,6 +38,8 @@ nav {
   /* Wrap instead of overflowing on narrow screens or enlarged text */
   flex-wrap: wrap;
   margin-bottom: 1em;
+  /* Room above the nav for the absolutely positioned theme switcher */
+  margin-top: 2.5rem;
   /* Lab 3, Step 4.1: translucent so the border stays subtle on light and dark backgrounds */
   --border-color: oklch(50% 10% 200 / 40%);
   border-bottom: 1px solid var(--border-color);
