@@ -89,7 +89,8 @@ form?.addEventListener('submit', (event) => {
   const data = new FormData(form);
   const params = [];
   for (const [name, value] of data) {
-    params.push(`${name}=${encodeURIComponent(value)}`);
+    // toWellFormed() replaces a lone surrogate (half a pasted emoji), which encodeURIComponent rejects
+    params.push(`${name}=${encodeURIComponent(value.toWellFormed?.() ?? value)}`);
   }
   location.href = `${form.action}?${params.join('&')}`;
 });
