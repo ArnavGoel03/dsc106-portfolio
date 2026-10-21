@@ -164,7 +164,7 @@ def chart_for(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
     ax.text(1992, wld.lfp_f.loc[1992] + 2.5, "Women in the labor force", color=WORK, fontweight="bold",
             ha="left", va="bottom")
     drop = wld.lfp_f.iloc[0] - wld.lfp_f.iloc[-1]
-    ax.annotate(f"Down {drop:.0f} points since 1990", (2012, wld.lfp_f.loc[2012]), xytext=(0, -24),
+    ax.annotate(f"Down {drop:.0f} points since 1990", (yrs[-1], wld.lfp_f.iloc[-1]), xytext=(-85, -20),
                 textcoords="offset points", ha="center", va="top", color=WORK, fontsize=10.5,
                 arrowprops=dict(arrowstyle="-", color=WORK, lw=0.8))
     ax.set_xlim(1986, 2023.5)
@@ -238,14 +238,14 @@ def chart_against(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
         a.set_axisbelow(True)
         v0, v1 = med[c0], med[c1]
         a.plot([0, 1], [v0, v1], color=color, lw=3, marker="o", ms=7)
-        a.annotate(f"{v0:.0f}%", (0, v0), xytext=(0, -16), textcoords="offset points", ha="center",
+        # One decimal on the endpoints so the printed change is exactly their difference.
+        a.annotate(f"{v0:.1f}%", (0, v0), xytext=(0, -16), textcoords="offset points", ha="center",
                    color=color, fontweight="bold")
-        a.annotate(f"{v1:.0f}%", (1, v1), xytext=(0, 9), textcoords="offset points", ha="center",
+        a.annotate(f"{v1:.1f}%", (1, v1), xytext=(0, 9), textcoords="offset points", ha="center",
                    color=color, fontweight="bold")
-        steep = v1 - v0 > 30  # steep line: label to its lower right; shallow line: label below it
-        a.annotate(f"+{v1 - v0:.0f} points", (0.5, (v0 + v1) / 2), xytext=(12, -6) if steep else (6, -18),
-                   textcoords="offset points", ha="left" if steep else "center", va="center", color=color,
-                   fontsize=10.5, fontweight="bold")
+        # Change printed in the empty top-left corner, clear of the line and both endpoint labels.
+        a.text(0.05, 0.97, f"{round(v1, 1) - round(v0, 1):+.1f} points", transform=a.transAxes, ha="left",
+               va="top", color=color, fontsize=10.5, fontweight="bold")
         a.set_title(name, fontsize=10.5, color=color)
         a.set_xlim(-0.35, 1.35)
         a.set_xticks([0, 1])

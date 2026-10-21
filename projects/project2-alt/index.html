@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Climate-related Disasters: Persuasive Visualizations</title>
+        <style>
+            :root {
+                --color-neutral-95: hsl(220 10% 95%);
+                --color-neutral-90: hsl(220 10% 90%);
+                --color-neutral-80: hsl(220 10% 80%);
+                --color-neutral-70: hsl(220 10% 70%);
+                --color-neutral-60: hsl(220 10% 60%);
+                --color-neutral-50: hsl(220 10% 50%);
+                --color-neutral-40: hsl(220 10% 40%);
+                --color-neutral-30: hsl(220 10% 30%);
+                --color-neutral-20: hsl(220 10% 20%);
+                --color-neutral-10: hsl(220 10% 10%);
+                --font-sans: system-ui, sans-serif;
+            }
+
+            html {
+                font: 100%/1.5 system-ui;
+                counter-reset: figure;
+                background: var(--color-neutral-95);
+                max-width: min(75vw, 80em);
+                margin: 0 auto;
+            }
+
+            @media (max-width: 40em) {
+                html {
+                    max-width: none;
+                    margin: 0 1rem;
+                }
+
+                /* body > main outranks the base main rule declared later */
+                body > main {
+                    padding: 0.1rem 1rem;
+                }
+
+                figure img {
+                    min-width: 640px;
+                }
+            }
+
+            /* Headings */
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                line-height: 1.1;
+                font-weight: 600;
+                text-wrap: balance;
+            }
+
+            h1,
+            h2 {
+                border-bottom: 1px solid var(--color-neutral-80);
+                padding-bottom: 0.2em;
+            }
+
+            h1 {
+                margin-block: 1em 0.5rem;
+                font-size: clamp(2.5em, 150% + 2vh + 2vw, 10vmin);
+                font-weight: 800;
+
+                small {
+                    display: block;
+                    width: fit-content;
+                    padding: 0.2em 0.5em;
+                    margin-inline: auto;
+                    color: white;
+                    background: var(--color-neutral-40);
+                    font-size: 40%;
+                    text-transform: uppercase;
+                    white-space: nowrap;
+                }
+            }
+
+            h2 {
+                font-size: 180%;
+                color: var(--color-neutral-30);
+            }
+
+            h3 {
+                font-size: 130%;
+            }
+
+            /* Lists */
+
+            ul,
+            ol {
+                padding-inline-start: 2em;
+            }
+
+            li {
+                &::marker {
+                    color: var(--color-neutral-40);
+                }
+
+                + li {
+                    margin-top: 0.2em;
+                }
+            }
+
+            /* Sectioning elements */
+
+            header {
+                padding-block: 1em;
+                text-align: center;
+
+                p {
+                    margin-block: 0.2em;
+                }
+            }
+
+            main {
+                background: white;
+                color: var(--color-neutral-20);
+                border-radius: 1rem;
+                padding: 0.1rem 2rem;
+            }
+
+            /* Figures */
+
+            figure {
+                margin: 1em 0;
+                padding: 0.5rem;
+                margin-inline: -0.5em;
+                border: 1px solid var(--color-neutral-80);
+                box-shadow: 0 0.1em 0.2em var(--color-neutral-95);
+                text-align: center;
+                background: white;
+
+                /* Charts scroll sideways on narrow screens instead of shrinking past legibility. */
+                .scroll {
+                    display: block;
+                    overflow-x: auto;
+                }
+
+                img {
+                    display: block;
+                    max-width: 100%;
+                    height: auto;
+                }
+
+                > figcaption {
+                    font: 500 75% var(--font-sans);
+                    background: var(--color-neutral-95);
+                    padding: 0.5rem;
+                    margin: -0.5rem;
+                    margin-top: 0.5rem;
+                    counter-increment: figure;
+                    text-align: left;
+
+                    &::before {
+                        content: "Figure " counter(figure) ": ";
+                        font-weight: bold;
+                        color: var(--color-neutral-40);
+                    }
+
+                    a:not(:hover, :focus, :active) {
+                        color: inherit;
+                        text-decoration: underline;
+                        text-decoration-color: color-mix(
+                            in lab,
+                            currentColor,
+                            transparent 70%
+                        );
+                    }
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <header>
+            <h1>
+                <small>Project 2</small>
+                Persuasive or Deceptive Visualization?
+            </h1>
+
+            <p><strong>Alpaslan Ozbas</strong>, <em>aozbas@ucsd.edu</em></p>
+            <p><strong>Bora Vanli</strong>, <em>bvanli@ucsd.edu</em></p>
+            <p><strong>Yash Goel</strong>, <em>a2goel@ucsd.edu</em></p>
+        </header>
+
+        <main>
+            <h2>Proposition: Climate-related disasters are becoming more frequent.</h2>
+
+            <p>
+                Dataset: the <a href="https://climatedata.imf.org/">IMF Climate Change Indicators Dashboard</a>, table
+                "Climate-related Disasters Frequency", which counts the climate-related disasters recorded each year
+                from 1980 to 2022 in the Emergency Events Database (EM-DAT, maintained by CRED at UCLouvain; the IMF
+                copy was accessed on 31 March 2023). We downloaded the CSV from the dashboard's data service on 22
+                October 2026 and cached it in a data/ folder that is not part of the published site; running
+                <a href="make_charts.py">make_charts.py</a> downloads the same file again. The table is wide, with one
+                column per year, so the first step in the script pivots it to one row per country, disaster type and
+                year. Each country has a TOTAL row and up to six type rows (flood, storm, drought, extreme temperature,
+                landslide and wildfire); the six type rows sum exactly to the totals.
+            </p>
+
+            <p>
+                Sample: the table covers 215 countries and territories and we keep all of them. The 215 include 22
+                territories and dependencies (for example Hong Kong, Guam, Bermuda and Tokelau) and three former
+                states that only have records for their years of existence (the former East and West Germany and the
+                former Soviet Union); we treat each row as a reporting unit and refer to them as countries and
+                territories. No row is dropped. Empty cells mean that EM-DAT recorded no disaster of that kind in that
+                country and year; 5,176 of the 9,245 cells in the TOTAL rows are empty and we read every one of them as
+                zero. A disaster that affects several countries appears once in each, so the world totals count
+                country-events, not distinct events.
+            </p>
+
+            <section>
+                <h3>FOR the Proposition</h3>
+
+                <figure>
+                    <a class="scroll" href="for_more_frequent.png">
+                        <img
+                            src="for_more_frequent.png"
+                            width="2600"
+                            height="1320"
+                            alt="Left: stacked bar chart of the mean number of climate-related disasters recorded per year in each five-year period from 1980-84 to 2020-22, split into flood, storm, drought, extreme temperature, landslide and wildfire. The bars read 122, 145, 203, 240, 340, 356, 312, 322 and 370, with floods the largest and fastest-growing layer. A leader line labels the last bar 3.0x the 1980-84 rate. Right: line chart of the same period means for the 82 countries with at least one record in every period, rising from 104 in 1980-84 to 297 in 2020-22, labelled 2.8x the 1980-84 rate."
+                        />
+                    </a>
+                    <figcaption>
+                        Climate-related disasters recorded worldwide, as the mean number per year within each five-year
+                        period from 1980 to 2022, split by type (left), and the same period means for the 82 countries and
+                        territories with at least one record in every period (right). The last period
+                        covers 2020 to 2022. The sample is described above. Source: IMF Climate Change Indicators
+                        Dashboard, Climate-related Disasters Frequency (EM-DAT, CRED / UCLouvain).
+                    </figcaption>
+                </figure>
+
+                <p>Design Decisions and Rationale:</p>
+
+                <ul>
+                    <li>
+                        <strong>Five-year period means instead of annual counts (score: -1).</strong> Each bar is the
+                        mean number of disasters per year within a five-year period. Averaging smooths the single-year
+                        peak of 407 in 2005 and the run of lower years between 2011 and 2018, so the series reads as a
+                        climb to a plateau and then a new high, where the annual series reads as a rise to 2000 followed
+                        by two decades of fluctuation around 340. The 2010-14 bar does dip below the 2005-09 bar, and we
+                        kept that dip rather than choosing bins that would hide it, which is why we score this as
+                        moderately rather than fully deceptive. We would justify the averaging as noise reduction, and
+                        it is a standard treatment of count data.
+                    </li>
+                    <li>
+                        <strong>A final period of only three years (score: -1).</strong> The last bar covers 2020 to
+                        2022 because the table ends in 2022. Its mean of 370 rests on three years, one of which (2021,
+                        with 391) is the second-highest year in the whole table, and it is drawn with the same width as
+                        the five-year bars. The axis label says 2020-22, so an attentive reader can see that the period
+                        is shorter, but nothing signals that a three-year mean is more volatile than a five-year mean,
+                        and the headline "three times" is computed from this bar.
+                    </li>
+                    <li>
+                        <strong>Stacked bars showing every disaster type, on an axis from zero (score: +1.5).</strong>
+                        The six types are stacked in a single muted ramp with floods at the base, so the reader can see
+                        both the total and its composition, and the axis starts at zero. The stack shows that floods
+                        (44 per year in 1980-84, 200 in 2020-22) and storms account for most of the growth whilst
+                        droughts and landslides are roughly flat, which a single total would conceal. We score this as
+                        clearly earnest because it adds information that could weaken our case and hides none.
+                    </li>
+                    <li>
+                        <strong>A fixed panel of consistent reporters (score: -1).</strong> The right panel repeats
+                        the period means for the 82 countries and territories that have at least one record in every
+                        one of the nine periods: 104 per year in 1980-84, 297 in 2020-22. Its purpose is to answer the
+                        obvious objection that the rise on the left comes from countries that only started appearing in
+                        EM-DAT later, and for that objection it is a fair control, since the same 82 are counted
+                        throughout. It is still a selected group: the 82 are the most disaster-prone and most
+                        consistently documented countries, holding 80% of all records, and a country can report more
+                        events over time without suffering more of them, which a fixed panel cannot rule out. The chart
+                        offers the panel as if it settled the coverage question, and that is why we score it as
+                        moderately deceptive rather than earnest.
+                    </li>
+                    <li>
+                        <strong>Title: "Climate-related disasters are nearly three times as frequent as in the early
+                        1980s, even among consistent reporters" (score: -0.5).</strong> Both claims are true of what
+                        is drawn: 370 against 122 per year for all countries (3.0 times), and 297 against 104 for the
+                        82 consistent reporters (2.8 times, as the panel's own label says). The language is calm and there
+                        is no scope cutoff in the title. "Frequent" nevertheless describes events, whereas the data
+                        describe records, and the title does not say that the comparison is between a three-year and a
+                        five-year mean. We score it as mildly deceptive because the wording is accurate and the subtitle
+                        names the averaging.
+                    </li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>AGAINST the Proposition</h3>
+
+                <figure>
+                    <a class="scroll" href="against_held_steady.png">
+                        <img
+                            src="against_held_steady.png"
+                            width="2600"
+                            height="1320"
+                            alt="Left: line chart of climate-related disasters recorded per year from 2000 to 2022 on an axis from 0 to 500, moving between 287 and 407 with no clear direction, labelled 370 in 2000 and 347 in 2022, with a dashed fitted line labelled trend -0.6 per year. Right: bar chart of 215 countries and territories grouped by the change in their recorded disasters between the 2000s and the 2010s: 21 with 10 or more fewer, 29 with 5 to 9 fewer, 57 with 1 to 4 fewer, 28 unchanged, 56 with 1 to 4 more, 19 with 5 to 9 more and 5 with 10 or more more. Labels read 107 recorded fewer, 80 recorded more, 28 unchanged."
+                        />
+                    </a>
+                    <figcaption>
+                        Climate-related disasters recorded worldwide per year from 2000 to 2022, with an ordinary
+                        least-squares trend line (left), and the 215 countries and territories grouped by the change in
+                        their decade totals, 2010 to 2019 minus 2000 to 2009 (right). The sample is described above.
+                        Source: IMF Climate Change Indicators Dashboard, Climate-related Disasters Frequency (EM-DAT,
+                        CRED / UCLouvain).
+                    </figcaption>
+                </figure>
+
+                <p>Design Decisions and Rationale:</p>
+
+                <ul>
+                    <li>
+                        <strong>Both panels start in 2000, not 1980 (score: -1.5).</strong> The table begins in 1980,
+                        when 104 disasters were recorded; by 2000 the count was 370. The left panel opens in 2000, at
+                        the top of that rise, and the right panel compares the 2000s with the 2010s and leaves out 2020
+                        to 2022, the three years with the highest recent mean (370 per year). A reader sees twenty-three
+                        years of fluctuation and no sign of the twenty years of growth before them. We would justify
+                        the start date on the grounds that EM-DAT's coverage is more complete after 2000, which is a real
+                        argument, but the chart does not make it, and the choice removes the half of the series on which
+                        the proposition rests. This is the most deceptive choice on this side.
+                    </li>
+                    <li>
+                        <strong>A fitted trend line read as the story (score: -0.5).</strong> The dashed line is an
+                        ordinary least-squares fit over the 23 annual counts, with a slope of -0.6 per year. The fit is
+                        genuine and the slope is tiny, which supports "held steady". The line still lends the plateau a
+                        precision it does not have: the counts range from 287 to 407, the last four years (2019 to 2022)
+                        all sit above the line, and a fit from 2014 onwards would slope upwards. We score this as mildly
+                        deceptive because the raw points are drawn alongside the line, so a reader can judge the fit.
+                    </li>
+                    <li>
+                        <strong>Axis from zero to 500 on the annual panel (score: +1).</strong> The value axis includes
+                        zero and is not truncated, so the year-to-year swings are shown at their true size relative to
+                        the level. A truncated axis running from 280 to 410 would have made the same series look like a
+                        collapse and a rebound. We stop short of +2 because the top of the axis is 500 rather than the
+                        450 the data need, which leaves some headroom that flattens the line a little further.
+                    </li>
+                    <li>
+                        <strong>Every country counted once in the decade comparison (score: -1.5).</strong> The right
+                        panel bins countries by the change in their own decade total, so Romania's fall of 33 and a
+                        small island's fall of one each count as one country among the "107 recorded fewer". Of those
+                        107, 57 fell by between one and four, and 29 had five or fewer disasters in the 2000s to begin
+                        with, whilst the ten countries with the most records account for 37% of all disasters in the
+                        2010s. Equal weighting is a defensible way to ask "how widespread was the change", and the world
+                        total did fall from 3,483 to 3,171 between the two decades, but the chart's headline counts are
+                        dominated by countries with very few events, and nothing on the chart says so.
+                    </li>
+                    <li>
+                        <strong>Title: "The number of climate-related disasters recorded each year has held steady
+                        for more than two decades" (score: -0.5).</strong> The claim is true of the 23 years shown,
+                        the language is calm, and "recorded" is more careful than the FOR title's "frequent". The
+                        phrase "more than two decades" names a duration rather than a start date, which makes the
+                        window sound like the whole available history, and a reader who does not know the earlier years
+                        has no reason to ask what came before. We score it as mildly deceptive for that reason, since
+                        the subtitle gives the years.
+                    </li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Final Reflection</h2>
+
+                <figure>
+                    <a class="scroll" href="decision_scores.png">
+                        <img
+                            src="decision_scores.png"
+                            width="2000"
+                            height="1040"
+                            alt="Diverging bar chart of our ten design decisions on the -2 (fully deceptive) to +2 (fully earnest) scale. FOR: five-year period means -1; a final period of only three years -1; stacked bars, every type, axis from zero +1.5; a fixed panel of consistent reporters -1; title -0.5. AGAINST: window opens in 2000 -1.5; a fitted trend line read as the story -0.5; axis from zero to 500 +1; every country weighted equally -1.5; title -0.5."
+                        />
+                    </a>
+                    <figcaption>
+                        Our ten design decisions on the assignment's -2 to +2 scale. Each side has one clearly earnest
+                        decision, and on both sides the most deceptive choice concerns what is counted rather than how it
+                        is drawn.
+                    </figcaption>
+                </figure>
+
+                <figure>
+                    <a class="scroll" href="context_full_series.png">
+                        <img
+                            src="context_full_series.png"
+                            width="2600"
+                            height="960"
+                            alt="Left: line chart of climate-related disasters recorded per year from 1980 to 2022, rising from about 100 to 370 by 2000 and then fluctuating between 287 and 407, with the years 2000 to 2022 shaded. Right: line chart of the number of countries and territories with at least one record in each year, rising from about 60 in the 1980s to about 110 to 130 after 2000."
+                        />
+                    </a>
+                    <figcaption>
+                        The whole series, for reference: annual counts from 1980 to 2022 with the opposing chart's window
+                        shaded (left), and the number of countries and territories with any record in each year (right).
+                        The supporting chart averages this series into periods and the opposing chart shows only the shaded part of it; neither shows the annual series in full. Source: IMF Climate Change
+                        Indicators Dashboard, Climate-related Disasters Frequency (EM-DAT, CRED / UCLouvain).
+                    </figcaption>
+                </figure>
+
+                <p>
+                    The supporting chart was the easier of the two to build, because the long-run numbers are
+                    unambiguous: 1,333 recorded disasters in the 1980s, 2,215 in the 1990s, 3,483 in the 2000s. The
+                    difficulty on that side was the 2010s, which with 3,171 fell short of the 2000s, and most of our
+                    design effort went into choosing an aggregation (five-year means, with 2020 to 2022 as a final
+                    period) under which that shortfall reads as a pause rather than a reversal. The opposing chart was
+                    harder in a different way. Its evidence is real, since the annual count has had no trend since 2000
+                    and more countries recorded fewer disasters in the 2010s than recorded more, but every honest
+                    version of it had to decide what to do with the twenty years before 2000, and the only version that
+                    persuaded was the one that left them out. The most surprising finding was how much of the debate is
+                    about reporting rather than weather: the number of countries with any record in a year roughly
+                    doubled between the 1980s and the 2000s, so the supporting side has to show that the rise survives
+                    among countries that reported throughout, and the opposing side can treat the early years as too
+                    thinly reported to compare.
+                </p>
+
+                <p>
+                    None of our ten decisions required a truncated axis or an altered number. Every value axis starts
+                    at zero, every bar and point is a direct computation from the table, and both charts cite the same
+                    source. What the charts do instead is choose what to count and when to start counting, and those
+                    choices live off the chart: the 2005 peak, the coverage question, the small-state composition of
+                    the "107 recorded fewer" and the twenty years of growth before 2000 appear only in this write-up.
+                    That separation is itself persuasive, since a reader who sees only the image never meets them. It
+                    also matters what the indicator cannot say. EM-DAT records an event only if it killed ten or more
+                    people, affected a hundred or more, or prompted a state of emergency or a call for international
+                    assistance, so the counts depend on population, exposure and administrative capacity as much as on
+                    hazards; they count events rather than their severity, so a flood that displaces a million people
+                    and one that closes a road are each one record; a storm that crosses three countries is three
+                    records; and the improvement in reporting over four decades is not separable from any change in the
+                    climate. The proposition's "more frequent" is therefore measured as "more often recorded", and both
+                    of our charts inherit that limit.
+                </p>
+
+                <p>
+                    We would define ethical analysis and visualization as work in which the reader could, from the
+                    chart and its notes, reconstruct the main ways in which a different reasonable analysis would have
+                    reached a different conclusion. By that standard the stacked types, the full axes, and the reference
+                    figure above are ethical choices, and the shortened window and the panel offered as a settled answer to the coverage question are
+                    not, even though every number on those charts is correct. We would draw the line between acceptable
+                    persuasion and misleading design at the point where a choice depends on the reader not knowing about
+                    the alternative. Emphasis, ordering and a confident headline are acceptable, because they direct
+                    attention to something that is genuinely in the data. A window, a denominator or a unit of counting
+                    chosen because the obvious alternative weakens the conclusion, and then presented as if it were the
+                    only option, is misleading. The boundary is not sharp, since every chart of a 43-year series by 215
+                    countries must leave most of the table out, but the test of whether we would be comfortable showing
+                    the reader the version we left out is a practical one, and on this topic it is the reference figure
+                    above.
+                </p>
+            </section>
+        </main>
+    </body>
+</html>
