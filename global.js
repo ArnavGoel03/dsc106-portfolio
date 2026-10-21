@@ -94,3 +94,49 @@ form?.addEventListener('submit', (event) => {
   }
   location.href = `${form.action}?${params.join('&')}`;
 });
+
+// Lab 4, Step 1.2: fetch and parse a JSON file; returns undefined (and logs) on failure
+export async function fetchJSON(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch projects: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching or parsing JSON data:', error);
+  }
+}
+
+// Data goes into a template literal, so escape it (a description can contain < or &)
+function escapeHTML(text) {
+  return String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+}
+
+const HEADING_LEVELS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+
+// Lab 4, Step 1.4: render projects into a container; reused by the Projects and Home pages
+export function renderProjects(projects, containerElement, headingLevel = 'h2') {
+  if (!(containerElement instanceof Element)) return;
+  const level = HEADING_LEVELS.includes(headingLevel) ? headingLevel : 'h2';
+  containerElement.innerHTML = '';
+
+  for (const project of Array.isArray(projects) ? projects : []) {
+    const article = document.createElement('article');
+    // Image paths in the JSON are relative to the site root, so they work from any page
+    const image = project.image?.startsWith('http') ? project.image : BASE_PATH + (project.image ?? '');
+    const title = escapeHTML(project.title ?? '');
+    article.innerHTML = `
+      <${level}>${title}</${level}>
+      <img src="${escapeHTML(image)}" alt="${title}">
+      <p>${escapeHTML(project.description ?? '')}</p>
+    `;
+    containerElement.appendChild(article);
+  }
+}
+
+// Lab 4, Step 3.2: GitHub profile data
+export async function fetchGitHubData(username) {
+  return fetchJSON(`https://api.github.com/users/${username}`);
+}

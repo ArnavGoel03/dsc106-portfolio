@@ -17,9 +17,35 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   Pre-submit checks the same day: red-team workflow (5 agents, no findings) and a step-by-step spec grader,
   every Lab 3 requirement PASS, live files byte-identical to HEAD. Fallback cut from a parallel session stays
   on the Desktop as DSC106-Lab3-ArnavGoel-FINAL.mp4.
-- Lab 4 (JavaScript II): NOT OUT. https://dsc106.com/labs/lab04/ reads "Page under construction!" as of 2026-10-15.
+- Lab 4 (JavaScript II): code done 2026-10-22, spec https://dsc106.com/labs/lab04/ (now live). Done: lib/projects.json
+  (12 projects, year field, 2025 and 2026), fetchJSON/renderProjects/fetchGitHubData in global.js, projects/projects.js
+  (count in .projects-title), index.js (first 3 projects + GitHub stats for ArnavGoel03 in #profile-stats), CSS grid
+  for the stats. Verified on localhost in Chrome: 12 cards and "12 Projects" on /projects/, 3 cards + live GitHub
+  numbers on home, all images load, no console errors; item-by-item spec grading in the session report.
+  Years are my guesses from project context, edit lib/projects.json if wrong.
+  OWNER ACTION: record a 1 minute mp4 in your own voice (present the site, show the projects page count, the home
+  page latest projects and GitHub stats, say the most interesting thing learned AND answer one "Think about it"
+  question from the lab), then submit repo link + site link + video on Gradescope. Due Fri Oct 23 11:59 PM PDT.
 
 ## Other coursework asked for in the same session
 - ~~DSC 102 second assignment: BLOCKED on the course website URL.~~ Cleared 2026-10-15: it is PA1 (site
   https://aismithlab.com/DSC102FA26/assignments/), verified 80/80 against the TA answers on the real data and
   submitted on Canvas. Record lives in ~/dev/dsc102-pa1/NOTES.md.
+
+## Queue opened 2026-10-22 (IST, session after midnight)
+- Project 2 final (due Wed 10/21 11:59 PM PDT = Thu 12:29 PM IST; late until 10/23): IN FLIGHT. Owner asked for
+  a final for BOTH teams that submitted the checkpoint with them on it:
+  - Team A, Yuxuan Zhu + Andy Li + Yash (official per Team Formation): proposition "National wealth is a reliable
+    predictor of better health". Build at projects/project2-wealth-health/.
+  - Team B, Alpaslan Ozbas + Bora Vanli + Yash: proposition "Women's gains in education have not translated into
+    gains in work". Build at projects/project2-women-work/.
+  Gradescope keeps only the latest group submission per student, so only one team should add Yash to the final.
+  2026-10-22 update: owner wants to stay with the stronger team. Checkpoint comparison favours Team A, so the
+  Team B build was stopped (partial files, if any, in projects/project2-women-work/ are not to be shipped).
+- Apology to Team B on Discord: DRAFTED in chat, owner sends. Read Team A Discord chat: BLOCKED, Discord is
+  logged out in Chrome and desktop control is not available in this session.
+- Checkpoint PDFs: Team B saved to ~/Downloads/DSC106-P2-Checkpoint-TeamOzbasVanli.pdf. Team A download blocked
+  by Chrome's multiple-download guard; read in the viewer instead.
+- DSC 102 Canvas scores: one-time pull + tracker file. BLOCKED on owner allowing canvas.ucsd.edu in the Claude
+  extension site permissions.
+- DSC 106 Lab 4: open, due 10/23 11:59 PM PDT. Lecture 8 check-in draft ready, owner submits.

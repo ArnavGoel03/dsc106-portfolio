@@ -159,3 +159,24 @@ section article {
   color: color-mix(in oklch, canvastext 70%, canvas);
   font-size: 90%;
 }
+
+/* Lab 4, Step 3: GitHub stats as a four-column grid, labels on row 1 and values on row 2 */
+#profile-stats dl {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0;
+  text-align: center;
+
+  dt {
+    grid-row: 1;
+    font-size: 90%;
+    color: color-mix(in oklch, canvastext 70%, canvas);
+  }
+
+  dd {
+    grid-row: 2;
+    margin: 0;
+    font-size: 2em;
+    font-weight: bold;
+  }
+}
