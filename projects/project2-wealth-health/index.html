@@ -240,7 +240,12 @@
                 aggregates are excluded so that every mark is a single country or territory. Of the
                 217 economies in the database, 13 have no 2023 GDP figure and are dropped from both
                 charts (among them Cuba, Eritrea, North Korea, South Sudan, Syria and Yemen), which
-                leaves 204. All charts on this page are produced by
+                leaves 204. These are the same World Bank World Development Indicators series that
+                make up the course dataset,
+                <a href="https://github.com/light-and-salt/World-Bank-Data-by-Indicators">Human Development Indicators, 1960-2020</a>,
+                which the assignment also allows to be taken directly from the World Bank
+                <a href="https://data.worldbank.org/indicator">by indicator</a>; we extend them to
+                2023 so that both charts describe the present. All charts on this page are produced by
                 <a href="make_charts.py">make_charts.py</a>, which fetches the data from the World
                 Bank API and caches it locally.
             </p>
@@ -254,7 +259,7 @@
                             src="for.png"
                             width="2000"
                             height="1320"
-                            alt="Box plots of 2023 life expectancy for 204 countries and territories split into five equal-sized GDP per capita groups. Median life expectancy is higher at every step: 64.9, 71.6, 74.3, 78.0 and 82.4 years, a gap of 17.5 years between the poorest and richest fifths. Countries beyond the whiskers appear as small grey dots."
+                            alt="Box plots of 2023 life expectancy for 204 countries and territories split into five equal-sized GDP per capita groups. Median life expectancy is higher at every step: 64.9, 71.6, 74.3, 78.0 and 82.4 years, a gap of 17.5 years between the poorest and richest fifths. Countries beyond the whiskers appear as small grey dots. Title: Richer countries live longer."
                         /></a>
                     </div>
                     <figcaption>
@@ -269,8 +274,8 @@
 
                 <ul class="decisions">
                     <li>
-                        <span class="score deceptive">&minus;0.5</span>
-                        <strong>Binning countries into equal-count GDP quintiles.</strong>
+                        <span class="score deceptive">&minus;1</span>
+                        <strong>Binning countries into equal-count GDP quintiles, spaced evenly.</strong>
                         Initially, our checkpoint paired a log-scale scatter plot with this box plot,
                         but with more than 200 countries the scatter plot suffered from severe
                         overplotting. Grouping countries into five bins of about 41 each removes the
@@ -278,15 +283,22 @@
                         still show the spread within each group. However, equal-count bins weight
                         every country equally regardless of population, and the richest fifth spans
                         $36K to $257K, so the flattening of the curve among wealthy countries is
-                        folded into a single box where the reader cannot see it. Because that
-                        flattening is exactly the evidence against the proposition (it is the subject
-                        of our AGAINST chart), we score this choice as mildly deceptive.
+                        folded into a single box where the reader cannot see it. The five groups are
+                        also drawn at equal spacing, so each step looks like the same move up the
+                        ladder, when in fact the poorest step spans less than $2,000 and the richest
+                        spans more than $200,000. The steady staircase therefore hides the diminishing
+                        returns that a log or linear income axis would reveal. The dollar ranges are
+                        printed under each box, so the information is present, but only a reader who
+                        studies the tick labels will notice it. Because that flattening is exactly
+                        the evidence against the proposition (it is the subject of our AGAINST
+                        chart), we consider this the most deceptive choice in this chart.
                     </li>
                     <li>
                         <span class="score earnest">+0.5</span>
                         <strong>Showing outliers as small, faint, unlabelled dots.</strong>
                         Countries beyond 1.5 times the interquartile range are drawn as small grey
-                        dots, and the footnote explains them, so no data point is hidden. This
+                        dots, so no data point is hidden; the whisker rule is described here rather
+                        than on the chart, which keeps the footnote to a single line. This
                         matters most in the richest fifth, whose low dots include the United States,
                         Saudi Arabia, Greenland, the Bahamas and Sint Maarten (with Monaco and San
                         Marino above the box), and in the fourth fifth, where Nauru sits far below.
@@ -301,7 +313,8 @@
                         Each box carries its median above the upper whisker, a row along the bottom
                         labelled &ldquo;Gain between fifths&rdquo; gives the difference between
                         adjacent medians (+6.7, +2.7, +3.7, +4.4), each group&rsquo;s dollar range
-                        is printed under it, and a bracket summarises the total gap of 17.5 years.
+                        is printed under it, and a bracket summarises the total gap of 17.5 years from the
+                        poorest to the richest fifth.
                         These are calculated fields that the reader can check directly against the
                         boxes, so they persuade by making the size of the effect concrete rather than
                         by distorting it.
@@ -321,8 +334,8 @@
                     <li>
                         <span class="score earnest">+0.5</span>
                         <strong>Title and subtitle framing.</strong>
-                        The title, &ldquo;The richer the country, the longer its people live&rdquo;,
-                        is an accurate description of the association across all 204 countries and
+                        The title, &ldquo;Richer countries live longer&rdquo;, is short, confident
+                        and an accurate description of the association across all 204 countries and
                         territories, and the subtitle states plainly what is plotted, the number of
                         countries and the year. We score it as mildly earnest rather than fully
                         earnest because the phrasing reads naturally as cause and effect, and the
@@ -340,16 +353,15 @@
                             src="against.png"
                             width="2000"
                             height="1320"
-                            alt="Scatter plot of life expectancy against GDP per capita for the 25 countries in the richest GDP quintile (from $36K) with at least one million people in 2023. Bars showing the median life expectancy of each quarter of these countries sit between 81.6 and 82.9 years, and a dashed least-squares line rises only 0.1 years per extra $10,000 (r = 0.19)."
+                            alt="Scatter plot titled Beyond a certain income, life expectancy stops rising: life expectancy against GDP per capita for the 25 richest countries with at least one million people in 2023. Bars showing the median life expectancy of each quarter of these countries by income sit between 81.6 and 82.9 years, whilst income nearly triples from left to right."
                         /></a>
                     </div>
                     <figcaption>
-                        Life expectancy at birth against GDP per capita for the 25 countries in the
-                        richest fifth by GDP per capita (from $36K) with at least one million people,
-                        2023. The median life expectancy of each quarter of these countries, from the
-                        least to the most wealthy, stays between 81.6 and 82.9 years, and the
-                        least-squares trend rises by only 0.1 years per extra $10,000. Source: World
-                        Bank World Development Indicators.
+                        Life expectancy at birth against GDP per capita for the 25 richest countries
+                        with at least one million people, 2023. Income nearly triples from the least
+                        to the most wealthy of them, yet the median life expectancy of each quarter
+                        stays between 81.6 and 82.9 years. Source: World Bank World Development
+                        Indicators.
                     </figcaption>
                 </figure>
 
@@ -380,8 +392,12 @@
                         richest and longest-lived places in the dataset; the FOR chart keeps them.
                         With them included, the slope is +0.22 years per $10,000 and r = 0.35; with
                         them removed, it falls to +0.14 and r to 0.19. This follows the feedback we
-                        received to remove countries so that the fit reflects the stance. Both rules
-                        are stated in the subtitle, but their effect on the slope is not.
+                        received to remove countries so that the fit reflects the stance. On the
+                        chart, the subtitle says only &ldquo;the 25 richest countries with at least 1
+                        million people&rdquo;, which is exactly true (every country of that size above
+                        $36K is included) but does not mention that the cut-off coincides with the
+                        richest fifth, nor that the size rule removes 16 places, so neither the scope
+                        nor its effect on the slope is visible without close study.
                     </li>
                     <li>
                         <span class="score earnest">+1</span>
@@ -399,15 +415,18 @@
                         single year, so all 25 points are visible and none overlap.
                     </li>
                     <li>
-                        <span class="score deceptive">&minus;0.5</span>
-                        <strong>Scale and unit choices.</strong>
+                        <span class="score deceptive">&minus;1</span>
+                        <strong>Leaving the fitted line off the chart, on a linear axis.</strong>
                         The x-axis is linear rather than logarithmic, which stretches the wealthiest
                         countries far to the right and makes the distance travelled in income look
-                        large relative to the gain in years. The dashed least-squares line is kept,
-                        with its slope and correlation printed, so a reader can check the claim
-                        against the marks; however, we express the slope per $10,000, which makes
-                        the effect sound negligible, whereas across the full range of the chart it
-                        amounts to roughly one year. The y-axis runs from 75 to 90 years, which is a
+                        large relative to the gain in years. We computed a least-squares fit across
+                        the 25 countries (+0.14 years per $10,000, r = 0.19, roughly one year across
+                        the full range of the chart) but chose not to draw it. The median bars carry
+                        the message instead, and because they rise by only about one year in an
+                        uneven staircase, they read as flat, whereas a single fitted line would show
+                        a small but consistent upward slope. Nothing on the chart signals that a fit
+                        was considered, so this omission is detectable only by a reader who estimates
+                        the trend for themselves. The y-axis runs from 75 to 90 years, which is a
                         conventional range for these countries and does not by itself exaggerate the
                         flatness.
                     </li>
@@ -425,15 +444,17 @@
                         which the chart does not mention.
                     </li>
                     <li>
-                        <span class="score deceptive">&minus;0.5</span>
-                        <strong>Title and subtitle framing.</strong>
-                        The title, &ldquo;In the richest fifth of countries, life expectancy levels
-                        off&rdquo;, is calm and accurate for the countries shown, and the subtitle
-                        states the quintile, its dollar floor, the population filter and the year.
-                        We avoided charged wording so that the framing would not alert the reader.
-                        The deception is one of scope: a reader who sees this chart in a debate about
-                        whether wealth predicts health is likely to generalise from the plateau to
-                        the whole world, which the title does nothing to prevent.
+                        <span class="score deceptive">&minus;1</span>
+                        <strong>Title and annotation framing.</strong>
+                        The title, &ldquo;Beyond a certain income, life expectancy stops
+                        rising&rdquo;, is calm and does not name the countries shown, which are left
+                        to the subtitle. The annotation, &ldquo;Income nearly triples from left to
+                        right; median life expectancy stays between 81.6 and 82.9 years&rdquo;, is
+                        accurate and narrates the plateau in plain terms. However, &ldquo;stops
+                        rising&rdquo; slightly overstates a trend that is weak but still positive,
+                        and by not naming its scope the title invites a reader to generalise from 25
+                        rich countries to the proposition as a whole. We avoided charged wording so
+                        that the framing would not alert the reader.
                     </li>
                 </ul>
             </section>
@@ -485,7 +506,8 @@
                     selected because of its effect on the conclusion, and when its consequences are
                     hidden even though the rule itself is disclosed, as with our population filter,
                     which cuts the slope by more than a third and nearly halves the correlation
-                    whilst sounding purely methodological. We therefore believe that disclosure alone
+                    whilst sounding purely methodological, and with the fitted line that we
+                    computed but chose not to draw. We therefore believe that disclosure alone
                     is not sufficient: an ethical chart should also make clear what the excluded data
                     would have shown. The section below applies that test to our own work.
                 </p>

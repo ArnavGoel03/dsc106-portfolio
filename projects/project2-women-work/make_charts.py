@@ -21,7 +21,6 @@ API = "https://api.worldbank.org/v2"
 YEARS = (1990, 2019)
 START_WINDOW = (1990, 2000)  # earliest observation a country may use as its "before"
 END_WINDOW = (2014, 2019)  # latest observation a country may use as its "after"
-SMALL_GAIN = 2  # participation gains below this many points are grouped with declines (FOR chart)
 
 IND = {
     "enroll_f": "SE.TER.ENRR.FE",  # tertiary gross enrollment, female (%)
@@ -119,8 +118,9 @@ def country_changes(df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(out)
 
 
-def footer(fig, extra: str):
-    fig.text(0.012, 0.015, SOURCE + "\n" + extra, ha="left", va="bottom", fontsize=8.5, color=MUTED)
+def footer(fig):
+    # Only the source sits on the chart; sample, definitions and caveats live in the write-up.
+    fig.text(0.012, 0.015, SOURCE, ha="left", va="bottom", fontsize=8.5, color=MUTED)
 
 
 def headline(fig, title: str, sub: str):
@@ -135,17 +135,16 @@ def pct_axis(ax, top: int):
     ax.grid(axis="y", color=GRID)
 
 
-WINDOWS = "change from each one's earliest year (1990 to 2000) to its latest (2014 to 2019)"
 RATIO = "female-to-male participation ratio"  # SL.TLF.CACT.FM.ZS: female rate / male rate x 100
 
 
-def chart_for(df: pd.DataFrame, ch: pd.DataFrame, note: str) -> dict:
+def chart_for(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
     wld = df[df.iso3 == "WLD"].set_index("year").sort_index()
     n = len(ch)
     fig = plt.figure(figsize=(13, 6.6), dpi=200)
     gs = fig.add_gridspec(2, 2, width_ratios=[1, 1.05], wspace=0.2, hspace=0.55,
-                          left=0.05, right=0.985, top=0.80, bottom=0.2)
-    headline(fig, "Women's university enrollment tripled; their labor force participation did not rise",
+                          left=0.05, right=0.985, top=0.80, bottom=0.13)
+    headline(fig, "Worldwide, women's university enrollment tripled; their labor force participation did not rise",
              f"World totals, 1990 to 2019 (left), and the change in each of {n} countries and territories (right).")
 
     # Left: world trend, both series on one percent axis.
@@ -164,6 +163,10 @@ def chart_for(df: pd.DataFrame, ch: pd.DataFrame, note: str) -> dict:
             fontweight="bold", ha="right", va="bottom")
     ax.text(1992, wld.lfp_f.loc[1992] + 2.5, "Women in the labor force", color=WORK, fontweight="bold",
             ha="left", va="bottom")
+    drop = wld.lfp_f.iloc[0] - wld.lfp_f.iloc[-1]
+    ax.annotate(f"Down {drop:.0f} points since 1990", (2012, wld.lfp_f.loc[2012]), xytext=(0, -24),
+                textcoords="offset points", ha="center", va="top", color=WORK, fontsize=10.5,
+                arrowprops=dict(arrowstyle="-", color=WORK, lw=0.8))
     ax.set_xlim(1986, 2023.5)
     pct_axis(ax, 60)
     ax.set_title("The world, 1990 to 2019")
@@ -174,13 +177,12 @@ def chart_for(df: pd.DataFrame, ch: pd.DataFrame, note: str) -> dict:
     bins = np.arange(lo, hi + 5, 5)
     med_e, med_l = ch.d_enroll.median(), ch.d_lfp.median()
     n_e_up = int((ch.d_enroll > 0).sum())
-    n_l_small = int((ch.d_lfp < SMALL_GAIN).sum())
     axes = [fig.add_subplot(gs[0, 1]), fig.add_subplot(gs[1, 1])]
     specs = [
         (axes[0], ch.d_enroll, EDU, med_e, "Change in women's higher-education enrollment",
-         f"{n_e_up} of {n} rose\nMedian: +{med_e:.0f} points"),
+         f"Median country: +{med_e:.0f} points"),
         (axes[1], ch.d_lfp, WORK, med_l, "Change in women's labor force participation",
-         f"{n_l_small} of {n} gained under {SMALL_GAIN} points\nor fell. Median: +{med_l:.1f} points"),
+         f"Median country: +{med_l:.0f} point"),
     ]
     ymax = 0
     for a, series, color, med, title, label in specs:
@@ -198,20 +200,22 @@ def chart_for(df: pd.DataFrame, ch: pd.DataFrame, note: str) -> dict:
     for a in axes:
         a.set_ylim(0, ymax * 1.12)
     axes[1].set_xlabel("Change in percentage points (dashed line: median)")
-    footer(fig, f"Right: {WINDOWS}.\n{note}\nEnrollment is the gross tertiary rate; participation covers women aged 15+.")
+    footer(fig)
     fig.savefig(HERE / "for_education_not_work.png", facecolor="white")
     plt.close(fig)
-    return {"n": n, "n_e_up": n_e_up, "n_l_small": n_l_small, "n_l_fell": int((ch.d_lfp < 0).sum()),
+    return {"n": n, "n_e_up": n_e_up, "n_l_rose": int((ch.d_lfp > 0).sum()), "n_l_fell": int((ch.d_lfp < 0).sum()),
             "med_e": round(med_e, 1), "med_l": round(med_l, 1), "bins": (bins[0], bins[-1]),
             "world_enroll": (round(wld.enroll_f.iloc[0], 1), round(wld.enroll_f.iloc[-1], 1)),
             "world_lfp": (round(wld.lfp_f.iloc[0], 1), round(wld.lfp_f.iloc[-1], 1)),
             "world_ratio": (round(wld.ratio_fm.iloc[0], 1), round(wld.ratio_fm.iloc[-1], 1))}
 
 
-def chart_against(df: pd.DataFrame, ch: pd.DataFrame, note: str) -> dict:
+def chart_against(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
     ch = ch.copy()
     ch["q"] = pd.qcut(ch.d_enroll, 4, labels=False)
     grp = ch.groupby("q").agg(lo=("d_enroll", "min"), hi=("d_enroll", "max"), med=("d_ratio", "median"),
+                              p25=("d_ratio", lambda s: s.quantile(0.25)),
+                              p75=("d_ratio", lambda s: s.quantile(0.75)),
                               share=("d_ratio", lambda s: (s > 0).mean()), n=("d_ratio", "size"))
     top = ch[ch.q == ch.q.max()]
     med = top[["e0", "e1", "r0", "r1"]].median()
@@ -219,62 +223,108 @@ def chart_against(df: pd.DataFrame, ch: pd.DataFrame, note: str) -> dict:
     spearman = ch.d_enroll.rank().corr(ch.d_ratio.rank())
 
     fig = plt.figure(figsize=(13, 6.6), dpi=200)
-    gs = fig.add_gridspec(1, 2, width_ratios=[0.8, 1.2], wspace=0.3,
-                          left=0.04, right=0.985, top=0.78, bottom=0.27)
-    headline(fig, "Where women's enrollment rose more, women's participation rose more relative to men's",
+    outer = fig.add_gridspec(1, 2, width_ratios=[0.8, 1.2], wspace=0.24,
+                             left=0.04, right=0.985, top=0.70, bottom=0.2)
+    headline(fig, "Where women's enrollment rose more, the gender gap in labor force participation narrowed more",
              f"The median change in the {RATIO} rises across four groups of countries and territories "
              "ordered by enrollment gain.")
 
-    # Left: slope chart of the largest-rise group, education and work side by side.
-    ax = fig.add_subplot(gs[0, 0])
-    ax.set_axisbelow(True)
-    for (c0, c1), color, name in [(("e0", "e1"), EDU, "Women's higher-\neducation enrollment"),
-                                  (("r0", "r1"), WORK, "Female-to-male\nparticipation ratio")]:
+    # Left: the largest-rise group, education and work in two small panels on one shared 0-80% scale.
+    left = outer[0, 0].subgridspec(1, 2, wspace=0.12)
+    axl = [fig.add_subplot(left[0, 0])]
+    axl.append(fig.add_subplot(left[0, 1], sharey=axl[0]))
+    for a, (c0, c1), color, name in [(axl[0], ("e0", "e1"), EDU, "Women's higher-\neducation enrollment"),
+                                     (axl[1], ("r0", "r1"), WORK, "Female-to-male\nparticipation ratio")]:
+        a.set_axisbelow(True)
         v0, v1 = med[c0], med[c1]
-        ax.plot([0, 1], [v0, v1], color=color, lw=3, marker="o", ms=7)
-        ax.annotate(f"{name}  {v0:.0f}%", (0, v0), xytext=(-10, 0), textcoords="offset points",
-                    ha="right", va="center", color=color, fontweight="bold", fontsize=10)
-    hi_e = med.e1 >= med.r1  # the higher end value takes the upper label so the two never touch
-    for v, color, up in [(med.e1, EDU, hi_e), (med.r1, WORK, not hi_e)]:
-        ax.annotate(f"{v:.0f}%", (1, v), xytext=(10, 7 if up else -7), textcoords="offset points",
-                    ha="left", va="center", color=color, fontweight="bold")
-    ax.set_xlim(-1.25, 1.35)
-    ax.set_xticks([0, 1])
-    ax.set_xticklabels(["Earliest year\n(1990 to 2000)", "Latest year\n(2014 to 2019)"])
-    ax.tick_params(axis="x", length=0)
-    pct_axis(ax, 80)
-    ax.spines["left"].set_visible(False)
-    ax.tick_params(axis="y", length=0, labelleft=False)  # values are labelled directly at each dot
-    ax.set_title(f"Largest-rise group ({len(top)} countries and\nterritories), median values")
+        a.plot([0, 1], [v0, v1], color=color, lw=3, marker="o", ms=7)
+        a.annotate(f"{v0:.0f}%", (0, v0), xytext=(0, -16), textcoords="offset points", ha="center",
+                   color=color, fontweight="bold")
+        a.annotate(f"{v1:.0f}%", (1, v1), xytext=(0, 9), textcoords="offset points", ha="center",
+                   color=color, fontweight="bold")
+        steep = v1 - v0 > 30  # steep line: label to its lower right; shallow line: label below it
+        a.annotate(f"+{v1 - v0:.0f} points", (0.5, (v0 + v1) / 2), xytext=(12, -6) if steep else (6, -18),
+                   textcoords="offset points", ha="left" if steep else "center", va="center", color=color,
+                   fontsize=10.5, fontweight="bold")
+        a.set_title(name, fontsize=10.5, color=color)
+        a.set_xlim(-0.35, 1.35)
+        a.set_xticks([0, 1])
+        a.set_xticklabels(["Start", "End"])
+        a.tick_params(axis="x", length=0)
+        a.grid(axis="y", color=GRID)
+    pct_axis(axl[0], 80)
+    axl[1].tick_params(axis="y", labelleft=False, length=0)
+    fig.text(0.04, 0.815, f"Largest-rise group ({len(top)} countries and territories), median values",
+             ha="left", fontsize=12.5, fontweight="bold", color=INK)
 
-    # Right: quartiles of enrollment gain against the median change in the ratio.
-    ax2 = fig.add_subplot(gs[0, 1])
+    # Right: quartiles of enrollment gain; dot = median change in the ratio, line = middle half.
+    ax2 = fig.add_subplot(outer[0, 1])
     ax2.set_axisbelow(True)
+    ax2.axhline(0, color=INK, lw=1)
     x = np.arange(len(grp))
-    share_y = grp.med.max() * 1.22  # one shared row so the shares read as a table, not as a second chart
+    ytop = grp.p75.max() + 2
     for i, r in grp.iterrows():
-        ax2.bar(i, r.med, color=WORK, width=0.62)
-        ax2.text(i, r.med + 0.2, f"+{r.med:.1f}", ha="center", va="bottom", fontsize=13,
-                 fontweight="bold", color=WORK)
-        ax2.text(i, share_y, f"{r.share * 100:.0f}% of group\ngained", ha="center", va="bottom",
-                 fontsize=9, color=MUTED)
-    labels = [f"{r.lo:+.1f} to {r.hi:+.1f}" for _, r in grp.iterrows()]
+        ax2.plot([i, i], [r.p25, r.p75], color=WORK, lw=7, alpha=0.28, solid_capstyle="butt")
+        ax2.plot(i, r.med, "o", color=WORK, ms=13, zorder=3)
+        ax2.annotate(f"{r.med:+.1f}", (i, r.med), xytext=(13, 0), textcoords="offset points", ha="left",
+                     va="center", fontsize=12.5, fontweight="bold", color=WORK,
+                     bbox=dict(boxstyle="square,pad=0.15", fc="white", ec="none"))
+    last = grp.iloc[-1]
+    ax2.text(len(grp) - 1, last.p25 - 0.8, f"Even its lower quarter\ngained {last.p25:+.1f}", ha="center",
+             va="top", fontsize=10, color=WORK)
     ax2.set_xticks(x)
-    ax2.set_xticklabels(labels, color=EDU, fontsize=10)
+    ax2.set_xticklabels([f"{r.lo:+.1f} to {r.hi:+.1f}" for _, r in grp.iterrows()], color=EDU, fontsize=10)
     ax2.tick_params(axis="x", length=0)
-    ax2.set_ylim(0, grp.med.max() * 1.45)
-    ax2.set_ylabel(f"Change in {RATIO}\n(points, median of group)")
+    ax2.set_xlim(-0.5, len(grp) - 0.3)
+    ax2.set_ylim(min(grp.p25.min() - 1.5, -1), ytop)
+    ax2.set_yticks(np.arange(-5, ytop, 5))
+    ax2.set_ylabel("Change in participation ratio, points\n(dot = median, band = middle half)")
     ax2.set_xlabel(f"Rise in women's higher-education enrollment, percentage points\n"
                    f"({len(ch)} countries and territories in four equal groups)", color=EDU, labelpad=8)
     ax2.grid(axis="y", color=GRID)
-    ax2.set_title("Median change in the participation ratio, by enrollment gain")
-    footer(fig, f"Both panels: {WINDOWS}.\n{note}\nParticipation ratio = female rate / male rate x 100, ages 15+. "
-                f"Across all {len(ch)}, the correlation between the two changes is {pearson:.2f} (Pearson) "
-                f"and {spearman:.2f} (Spearman).")
+    ax2.set_title("Change in the participation ratio, by enrollment gain")
+    footer(fig)
     fig.savefig(HERE / "against_education_did_pay.png", facecolor="white")
     plt.close(fig)
     return {"groups": grp.round(2).to_dict("index"), "top_medians": med.round(1).to_dict(),
             "pearson": round(pearson, 3), "spearman": round(spearman, 3)}
+
+
+# Decision scores shown in the reflection figure; must match the scores written in index.html.
+SCORES = {
+    "FOR": [("One percentage axis for two measures", -1), ("Women's own rate, not the ratio", -1.5),
+            ("Paired histograms on a shared axis", 1), ("Median callouts on the histograms", -1),
+            ("Title framed on world totals", -0.5)],
+    "AGAINST": [("Opening with the largest-rise group", -1), ("Two small panels on one 0 to 80% scale", 1.5),
+                ("The ratio, not women's own rate", -1.5), ("Group medians with middle-half bands", -1.5),
+                ("Title framed as an association", -0.5)],
+}
+
+
+def chart_scores() -> None:
+    rows = [(side, label, s) for side, items in SCORES.items() for label, s in items]
+    fig, ax = plt.subplots(figsize=(10, 5.2), dpi=200)
+    fig.subplots_adjust(left=0.36, right=0.93, top=0.86, bottom=0.14)
+    y = np.arange(len(rows))[::-1]
+    for yi, (side, label, s) in zip(y, rows):
+        ax.barh(yi, s, color=EDU if s > 0 else WORK, height=0.6)
+        ax.text(s + (0.06 if s > 0 else -0.06), yi, f"{s:+g}", va="center", ha="left" if s > 0 else "right",
+                fontsize=10, fontweight="bold", color=INK)
+    ax.set_yticks(y)
+    ax.set_yticklabels([f"{side}: {label}" for side, label, _ in rows], fontsize=10)
+    ax.tick_params(axis="y", length=0)
+    ax.axhline(y[len(SCORES["FOR"]) - 1] - 0.5, color=GRID, lw=1)
+    ax.axvline(0, color=INK, lw=1)
+    ax.set_xlim(-2, 2)
+    ax.set_xticks([-2, -1, 0, 1, 2])
+    ax.set_xticklabels(["-2\nfully deceptive", "-1", "0", "+1", "+2\nfully earnest"])
+    ax.grid(axis="x", color=GRID)
+    ax.set_axisbelow(True)
+    ax.spines["left"].set_visible(False)
+    fig.suptitle("Our design decisions, scored from deceptive to earnest", x=0.02, ha="left", fontsize=14,
+                 fontweight="bold", color=INK)
+    fig.savefig(HERE / "decision_scores.png", facecolor="white")
+    plt.close(fig)
 
 
 def main():
@@ -285,8 +335,10 @@ def main():
     pool = df[df.iso3.isin(keep)].dropna(subset=["lfp_f"]).iso3.nunique()
     note = (f"Sample: {len(ch)} of the {pool} countries and territories with participation data; the other "
             f"{pool - len(ch)} lack enrollment data in one of the two windows.")
-    print("for:", chart_for(df, ch, note))
-    print("against:", chart_against(df, ch, note))
+    print(note)  # quoted in the Sample paragraph of index.html
+    print("for:", chart_for(df, ch))
+    print("against:", chart_against(df, ch))
+    chart_scores()
 
 
 if __name__ == "__main__":

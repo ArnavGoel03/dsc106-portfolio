@@ -134,6 +134,8 @@ def chart_for(df: pd.DataFrame) -> dict:
     )
     ax.text(4.82, (medians[0] + medians[4]) / 2, f"+{gap:.1f}\nyears", color=HIGHLIGHT,
             fontsize=12, fontweight="bold", va="center")
+    ax.text(4.82, (medians[0] + medians[4]) / 2 - 2.6, "poorest to\nrichest fifth", color=HIGHLIGHT,
+            fontsize=9, va="top")
     ax.text(-0.45, 50.9, "Gain between fifths:", fontsize=9, color=MUTED)
 
     ax.set_xticks(range(5), labels, fontsize=9.5)
@@ -145,12 +147,12 @@ def chart_for(df: pd.DataFrame) -> dict:
     ax.set_xlabel("Countries grouped into five equal-sized groups by GDP per capita (current US$)",
                   labelpad=8)
 
-    fig.suptitle("The richer the country, the longer its people live",
+    fig.suptitle("Richer countries live longer",
                  x=0.07, y=0.975, ha="left", fontsize=17, fontweight="bold", color=INK)
     fig.text(0.07, 0.905,
              f"Life expectancy at birth by GDP per capita quintile, {len(df)} countries and territories, {YEAR}",
              fontsize=10.5, color=MUTED)
-    fig.text(0.07, 0.015, SOURCE + "\nBoxes span the middle 50% of countries; whiskers 1.5 x IQR; small dots are countries beyond the whiskers.",
+    fig.text(0.07, 0.015, SOURCE + "\nBoxes show the middle half of countries in each group.",
              fontsize=8, color=MUTED)
     fig.subplots_adjust(left=0.07, right=0.97, top=0.86, bottom=0.19)
     fig.savefig(HERE / "for.png")
@@ -194,11 +196,7 @@ def chart_against(df: pd.DataFrame) -> dict:
     ax.scatter(x[~is_us], y[~is_us], s=46, color=POINT, alpha=0.85, edgecolor="white", lw=0.8, zorder=3)
     ax.scatter(x[is_us], y[is_us], s=52, color=INK, edgecolor="white", lw=0.8, zorder=4)
 
-    xs = np.linspace(x.min() - 2, x.max() + 2, 50)
-    ax.plot(xs, slope * xs + intercept, color=MUTED, lw=1.2, ls=(0, (4, 3)), zorder=1.5)
-    ax.text(108, 80.4,
-            f"Dashed trend: +{slope * 10:.1f} years per extra $10,000 (r = {r:.2f})",
-            ha="right", fontsize=9.5, color=MUTED)
+    # The least-squares fit is computed for the write-up but deliberately not drawn.
 
     # Computed field: median life expectancy within equal-count GDP groups.
     rich["grp"] = pd.qcut(rich.gdp, RICH_GROUPS, labels=False)
@@ -210,11 +208,12 @@ def chart_against(df: pd.DataFrame) -> dict:
         # All median values sit in one row along the empty bottom of the plot.
         ax.text((st.lo + st.hi) / 2000, MEDIAN_ROW_Y, f"{st.med:.1f}", ha="center",
                 fontsize=9.5, color=STEP, fontweight="bold", zorder=6)
-    ax.text(34, MEDIAN_ROW_Y + 0.6, "Median of each bar (years):", fontsize=9, color=STEP)
-    ax.text(108, 79.6,
-            f"Solid bars: median of each quarter of these countries, "
-            f"{steps.med.min():.1f} to {steps.med.max():.1f} years",
-            ha="right", fontsize=9.5, color=STEP)
+    ax.text(34, MEDIAN_ROW_Y + 0.6, "Median life expectancy of each income group (years):",
+            fontsize=9, color=STEP)
+    ax.text(108, 87.6,
+            f"Income nearly triples from left to right;\n"
+            f"median life expectancy stays between {steps.med.min():.1f} and {steps.med.max():.1f} years",
+            ha="right", va="top", fontsize=10.5, color=STEP, fontweight="bold", linespacing=1.4)
 
     for _, row in rich.iterrows():
         if row["name"] in AGAINST_LABELS:
@@ -234,14 +233,13 @@ def chart_against(df: pd.DataFrame) -> dict:
     ax.grid(True, color=GRID)
     ax.set_axisbelow(True)
 
-    fig.suptitle("In the richest fifth of countries, life expectancy levels off",
+    fig.suptitle("Beyond a certain income, life expectancy stops rising",
                  x=0.07, y=0.975, ha="left", fontsize=17, fontweight="bold", color=INK)
     fig.text(0.07, 0.905,
-             f"Life expectancy vs. GDP per capita, {len(rich)} countries in the richest GDP quintile "
-             f"(from {money(floor)}) with at least {MIN_POP / 1e6:.0f} million people, {YEAR}",
+             f"Life expectancy at birth vs. GDP per capita, the {len(rich)} richest countries "
+             f"with at least {MIN_POP / 1e6:.0f} million people, {YEAR}",
              fontsize=10.5, color=MUTED)
-    fig.text(0.07, 0.015, SOURCE + f"\nDashed line: least-squares fit across the {len(rich)} countries shown. "
-             f"Bars: median within {RICH_GROUPS} equal-sized GDP groups.",
+    fig.text(0.07, 0.015, SOURCE + "\nBars: median life expectancy of each quarter of these countries by income.",
              fontsize=8, color=MUTED)
     fig.subplots_adjust(left=0.07, right=0.97, top=0.86, bottom=0.15)
     fig.savefig(HERE / "against.png")
