@@ -49,3 +49,12 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
 - DSC 102 Canvas scores: one-time pull + tracker file. BLOCKED on owner allowing canvas.ucsd.edu in the Claude
   extension site permissions.
 - DSC 106 Lab 4: open, due 10/23 11:59 PM PDT. Lecture 8 check-in draft ready, owner submits.
+
+- 2026-10-22 status, Project 2 finals (both live on GitHub Pages, checked over the network: page 200, both PNGs 200):
+  - Team A (Zhu, Li, Goel): https://arnavgoel03.github.io/dsc106-portfolio/projects/project2-wealth-health/
+  - Team B (Ozbas, Vanli, Goel): https://arnavgoel03.github.io/dsc106-portfolio/projects/project2-women-work/
+  Each went through: build, independent strict rubric grade, two aggressive red-team agents (harsh TA grader +
+  peer reviewer/fact checker re-running make_charts.py), fixes, re-score. Builder self-score after fixes: A ~13/14,
+  B ~13.5/14; not independently re-graded after the last round. Charts viewed by eye after the final render.
+  OWNER ACTION: each team submits its own URL plus the team feedback form on Gradescope (due 10/21 11:59 PM PDT,
+  late until 10/23). Only ONE team may add Yash, since Gradescope keeps the latest group submission per student.
