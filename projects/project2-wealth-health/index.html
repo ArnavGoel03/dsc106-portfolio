@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Project 2 Report</title>
+        <style>
+            :root {
+                --color-neutral-95: hsl(220 10% 95%);
+                --color-neutral-90: hsl(220 10% 90%);
+                --color-neutral-80: hsl(220 10% 80%);
+                --color-neutral-70: hsl(220 10% 70%);
+                --color-neutral-60: hsl(220 10% 60%);
+                --color-neutral-50: hsl(220 10% 50%);
+                --color-neutral-40: hsl(220 10% 40%);
+                --color-neutral-30: hsl(220 10% 30%);
+                --color-neutral-20: hsl(220 10% 20%);
+                --color-neutral-10: hsl(220 10% 10%);
+                --color-earnest: hsl(210 70% 35%);
+                --color-deceptive: hsl(5 65% 42%);
+            }
+
+            html {
+                font: 100%/1.5 system-ui;
+                counter-reset: figure;
+                background: var(--color-neutral-95);
+                max-width: min(75vw, 80em);
+                margin: 0 auto;
+            }
+
+            @media (max-width: 40em) {
+                html {
+                    max-width: none;
+                    margin: 0 1rem;
+                }
+
+                /* body > main outranks the base main rule declared later */
+                body > main {
+                    padding: 0.1rem 1rem;
+                }
+            }
+
+            /* Headings */
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                line-height: 1.1;
+                font-weight: 600;
+                text-wrap: balance;
+            }
+
+            h1,
+            h2 {
+                border-bottom: 1px solid var(--color-neutral-80);
+                padding-bottom: 0.2em;
+            }
+
+            h1 {
+                margin-block: 1em 0.5rem;
+                font-size: clamp(2.5em, 150% + 2vh + 2vw, 10vmin);
+                font-weight: 800;
+
+                small {
+                    display: block;
+                    width: fit-content;
+                    padding: 0.2em 0.5em;
+                    margin-inline: auto;
+                    color: white;
+                    background: var(--color-neutral-40);
+                    font-size: 40%;
+                    text-transform: uppercase;
+                    white-space: nowrap;
+                }
+            }
+
+            h2 {
+                font-size: 180%;
+                color: var(--color-neutral-30);
+            }
+
+            h3 {
+                font-size: 130%;
+            }
+
+            /* Lists */
+
+            ul,
+            ol {
+                padding-inline-start: 2em;
+            }
+
+            li {
+                &::marker {
+                    color: var(--color-neutral-40);
+                }
+
+                + li {
+                    margin-top: 0.2em;
+                }
+            }
+
+            /* Sectioning elements */
+
+            header {
+                padding-block: 1em;
+                text-align: center;
+
+                ul {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+            }
+
+            main {
+                background: white;
+                color: var(--color-neutral-20);
+                border-radius: 1rem;
+                padding: 0.1rem 2rem;
+            }
+
+            /* Figures */
+
+            figure {
+                margin: 1em 0;
+                padding: 0.5rem;
+                margin-inline: -0.5em;
+                border: 1px solid var(--color-neutral-80);
+                box-shadow: 0 0.1em 0.2em var(--color-neutral-95);
+                text-align: center;
+                background: white;
+
+                img {
+                    max-width: 100%;
+                    height: auto;
+                }
+
+                > figcaption {
+                    font: 500 75% system-ui, sans-serif;
+                    background: var(--color-neutral-95);
+                    padding: 0.5rem;
+                    margin: -0.5rem;
+                    margin-top: 0.5rem;
+                    counter-increment: figure;
+                    text-align: left;
+
+                    &::before {
+                        content: "Figure " counter(figure) ": ";
+                        font-weight: bold;
+                        color: var(--color-neutral-40);
+                    }
+
+                    a:not(:hover, :focus, :active) {
+                        color: inherit;
+                        text-decoration: underline;
+                        text-decoration-color: color-mix(
+                            in lab,
+                            currentColor,
+                            transparent 70%
+                        );
+                    }
+                }
+            }
+
+            /* Design decision scores */
+
+            .score {
+                display: inline-block;
+                min-width: 3.2em;
+                padding: 0 0.4em;
+                margin-right: 0.3em;
+                border-radius: 0.3em;
+                font-weight: 700;
+                font-variant-numeric: tabular-nums;
+                text-align: center;
+                color: white;
+                background: var(--color-neutral-40);
+            }
+
+            .score.earnest {
+                background: var(--color-earnest);
+            }
+
+            .score.deceptive {
+                background: var(--color-deceptive);
+            }
+
+            .decisions li + li {
+                margin-top: 0.8em;
+            }
+        </style>
+    </head>
+
+    <body>
+        <header>
+            <h1>
+                <small>Project 2</small>
+                Persuasive or Deceptive Visualization?
+            </h1>
+
+            <ul>
+                <li><strong>Yuxuan Zhu</strong>, <em>yuz329@ucsd.edu</em></li>
+                <li><strong>Andy Li</strong>, <em>aml050@ucsd.edu</em></li>
+                <li><strong>Yash Goel</strong>, <em>a2goel@ucsd.edu</em></li>
+            </ul>
+        </header>
+
+        <main>
+            <h2>Proposition: National wealth is a reliable predictor of better health.</h2>
+
+            <p>
+                We measure national wealth as GDP per capita in current US dollars
+                (<code>NY.GDP.PCAP.CD</code>) and health as life expectancy at birth
+                (<code>SP.DYN.LE00.IN</code>), both from the
+                <a href="https://data.worldbank.org/indicator">World Bank World Development Indicators</a>
+                for 2023, the latest year with near complete coverage. Regional and income
+                aggregates are excluded so that every mark is a single country. The charts are
+                produced by <a href="make_charts.py">make_charts.py</a> from cached API responses.
+            </p>
+
+            <section>
+                <h3>FOR the Proposition</h3>
+
+                <figure>
+                    <a href="for.png"><img
+                        src="for.png"
+                        width="2000"
+                        height="1320"
+                        alt="Box plots of 2023 life expectancy for 204 countries split into five equal-sized GDP per capita groups. Median life expectancy rises at every step: 64.9, 71.6, 74.3, 78.0 and 82.4 years, a gap of 17.5 years between the poorest and richest fifths."
+                    /></a>
+                    <figcaption>
+                        Life expectancy at birth by GDP per capita quintile, 204 countries, 2023.
+                        Median life expectancy rises at every step of the income ladder, from 64.9
+                        years in the poorest fifth to 82.4 years in the richest fifth. Source:
+                        World Bank World Development Indicators.
+                    </figcaption>
+                </figure>
+
+                <p>Design Decisions and Rationale:</p>
+
+                <ul class="decisions">
+                    <li>
+                        <span class="score earnest">+0.5</span>
+                        <strong>Binning countries into equal-count GDP quintiles.</strong>
+                        Initially, our checkpoint paired a log-scale scatter plot with this box plot,
+                        but with more than 200 countries the scatter plot suffered from severe
+                        overplotting. Grouping countries into five bins of about 41 countries each
+                        removes the overplotting entirely and turns a noisy cloud into a clean,
+                        monotonic staircase that is easy to read at a glance. The transformation is
+                        honest about the spread within each group, which is why we score it as
+                        earnest; however, it is worth mentioning that quintiles weight every country
+                        equally regardless of population, and the richest fifth spans $36K to $257K,
+                        so the flattening of the curve among wealthy countries is compressed into a
+                        single box where the reader cannot see it.
+                    </li>
+                    <li>
+                        <span class="score deceptive">&minus;1.5</span>
+                        <strong>Hiding outliers.</strong>
+                        We drew the whiskers at 1.5 times the interquartile range and suppressed the
+                        individual outlier points. We would justify this as a way of keeping the chart
+                        uncluttered, and the footnote states only the whisker rule. In practice, the hidden
+                        points are almost entirely rich countries with comparatively short lives:
+                        the United States, Saudi Arabia, Greenland, the Bahamas, Sint Maarten, Monaco
+                        and San Marino in the richest fifth, and Nauru in the fourth. Removing them
+                        makes the richest box look uniformly healthy, and the footnote describes the
+                        whisker rule without stating that points beyond it were dropped, so we
+                        consider this our most deceptive choice for this chart.
+                    </li>
+                    <li>
+                        <span class="score earnest">+0.5</span>
+                        <strong>Connecting the medians and labelling every step.</strong>
+                        A dashed line links the five medians, each median is printed in years, the
+                        gain between adjacent quintiles is written along the bottom (+6.7, +2.7,
+                        +3.7, +4.4), and a red bracket summarises the total gap of 17.5 years. These
+                        numbers are exact and allow a reader to verify our claim, which is earnest.
+                        Whilst a line between categorical groups is a mild departure from
+                        convention, it encourages the reader to see a single path that countries
+                        climb as they grow richer, which is a stronger story than the data alone
+                        supports.
+                    </li>
+                    <li>
+                        <span class="score deceptive">&minus;0.5</span>
+                        <strong>Starting the y-axis at 50 years.</strong>
+                        Life expectancy has no meaningful zero, so a truncated axis is common
+                        practice and the axis is clearly labelled with gridlines every five years.
+                        Nevertheless, a floor of 50 places the lowest whisker just above the bottom
+                        and the richest box near the top, which makes the climb across quintiles
+                        fill the entire plot and appear as steep as possible. A lower floor, such as
+                        40, would make the same differences look more modest.
+                    </li>
+                    <li>
+                        <span class="score deceptive">&minus;0.5</span>
+                        <strong>Title and subtitle framing.</strong>
+                        The title, &ldquo;The richer the country, the longer its people live&rdquo;,
+                        is a fair description of the association. The subtitle, however, states that
+                        &ldquo;each step up the income ladder adds years of life&rdquo;, which uses
+                        causal language (&ldquo;adds&rdquo;) for what is a cross-sectional comparison
+                        of different countries in one year. We kept the source, the year, the
+                        country count and the definition of the boxes on the chart so that the
+                        framing is balanced by transparent context.
+                    </li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>AGAINST the Proposition</h3>
+
+                <figure>
+                    <a href="against.png"><img
+                        src="against.png"
+                        width="2000"
+                        height="1320"
+                        alt="Scatter plot of life expectancy against GDP per capita for 32 countries above $30,000 with at least one million people in 2023. Bars showing the median life expectancy of each quarter of these countries sit between 81.8 and 82.9 years, and a dashed least-squares line rises only 0.1 years per extra $10,000 (r = 0.15). The United States is highlighted as rich but short-lived compared with Japan."
+                    /></a>
+                    <figcaption>
+                        Life expectancy at birth against GDP per capita for the 32 countries with GDP
+                        per capita above $30,000 and at least one million people, 2023. The median
+                        life expectancy of each quarter of these countries, from the least to the most
+                        wealthy, stays between 81.8 and 82.9 years, and the least-squares trend rises
+                        by only 0.1 years per extra $10,000.
+                        Source: World Bank World Development Indicators.
+                    </figcaption>
+                </figure>
+
+                <p>Design Decisions and Rationale:</p>
+
+                <ul class="decisions">
+                    <li>
+                        <span class="score deceptive">&minus;1.5</span>
+                        <strong>Restricting the chart to countries above $30,000.</strong>
+                        Initially, our preferred AGAINST chart compared the change in life expectancy
+                        with the change in income, but its fitted slope was still positive, so it
+                        supported the proposition rather than opposing it. The final chart therefore
+                        builds on the &ldquo;rich club&rdquo; scatter plot from our checkpoint and shows
+                        only the range in which the relationship flattens. Across all 204 countries, the
+                        correlation between log GDP per capita and life expectancy is 0.86, and this
+                        chart never shows it. The title speaks only of &ldquo;wealthy nations&rdquo; and
+                        the $30,000 threshold appears in the subtitle, so readers are likely to generalise &ldquo;money buys almost no more life&rdquo;
+                        to the proposition as a whole, which is the purpose of the choice.
+                    </li>
+                    <li>
+                        <span class="score deceptive">&minus;1.5</span>
+                        <strong>Excluding countries with fewer than one million people.</strong>
+                        We would justify this filter on the grounds that life expectancy estimates
+                        for very small populations are unstable, and the rule is disclosed in the
+                        subtitle. It is worth mentioning, however, that it removes twenty territories
+                        and microstates, including Monaco, Liechtenstein, Luxembourg and Bermuda,
+                        which are the richest and among the longest-lived places in the dataset.
+                        With them included, the slope is +0.25 years per $10,000 and r = 0.36; with
+                        them removed, the slope falls to +0.11 and r to 0.15. This follows the
+                        feedback we received to remove countries so that the fit reflects the
+                        stance, and because the rule sounds methodological, few readers are likely
+                        to question it.
+                    </li>
+                    <li>
+                        <span class="score deceptive">&minus;1</span>
+                        <strong>Axis ranges that flatten the trend.</strong>
+                        The y-axis spans twenty years (70 to 90) whilst the countries shown only span
+                        about seven (78.4 to 85.2), so the points sit in a narrow band and the trend
+                        line looks almost horizontal. The x-axis is linear rather than logarithmic,
+                        which stretches the wealthiest countries far to the right and makes the
+                        distance travelled in income look enormous relative to the gain in years.
+                        Both axes are labelled and gridded, so the deception is only detectable on
+                        close study.
+                    </li>
+                    <li>
+                        <span class="score earnest">+1</span>
+                        <strong>Median bars for each quarter of the countries, with a stated fit.</strong>
+                        We split the 32 countries into four equal-sized groups of eight by GDP per
+                        capita and drew a solid bar at the median life expectancy of each group,
+                        spanning that group&rsquo;s income range. The medians are 82.6, 82.3, 81.8
+                        and 82.9 years, so the bars form a visibly flat staircase even though income
+                        more than triples from the first group to the last. This mirrors the
+                        quintile binning of the FOR chart, which makes the two arguments directly
+                        comparable, and it is robust to individual outliers such as the United
+                        States. A dashed least-squares line with its slope and correlation is
+                        retained so that a reader can check the claim against the marks; we
+                        describe the slope per $10,000, which makes the effect sound small, but
+                        across the full range of the chart it amounts to roughly 0.9 years, which
+                        is still modest. In response to the overplotting feedback, the chart uses
+                        one point per country for a single year, so all 32 points are visible and
+                        none overlap.
+                    </li>
+                    <li>
+                        <span class="score deceptive">&minus;0.5</span>
+                        <strong>Selective labels and the United States annotation.</strong>
+                        We labelled only a handful of countries chosen to support the stance: Japan,
+                        Spain and Hong Kong (long lives at moderate income) and the United States
+                        (very rich but comparatively short-lived), plus a few anchors such as
+                        Switzerland, Norway and Ireland. The annotation that the US is 2.3 times as
+                        rich as Japan yet can expect 5.7 fewer years of life is accurate, but it is a
+                        single comparison selected because it is striking, and the US gap is widely
+                        attributed to factors other than income.
+                    </li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Final Reflection</h2>
+
+                <p>
+                    The FOR side was the more straightforward of the two, because the data
+                    genuinely support it: across all countries, life expectancy rises steadily with GDP per
+                    capita, and the box plot only needed to present that relationship cleanly. The
+                    AGAINST side was considerably more difficult. Our checkpoint chart on growth and
+                    longevity still showed a positive slope, and the feedback we received made it
+                    clear that a persuasive AGAINST visualization could not simply add caveats to a
+                    rising trend; it had to show a trend that does not rise. Achieving that required
+                    us to choose a subset of the data, a population filter and axis ranges that
+                    together flatten the line, and then to summarise the remaining countries with
+                    median bars that make the plateau visible at a glance. It is worth mentioning that the same requirement to
+                    remove overplotting improved both charts: summarising into quintiles on one side
+                    and showing one point per country for a single year on the other made each
+                    message far easier to read.
+                </p>
+
+                <p>
+                    What surprised us most was how few of our choices involved altering or
+                    fabricating data. Every number on both charts is correct, every filter apart
+                    from the hidden outliers is disclosed in a subtitle or footnote, and both charts
+                    cite the same World Bank source. Nevertheless, the two charts lead a reader to opposite conclusions. The
+                    most powerful levers were decisions that look like routine cleaning: hiding
+                    outliers to reduce clutter, and dropping small countries for statistical
+                    stability. In both cases, the countries removed were precisely the ones that
+                    contradicted the chart&rsquo;s message. We also found that a single sentence of
+                    framing, such as the causal verb &ldquo;adds&rdquo; in the FOR subtitle, changes
+                    what a reader takes away from a chart whose marks remain unchanged.
+                </p>
+
+                <p>
+                    We now define ethical analysis and visualization as work in which the reader
+                    could reach the same conclusion if they had access to the full data and the
+                    reasons behind every transformation. Under that definition, the bound between
+                    acceptable persuasion and misleading design lies less in any particular
+                    technique and more in whether the choice changes the answer. Emphasis, clear
+                    titles, annotations and a sensible axis range are acceptable when the omitted
+                    data would not overturn the message. A choice becomes misleading when it is
+                    selected because of its effect on the conclusion, and when its consequences are
+                    hidden even though the rule itself is disclosed, as with our population filter,
+                    which halves the slope while sounding purely methodological. We therefore
+                    believe that disclosure alone is not sufficient: an ethical chart should also
+                    make clear what the excluded data would have shown.
+                </p>
+            </section>
+        </main>
+    </body>
+</html>
