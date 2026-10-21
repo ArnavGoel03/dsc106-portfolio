@@ -198,6 +198,16 @@
                 background: var(--color-deceptive);
             }
 
+            details {
+                margin-bottom: 1.5em;
+
+                > summary {
+                    cursor: pointer;
+                    font-weight: 600;
+                    color: var(--color-earnest);
+                }
+            }
+
             .decisions li + li {
                 margin-top: 0.8em;
             }
@@ -230,8 +240,9 @@
                 aggregates are excluded so that every mark is a single country or territory. Of the
                 217 economies in the database, 13 have no 2023 GDP figure and are dropped from both
                 charts (among them Cuba, Eritrea, North Korea, South Sudan, Syria and Yemen), which
-                leaves 204. Both charts are produced by <a href="make_charts.py">make_charts.py</a>,
-                which fetches the data from the World Bank API and caches it locally.
+                leaves 204. All charts on this page are produced by
+                <a href="make_charts.py">make_charts.py</a>, which fetches the data from the World
+                Bank API and caches it locally.
             </p>
 
             <section>
@@ -243,7 +254,7 @@
                             src="for.png"
                             width="2000"
                             height="1320"
-                            alt="Box plots of 2023 life expectancy for 204 countries and territories split into five equal-sized GDP per capita groups. Median life expectancy is higher at every step: 64.9, 71.6, 74.3, 78.0 and 82.4 years, a gap of 17.5 years between the poorest and richest fifths."
+                            alt="Box plots of 2023 life expectancy for 204 countries and territories split into five equal-sized GDP per capita groups. Median life expectancy is higher at every step: 64.9, 71.6, 74.3, 78.0 and 82.4 years, a gap of 17.5 years between the poorest and richest fifths. Countries beyond the whiskers appear as small grey dots."
                         /></a>
                     </div>
                     <figcaption>
@@ -268,21 +279,21 @@
                         every country equally regardless of population, and the richest fifth spans
                         $36K to $257K, so the flattening of the curve among wealthy countries is
                         folded into a single box where the reader cannot see it. Because that
-                        flattening is exactly the evidence against the proposition, we score this
-                        choice as mildly deceptive.
+                        flattening is exactly the evidence against the proposition (it is the subject
+                        of our AGAINST chart), we score this choice as mildly deceptive.
                     </li>
                     <li>
-                        <span class="score deceptive">&minus;1.5</span>
-                        <strong>Hiding outliers.</strong>
-                        We drew the whiskers at 1.5 times the interquartile range and suppressed the
-                        individual outlier points. We would justify this as a way of keeping the
-                        chart uncluttered, and the footnote states only the whisker rule. In
-                        practice, the hidden points are almost entirely rich countries with
-                        comparatively short lives: the United States, Saudi Arabia, Greenland, the
-                        Bahamas, Sint Maarten, Monaco and San Marino in the richest fifth, and Nauru
-                        in the fourth. Removing them makes the richest box look uniformly healthy,
-                        and nothing on the chart says that points were dropped, so we consider this
-                        our most deceptive choice for this chart.
+                        <span class="score earnest">+0.5</span>
+                        <strong>Showing outliers as small, faint, unlabelled dots.</strong>
+                        Countries beyond 1.5 times the interquartile range are drawn as small grey
+                        dots, and the footnote explains them, so no data point is hidden. This
+                        matters most in the richest fifth, whose low dots include the United States,
+                        Saudi Arabia, Greenland, the Bahamas and Sint Maarten (with Monaco and San
+                        Marino above the box), and in the fourth fifth, where Nauru sits far below.
+                        We score this as only mildly earnest because the dots are deliberately quiet
+                        and unlabelled: a reader sees that exceptions exist but not that the most
+                        prominent one is the United States, which would invite the question of
+                        whether wealth alone explains health.
                     </li>
                     <li>
                         <span class="score earnest">+1.5</span>
@@ -329,16 +340,16 @@
                             src="against.png"
                             width="2000"
                             height="1320"
-                            alt="Scatter plot of life expectancy against GDP per capita for 32 countries above $30,000 with at least one million people in 2023. Bars showing the median life expectancy of each quarter of these countries sit between 81.8 and 82.9 years, and a dashed least-squares line rises only 0.1 years per extra $10,000 (r = 0.15). The United States is highlighted."
+                            alt="Scatter plot of life expectancy against GDP per capita for the 25 countries in the richest GDP quintile (from $36K) with at least one million people in 2023. Bars showing the median life expectancy of each quarter of these countries sit between 81.6 and 82.9 years, and a dashed least-squares line rises only 0.1 years per extra $10,000 (r = 0.19)."
                         /></a>
                     </div>
                     <figcaption>
-                        Life expectancy at birth against GDP per capita for the 32 countries with GDP
-                        per capita above $30,000 and at least one million people, 2023. The median
-                        life expectancy of each quarter of these countries, from the least to the most
-                        wealthy, stays between 81.8 and 82.9 years, and the least-squares trend rises
-                        by only 0.1 years per extra $10,000. Source: World Bank World Development
-                        Indicators.
+                        Life expectancy at birth against GDP per capita for the 25 countries in the
+                        richest fifth by GDP per capita (from $36K) with at least one million people,
+                        2023. The median life expectancy of each quarter of these countries, from the
+                        least to the most wealthy, stays between 81.6 and 82.9 years, and the
+                        least-squares trend rises by only 0.1 years per extra $10,000. Source: World
+                        Bank World Development Indicators.
                     </figcaption>
                 </figure>
 
@@ -347,39 +358,45 @@
                 <ul class="decisions">
                     <li>
                         <span class="score deceptive">&minus;1.5</span>
-                        <strong>Choosing which countries appear: above $30,000 and at least one
+                        <strong>Choosing which countries appear: the richest fifth, with at least one
                         million people.</strong>
                         Initially, our preferred AGAINST chart compared the change in life expectancy
                         with the change in income, but its fitted slope was still positive, so it
                         supported the proposition rather than opposing it. The final chart therefore
                         builds on the &ldquo;rich club&rdquo; scatter plot from our checkpoint and
-                        shows only the range in which the relationship flattens. Across all 204
-                        countries and territories, the correlation between log GDP per capita and
-                        life expectancy is 0.86, and this chart never shows it. We then drop places
-                        with fewer than one million people, which we would justify on the grounds
-                        that life expectancy estimates for very small populations are unstable. It is
-                        worth mentioning that this removes twenty territories and microstates,
+                        shows only the range in which the relationship flattens. Rather than an
+                        arbitrary dollar cut-off, the scope is the richest of the same five groups
+                        used in the FOR chart, so it reads as a zoom into that chart&rsquo;s top box.
+                        The World Bank&rsquo;s own &ldquo;high income&rdquo; classification would
+                        have sounded even more neutral, but it begins near $14,000 and its members
+                        still show a clearly positive relationship (r = 0.55 with the same population
+                        filter), so it would not have served this side. Across all 204 countries and
+                        territories, the correlation between log GDP per capita and life expectancy
+                        is 0.86, and this chart never shows it. We then drop places with fewer than
+                        one million people, which we would justify on the grounds that life
+                        expectancy estimates for very small populations are unstable. It is worth
+                        mentioning that this removes 16 of the 41 members of the richest fifth,
                         including Monaco, Liechtenstein, Luxembourg and Bermuda, which are among the
                         richest and longest-lived places in the dataset; the FOR chart keeps them.
-                        With them included, the slope is +0.25 years per $10,000 and r = 0.36; with
-                        them removed, it falls to +0.11 and r to 0.15. This follows the feedback we
+                        With them included, the slope is +0.22 years per $10,000 and r = 0.35; with
+                        them removed, it falls to +0.14 and r to 0.19. This follows the feedback we
                         received to remove countries so that the fit reflects the stance. Both rules
                         are stated in the subtitle, but their effect on the slope is not.
                     </li>
                     <li>
                         <span class="score earnest">+1</span>
                         <strong>Median bars for each quarter of the countries.</strong>
-                        We split the 32 countries into four equal-sized groups of eight by GDP per
-                        capita and drew a solid bar at the median life expectancy of each group,
-                        spanning that group&rsquo;s income range, with the four medians printed in a
-                        row along the bottom (82.6, 82.3, 81.8 and 82.9 years). The bars form a
-                        visibly flat staircase even though income more than triples from the first
-                        group to the last. This mirrors the quintile binning of the FOR chart, so the
-                        two arguments are directly comparable, and a median is robust to individual
+                        We split the 25 countries into four groups of six or seven by GDP per capita
+                        and drew a solid bar at the median life expectancy of each group, spanning
+                        that group&rsquo;s income range, with the four medians printed in a row along
+                        the bottom (81.8, 81.6, 82.1 and 82.9 years). The bars form a visibly flat
+                        staircase even though income nearly triples from the first group to the
+                        last. This mirrors the quintile binning of the FOR chart, so the two
+                        arguments are directly comparable, and a median is robust to individual
                         countries such as the United States. Within the countries shown, this is an
                         honest summary; the deception lies in which countries are shown, which is
                         scored separately above. The chart also uses one point per country for a
-                        single year, so all 32 points are visible and none overlap.
+                        single year, so all 25 points are visible and none overlap.
                     </li>
                     <li>
                         <span class="score deceptive">&minus;0.5</span>
@@ -390,33 +407,33 @@
                         with its slope and correlation printed, so a reader can check the claim
                         against the marks; however, we express the slope per $10,000, which makes
                         the effect sound negligible, whereas across the full range of the chart it
-                        amounts to roughly 0.9 years. The y-axis runs from 75 to 90 years, which is a
+                        amounts to roughly one year. The y-axis runs from 75 to 90 years, which is a
                         conventional range for these countries and does not by itself exaggerate the
                         flatness.
                     </li>
                     <li>
                         <span class="score deceptive">&minus;0.5</span>
                         <strong>Selective labels.</strong>
-                        We labelled twelve of the 32 countries: Estonia, Spain, Japan, Saudi Arabia,
-                        Hong Kong, Germany, Qatar, Singapore, Norway, Switzerland, Ireland and the
-                        United States. Each label is accurate, and several serve only as reference
-                        points across the income range. However, the set was chosen to support the
-                        stance: Japan, Spain and Hong Kong live long at moderate incomes, whilst the
-                        United States, highlighted in red, is very rich but comparatively short-lived
-                        (78.4 years, against 84.0 in Japan at less than half the income). The US gap
-                        is widely attributed to factors other than income, which the chart does not
-                        mention.
+                        We labelled ten of the 25 countries: Saudi Arabia, Italy, Hong Kong, Germany,
+                        Qatar, Singapore, Norway, Switzerland, Ireland and the United States. Each
+                        label is accurate, all are in the same neutral ink, and several serve only as
+                        reference points across the income range. However, the set was chosen to
+                        support the stance: Italy and Hong Kong live long at moderate incomes for
+                        this group, whilst the United States, drawn as a slightly darker dot, is very
+                        rich but comparatively short-lived (78.4 years at $83K, against 85.2 in Hong
+                        Kong at $51K). The US gap is widely attributed to factors other than income,
+                        which the chart does not mention.
                     </li>
                     <li>
                         <span class="score deceptive">&minus;0.5</span>
                         <strong>Title and subtitle framing.</strong>
-                        The title, &ldquo;Among high-income countries, life expectancy levels
+                        The title, &ldquo;In the richest fifth of countries, life expectancy levels
                         off&rdquo;, is calm and accurate for the countries shown, and the subtitle
-                        states both filters and the year. We avoided charged wording so that the
-                        framing would not alert the reader. The deception is one of scope: a reader
-                        who sees this chart in a debate about whether wealth predicts health is
-                        likely to generalise from the plateau to the whole world, which the title
-                        does nothing to prevent.
+                        states the quintile, its dollar floor, the population filter and the year.
+                        We avoided charged wording so that the framing would not alert the reader.
+                        The deception is one of scope: a reader who sees this chart in a debate about
+                        whether wealth predicts health is likely to generalise from the plateau to
+                        the whole world, which the title does nothing to prevent.
                     </li>
                 </ul>
             </section>
@@ -443,17 +460,18 @@
                 <p>
                     What surprised us most was how few of our choices involved altering or
                     fabricating data. Every number on both charts is correct, both charts cite the
-                    same World Bank source, and every filter is stated on the charts or on this page,
-                    with one exception: the FOR chart does not say that its outlier points were
-                    removed. Nevertheless, the two charts lead a reader to opposite conclusions. The
-                    most powerful levers were decisions that look like routine cleaning: hiding
-                    outliers to reduce clutter, and dropping small countries for statistical
-                    stability, which the FOR chart keeps and the AGAINST chart removes. In both
-                    cases, the countries removed were precisely the ones that contradicted the
-                    chart&rsquo;s message. It is also worth acknowledging the limits of both
-                    arguments: &ldquo;better health&rdquo; is measured here by life expectancy alone,
-                    and the AGAINST chart tests the association among rich countries rather than
-                    whether wealth predicts health across the full range of countries.
+                    same World Bank source, and every filter is stated on the charts or on this page.
+                    Nevertheless, the two charts lead a reader to opposite conclusions, and they do
+                    so whilst sharing the same five income groups: the FOR chart compresses the
+                    richest fifth into one box, and the AGAINST chart enlarges that same box until
+                    its flatness fills the frame. The most powerful lever was a decision that looks
+                    like routine cleaning, dropping small countries for statistical stability, which
+                    the FOR chart does not do and the AGAINST chart does; the countries it removes
+                    are precisely the ones that contradict the AGAINST message. It is also worth
+                    acknowledging the limits of both arguments: &ldquo;better health&rdquo; is
+                    measured here by life expectancy alone, and the AGAINST chart tests the
+                    association among rich countries rather than whether wealth predicts health
+                    across the full range of countries.
                 </p>
 
                 <p>
@@ -466,10 +484,56 @@
                     data would not overturn the message. A choice becomes misleading when it is
                     selected because of its effect on the conclusion, and when its consequences are
                     hidden even though the rule itself is disclosed, as with our population filter,
-                    which halves the slope while sounding purely methodological. We therefore
-                    believe that disclosure alone is not sufficient: an ethical chart should also
-                    make clear what the excluded data would have shown.
+                    which cuts the slope by more than a third and nearly halves the correlation
+                    whilst sounding purely methodological. We therefore believe that disclosure alone
+                    is not sufficient: an ethical chart should also make clear what the excluded data
+                    would have shown. The section below applies that test to our own work.
                 </p>
+            </section>
+
+            <section>
+                <h2>What Both Charts Leave Out</h2>
+
+                <p>
+                    To put our own definition into practice, we drew one further chart that neither
+                    persuasive visualization shows: every country and territory on a single log-scale
+                    plot, with the countries used by the AGAINST chart filled in, the small members
+                    of the richest fifth that it drops drawn as hollow circles, and everything else
+                    in grey. It is collapsed by default so that each persuasive chart can first be
+                    judged on its own terms.
+                </p>
+
+                <details>
+                    <summary>Show the full data behind both charts</summary>
+
+                    <figure>
+                        <div class="chart-scroll">
+                            <a href="context.png"><img
+                                src="context.png"
+                                width="2000"
+                                height="1320"
+                                alt="Scatter plot of all 204 countries and territories in 2023, life expectancy against GDP per capita on a log scale, r = 0.86. A dashed line marks where the richest fifth begins at $36K. The 25 countries shown in the AGAINST chart are filled blue, the 16 members of the richest fifth with fewer than one million people are hollow blue circles, and the remaining 163 are grey."
+                            /></a>
+                        </div>
+                        <figcaption>
+                            All 204 countries and territories, 2023, with GDP per capita on a log
+                            scale. Across the full range the relationship is strong (r = 0.86) and
+                            roughly linear in log income, which supports the FOR chart; within the
+                            richest fifth it is much weaker, which is what the AGAINST chart shows.
+                            The hollow circles are the small, rich places the AGAINST chart removes.
+                            Source: World Bank World Development Indicators.
+                        </figcaption>
+                    </figure>
+
+                    <p>
+                        Seen together, the two persuasive charts are both accurate about the part of
+                        the data they show. The FOR chart is the more faithful summary of the whole
+                        picture, because the relationship is strong across most of the income range;
+                        the AGAINST chart is accurate only for a slice of 25 countries that we
+                        selected, and the slice is partly defined by a filter that removes the
+                        countries most likely to contradict it.
+                    </p>
+                </details>
             </section>
         </main>
     </body>
