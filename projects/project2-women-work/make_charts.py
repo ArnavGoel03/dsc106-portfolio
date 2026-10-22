@@ -144,7 +144,7 @@ def chart_for(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
     fig = plt.figure(figsize=(13, 6.6), dpi=200)
     gs = fig.add_gridspec(2, 2, width_ratios=[1, 1.05], wspace=0.2, hspace=0.55,
                           left=0.05, right=0.985, top=0.80, bottom=0.13)
-    headline(fig, "Worldwide, women's university enrollment tripled; their labor force participation did not rise",
+    headline(fig, "Worldwide, women's university enrollment tripled while their labor force participation slipped",
              f"World totals, 1990 to 2019 (left), and the change in each of {n} countries and territories (right).")
 
     # Left: world trend, both series on one percent axis.
@@ -193,7 +193,7 @@ def chart_for(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
         a.axvline(med, color=INK, lw=1.2, ls=(0, (3, 2)))
         a.set_title(title, fontsize=11.2)
         a.text(0.98, 0.92, label, transform=a.transAxes, ha="right", va="top", color=color,
-               fontsize=10.5, fontweight="bold")
+               fontsize=8.5)
         a.grid(axis="y", color=GRID)
         a.set_xlim(bins[0] - 3, bins[-1] + 3)
         a.set_ylabel("Count", color=MUTED, fontsize=9.5)
@@ -269,9 +269,6 @@ def chart_against(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
         ax2.annotate(f"{r.med:+.1f}", (i, r.med), xytext=(13, 0), textcoords="offset points", ha="left",
                      va="center", fontsize=12.5, fontweight="bold", color=WORK,
                      bbox=dict(boxstyle="square,pad=0.15", fc="white", ec="none"))
-    last = grp.iloc[-1]
-    ax2.text(len(grp) - 1, last.p25 - 0.8, f"Top group's lower\nquartile: {last.p25:+.1f} points", ha="center",
-             va="top", fontsize=10, color=WORK)
     ax2.set_xticks(x)
     ax2.set_xticklabels([f"{r.lo:+.1f} to {r.hi:+.1f}" for _, r in grp.iterrows()], color=EDU, fontsize=10)
     ax2.tick_params(axis="x", length=0)
