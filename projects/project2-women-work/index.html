@@ -39,7 +39,7 @@
                 }
 
                 figure img {
-                    min-width: 640px;
+                    min-width: 1000px;
                 }
             }
 
@@ -192,16 +192,16 @@
             <h2>Proposition: Women's gains in education have not translated into gains in work.</h2>
 
             <p>
-                Dataset: World Bank, World Development Indicators, 1990 to 2019, fetched from the
-                <a href="https://datahelpdesk.worldbank.org/knowledgebase/articles/889392">World Bank Indicators API</a>
-                on 22 October 2026 and cached locally in a data/ folder, which is not part of the published site;
-                running <a href="make_charts.py">make_charts.py</a> fetches the same indicators again. These are the
-                same World Bank World Development Indicators that make up the course dataset,
+                Dataset: the course's
                 <a href="https://github.com/light-and-salt/World-Bank-Data-by-Indicators">Human Development
-                Indicators, 1960-2020</a>, retrieved directly from the API for the years 1990 to 2019. Indicators: female
-                gross tertiary enrollment (SE.TER.ENRR.FE), female labor force participation, ages 15 and over
-                (SL.TLF.CACT.FE.ZS), and the ratio of the female to the male labor force participation rate
-                (SL.TLF.CACT.FM.ZS).
+                Indicators, 1960-2020</a> dataset, taken from its source, the World Bank World Development Indicators.
+                We fetched the years 1990 to 2019 from the
+                <a href="https://datahelpdesk.worldbank.org/knowledgebase/articles/889392">World Bank Indicators API</a>
+                on 21 October 2026 (Pacific time) and cached them in a data/ folder, which is not part of the published
+                site. Running <a href="make_charts.py">make_charts.py</a> fetches the same indicators again. The
+                indicators are female gross tertiary enrollment (SE.TER.ENRR.FE), female labor force participation,
+                ages 15 and over (SL.TLF.CACT.FE.ZS), and the ratio of the female to the male labor force
+                participation rate (SL.TLF.CACT.FM.ZS).
             </p>
 
             <p>
@@ -240,49 +240,47 @@
 
                 <ul>
                     <li>
-                        <strong>Enrollment and participation drawn on one percentage axis (score: -1).</strong> The left
-                        panel places both world series on a single 0% to 60% scale, which invites the reader to compare
-                        the rising blue line with the flat brown line directly. The two percentages have different
-                        denominators: gross tertiary enrollment is measured against the university-age cohort (and can
-                        exceed 100%), whilst participation is measured against all women aged 15 and over, including
-                        students and retirees. Placing them on one axis makes the gap look like a failure of one to
-                        follow the other, which the data cannot establish. We would justify the shared axis as the
-                        conventional way to compare two percentages; two separate panels would be more honest but far
-                        less persuasive.
+                        <strong>Enrollment and participation drawn on one percentage axis (score: -1).</strong> The left panel places both world series on a single 0% to 60% scale, which invites the reader to
+                        compare the rising blue line with the flat brown line directly. That is deceptive here because the
+                        two measures have different denominators: gross tertiary enrollment is measured against the
+                        university-age cohort (and can exceed 100%), whilst participation is measured against all women
+                        aged 15 and over. Two different measures on one scale invite a comparison of levels, and the gap
+                        then looks like one series failing to follow the other. The separate panels in the opposing chart
+                        (+1.5) are the earnest counterpart of this choice, so the two scores are consistent. Alternative
+                        considered: two separate panels, which would be more honest but far less persuasive.
                     </li>
                     <li>
-                        <strong>Women's own participation rate instead of the female-to-male ratio (score: -1.5).</strong>
-                        We measure work with the female participation rate and never show the ratio of the female to the
+                        <strong>Women's own participation rate instead of the female-to-male ratio (score: -1.5).</strong> We measure work with the female participation rate and never show the ratio of the female to the
                         male rate. Over the same period the world ratio rose from 66.9 to 68.2, because men's
-                        participation fell faster than women's, so by the relative measure women did gain ground. A
-                        reader has no way to notice the absence of the alternative measure, which is why we score this
-                        as clearly deceptive; it is the mirror image of the measure choice in the opposing chart and
-                        receives the same score.
+                        participation fell faster than women's, so by the relative measure women did gain ground. A reader
+                        cannot notice the absence of the alternative, so we score this as clearly deceptive. It mirrors
+                        the measure choice in the opposing chart and receives the same score. Alternative considered:
+                        plotting the ratio, which we rejected because it weakens the case that work did not improve.
                     </li>
                     <li>
-                        <strong>Paired histograms of per-country change on one shared axis (score: +1).</strong> For each
-                        of the 98 countries and territories we compute the percentage-point change in enrollment and in
-                        participation, bin both into 5-point intervals, and stack the two histograms over the same
+                        <strong>Paired histograms of per-country change on one shared axis (score: +1).</strong> For each of the 98 countries and territories we compute the percentage-point change in enrollment
+                        and in participation, bin both into 5-point intervals, and stack the two histograms over the same
                         x-axis, with zero and the median marked. The persuasion comes from the contrast in spread: the
                         enrollment distribution stretches far to the right whilst the participation distribution stays
                         piled around zero. We score this as earnest, because it shows every retained country rather than
-                        chosen examples and labels the median participation gain of one point.
+                        chosen examples. Alternative considered: one scatter plot of the two changes, which we rejected
+                        because it shows the difference in spread less directly.
                     </li>
                     <li>
-                        <strong>Median callouts in place of a fuller summary (score: -1).</strong> The two histograms
-                        carry only "Median country: +21 points" and "Median country: +1 point", which invites the reader
-                        to set 21 against 1 and read the second as stagnation. In fact 58 of the 98 raised women's
-                        participation, by as much as 17.2 points, whilst 40 saw it fall. These counts appear only in this
-                        write-up. We would justify the medians as the standard one-number summary, and both are accurate,
-                        but nothing on the chart tells the reader that a majority of countries gained.
+                        <strong>Median callouts in place of a fuller summary (score: -1).</strong> The two histograms carry only "Median country: +21 points" and "Median country: +1 point", which
+                        invites the reader to set 21 against 1 and read the second as stagnation. In fact 58 of the 98
+                        raised women's participation, by as much as 17.2 points, whilst 40 saw it fall. Both medians are
+                        accurate, but nothing on the chart shows that a majority of countries gained, and these counts
+                        appear only in this write-up. Alternative considered: printing the count of gaining countries on
+                        each panel, which we rejected because it softens the contrast.
                     </li>
                     <li>
-                        <strong>Title framed on the world aggregate (score: -0.5).</strong> The title, "Worldwide,
-                        women's university enrollment tripled; their labor force participation did not rise", is
-                        accurate for the world lines it opens with (13% to 41%, and 51% to 48%) and uses calm language. It nevertheless frames the
-                        whole figure around the world totals, whereas the median country in the right-hand panel gained
-                        one point. We score this as only mildly deceptive, since the statement is true and the
-                        median callout beneath it shows that one-point gain.
+                        <strong>Title framed on the world aggregate (score: -0.5).</strong> The title, "Worldwide, women's university enrollment tripled; their labor force participation did
+                        not rise", is accurate for the world lines it opens with (13% to 41%, and 51% to 48%) and uses
+                        calm language. It nevertheless frames the whole figure around the world totals, whereas the median
+                        country in the right-hand panel gained one point. We score this as only mildly deceptive, since
+                        the statement is true and the median callout shows that one-point gain. Alternative considered: a
+                        title naming the median country change, which we rejected because it is less striking.
                     </li>
                 </ul>
             </section>
@@ -296,17 +294,19 @@
                             src="against_education_did_pay.png"
                             width="2600"
                             height="1320"
-                            alt="Left: two small slope panels on one 0 to 80% scale for the 25 countries and territories with the largest rise in women's enrollment; median enrollment rises from 20.5% to 71.7% and the median female-to-male participation ratio from 54.5% to 70.4%. Right: dot plot of 98 countries and territories split into four equal groups by the rise in women's enrollment (-4.5 to +8.5, +8.7 to +21.2, +21.6 to +33.9 and +34.1 to +105.7 points); the median change in the female-to-male participation ratio is +1.3, +3.4, +4.3 and +8.8 points, and bands show the middle half of each group. Callouts read: +51.2 points and +15.9 points on the left; even its lower quarter gained +3.5 on the right."
+                            alt="Left: two small slope panels on one 0 to 80% scale for the 25 countries and territories with the largest rise in women's enrollment; median enrollment rises from 20.5% to 71.7% and the median female-to-male participation ratio from 54.5% to 70.4%. Right: dot plot of 98 countries and territories split into four equal groups by the rise in women's enrollment (-4.5 to +8.5, +8.7 to +21.2, +21.6 to +33.9 and +34.1 to +105.7 points); the median change in the female-to-male participation ratio is +1.3, +3.4, +4.3 and +8.8 points, and bands show the middle half of each group. Callouts read: +51.2 points and +15.9 points on the left; lower quartile: +3.5 points on the right."
                         />
                     </a>
                     <figcaption>
                         Women's higher-education enrollment and the ratio of the female to the male labor force
                         participation rate: medians at the start and end for the quarter of countries and territories
                         with the largest enrollment rise (left), and the median change in the ratio, with the middle half
-                        of each group, for all 98 grouped into quarters by enrollment rise (right). Changes run from each one's earliest year in 1990 to
-                        2000 to its latest in 2014 to 2019. The participation ratio is the female rate divided by the male
-                        rate, times 100, for ages 15 and over. The sample is described above. Source: World Bank, World
-                        Development Indicators.
+                        of each group, for all 98 grouped into quarters by enrollment rise (right). The left panels show
+                        the change between the start and end medians (+15.9 for the top group), whereas the right panel
+                        shows the median of each country's change (+8.8 for the same group). Changes run from each one's
+                        earliest year in 1990 to 2000 to its latest in 2014 to 2019. The participation ratio is the female
+                        rate divided by the male rate, times 100, for ages 15 and over. The sample is described above.
+                        Source: World Bank, World Development Indicators.
                     </figcaption>
                 </figure>
 
@@ -314,51 +314,51 @@
 
                 <ul>
                     <li>
-                        <strong>Opening with the largest-rise group (score: -1).</strong> The left panels show only the
-                        25 countries and territories whose enrollment rose most, where median enrollment rises from 20.5%
-                        to 71.7% (+51.2 points) and the median participation ratio from 54.5% to 70.4% (+15.9 points). Showing education and work together
-                        for this group makes the translation from one to the other look direct, and it is the group in
-                        which the pattern is strongest. The group is named in the heading and corresponds to the
-                        rightmost group on the right, so we would justify it as a worked example, but a reader who stops
-                        at the left panels sees the best case as though it were typical.
+                        <strong>Opening with the largest-rise group (score: -1).</strong> The left panels show only the 25 countries and territories whose enrollment rose most. Their median
+                        enrollment rises from 20.5% to 71.7% (+51.2 points) and the median participation ratio from 54.5%
+                        to 70.4% (+15.9 points). The pattern is strongest in this group, so showing it first makes the
+                        step from education to work look direct. The group is named in the heading, but a reader who stops
+                        at the left panels sees the best case as though it were typical. Alternative considered: opening
+                        with all 98 countries, which we rejected because the pattern is weaker.
                     </li>
                     <li>
-                        <strong>Two small panels on one 0 to 80% scale (score: +1.5).</strong> Enrollment and the
-                        participation ratio are different measures, so we draw them in separate, separately titled
-                        panels rather than as two crossing lines on one plot, which would invite a comparison of levels
-                        that means nothing. Both panels share a 0 to 80% scale starting at zero, so the steeper
-                        education slope is shown at its true size relative to the work slope. We regard this as earnest:
-                        it gives up a dramatic crossing in exchange for a fair comparison of the two changes.
+                        <strong>Two small panels on one 0 to 80% scale (score: +1.5).</strong> Enrollment and the participation ratio are different measures, so we draw them in separate,
+                        separately titled panels. Both share a 0 to 80% scale starting at zero, so the steeper education
+                        slope is shown at its true size relative to the work slope. We regard this as earnest, and it is
+                        the counterpart of the single shared axis in the supporting chart (-1). Alternative considered:
+                        two crossing lines on one plot, which we rejected because they invite a comparison of levels that
+                        means nothing.
                     </li>
                     <li>
-                        <strong>The female-to-male participation ratio instead of women's own rate (score: -1.5).</strong>
-                        We measure work with the ratio of the female to the male participation rate, which rose in 65 of
+                        <strong>The female-to-male participation ratio instead of women's own rate (score: -1.5).</strong> We measure work with the ratio of the female to the male participation rate, which rose in 65 of
                         the 98, and never show women's own participation rate. The ratio is a defensible measure of the
-                        gender gap and is defined in the figure caption, but it can rise simply because men's participation
-                        falls, and the world female participation rate declined from 51% to 48% over the same years.
-                        Hiding the alternative measure is the same omission as in the supporting chart, so it receives
-                        the same score.
+                        gender gap and is defined in the caption. It can rise simply because men's participation falls,
+                        however, and the world female rate declined from 51% to 48% over the same years. Hiding the
+                        alternative is the same omission as in the supporting chart, so it receives the same score.
+                        Alternative considered: showing women's own rate beside the ratio, which we rejected because it
+                        weakens the conclusion.
                     </li>
                     <li>
-                        <strong>Group medians with middle-half bands (score: -1.5).</strong> We split the 98 into four equal
-                        groups by enrollment gain and plot each group's median change in the ratio (+1.3, +3.4, +4.3 and
-                        +8.8 points) as a dot, with a band covering its middle half. The bands make the chart look
-                        rigorous and show that, in the largest-rise group, even the lower quarter gained (+3.5 points).
-                        They still hide the tails (individual changes run from -27.3 to +33.6 points), and the
-                        relationship across all 98 is weak: the correlation between the two changes is 0.18 (Pearson)
-                        and 0.24 (Spearman). That correlation appears only in this write-up, as does the share of each
-                        group whose ratio rose (60%, 54%, 71% and 80%), which would reveal that the second group did
-                        worse than the first. The only callout points to the one group whose band lies wholly above zero,
-                        and the four groups have equal counts but very unequal widths, which a reader is unlikely to
-                        question. Because the chart itself announces none of this, we score it as clearly deceptive.
+                        <strong>Group medians with middle-half bands (score: -1.5).</strong> We split the 98 into four equal groups by enrollment gain and plot each group's median change in
+                        the ratio (+1.3, +3.4, +4.3 and +8.8 points) as a dot, with a band covering its middle half. The
+                        bands look rigorous, yet they hide the tails (individual changes run from -27.3 to +33.6 points).
+                        Across all 98 the relationship is weak: the correlation between the two changes is 0.18 (Pearson)
+                        and 0.24 (Spearman). These figures appear only in this write-up, as does the share of each group
+                        whose ratio rose (60%, 54%, 71% and 80%), so a smaller share of the second group rose than of the
+                        first (54% against 60%). The only callout marks the lower quartile of the top group (+3.5 points),
+                        the one band wholly above zero, and the top group spans far more of the enrollment range than the
+                        other three. Because the chart announces none of this, we score it as clearly deceptive.
+                        Alternative considered: a scatter of all 98 countries, which we rejected because it would show the
+                        weak correlation.
                     </li>
                     <li>
-                        <strong>Title framed as an association (score: -0.5).</strong> The title, "Where women's
-                        enrollment rose more, the gender gap in labor force participation narrowed more", is true of the
-                        group medians and avoids causal verbs. It still invites the reader to infer that education
-                        caused the narrowing, which cross-country data of this kind cannot show, and "the gap narrowed"
-                        does not say whether women rose or men fell. We score this as mildly deceptive, since the
-                        wording is literally accurate and the subtitle states that the comparison is between medians.
+                        <strong>Title framed as an association (score: -0.5).</strong> The title, "Where women's enrollment rose more, the gender gap in labor force participation
+                        narrowed more", is true of the group medians and avoids causal verbs. It still invites the reader
+                        to infer that education caused the narrowing, which cross-country data cannot show, and "the gap
+                        narrowed" does not say whether women rose or men fell. We score this as mildly deceptive, since
+                        the wording is literally accurate and the subtitle states that the comparison is between medians.
+                        Alternative considered: a title stating only that the medians differ by group, which we rejected
+                        because it is less persuasive.
                     </li>
                 </ul>
             </section>
@@ -382,50 +382,36 @@
                 </figure>
 
                 <p>
-                    The supporting chart was the more straightforward of the two to build, because the world figures
-                    alone appear to make the case: enrollment roughly tripled whilst participation fell. The difficulty
-                    lay in the opposing side. Our checkpoint argued it with the female-to-male participation ratio by region and with a chart
-                    of participation at ages 15 to 24, and the TA feedback observed that it did not show the enrollment
-                    trend and did not clearly oppose the proposition; the feedback also asked that the supporting side
-                    rely on global rather than single-country data. Meeting both requests places the two
-                    visualizations on the same 98 countries and territories, and an honest opposing case is
-                    considerably harder to make from identical numbers than from a separately chosen region. The most
-                    surprising finding was how much the conclusion depends on the measure of work: women's own
+                    The supporting chart was the more straightforward to build, because the world figures alone make
+                    the case: enrollment roughly tripled whilst participation fell. The opposing side was harder. The TA feedback observed that our checkpoint did not show the
+                    enrollment trend or clearly oppose the proposition, and it asked that the supporting side use global rather
+                    than single-country data. Meeting both requests put the two charts on the same 98 countries and
+                    territories, which made an honest opposing case harder. The most
+                    surprising finding was that the choice of work measure decides the conclusion. Women's own
                     participation rate fell worldwide, whereas the ratio of the female to the male rate rose, so each
-                    side could select the indicator that suited it without altering a single value.
+                    side could pick the indicator that suited it without altering a single value.
                 </p>
 
                 <p>
-                    Several of our deceptive decisions are classic techniques: median callouts that make modest gains
-                    read as stagnation, a best-case group shown first, and group medians that turn a correlation of
-                    0.18 into a clean upward sequence. What is notable is that none of them required a truncated axis
-                    or a false number: every value axis includes zero, no axis is truncated, and every figure cites its
-                    source. We also kept every caveat off the charts themselves. The sample, the counts, the
-                    correlations and the group shares appear only in this write-up, which is itself a persuasive
-                    choice, since a reader who sees only the image never meets them. It is also worth acknowledging
-                    what the indicators cannot capture. Gross tertiary enrollment counts students enrolled, not degrees
-                    completed or fields of study, and it includes older and repeating students. Participation for
-                    women aged 15 and over counts anyone working or seeking work, so it says nothing about wages, hours,
-                    informal employment or seniority, and it is lowered mechanically when more young women are in
-                    education. The proposition's "gains in work" is therefore measured only as attachment to the labor
-                    market, and both charts inherit that narrow definition.
+                    We now define ethical analysis and visualization as work in which the reader could reconstruct, from
+                    the chart and its notes, the main ways a different reasonable analysis would have reached a
+                    different conclusion. By that standard, the middle-half bands and the disclosures in this write-up
+                    are ethical additions. Keeping those disclosures beside the charts rather than on them is a
+                    weakness, since a reader who sees only the image never meets them. Omitting the ratio from the first
+                    chart and women's own rate from the second is not ethical by this standard. Both charts also measure "gains in work" only as attachment to the labor market, which says
+                    nothing about wages, hours or informal work.
                 </p>
 
                 <p>
-                    We now define ethical analysis and visualization as work in which the reader could reconstruct,
-                    from the chart and its notes, the main ways in which a different reasonable analysis would have
-                    reached a different conclusion. By that standard, the middle-half bands and the
-                    disclosures in this write-up are ethical additions, although keeping those disclosures beside the
-                    charts rather than on them shows how easily honesty can be separated from the image that
-                    persuades. Omitting the ratio from the first chart and women's own rate from the
-                    second, by contrast, is not ethical by this standard. We would draw the line between acceptable persuasion and misleading design
-                    at the point where a choice depends on the reader not knowing about an alternative. Emphasis,
-                    ordering and a clear headline are acceptable, because they direct attention to something that is
-                    genuinely in the data; a measure, threshold or aggregation chosen because the obvious alternative
-                    weakens the conclusion, and then presented without that alternative, is misleading even when every
-                    number on the chart is correct. This boundary is not sharp, since every summary discards
-                    information, but we believe the test of whether the designer would be comfortable showing the
-                    reader the discarded version is a practical one.
+                    Acceptable persuasion directs attention to something genuinely in the data. Emphasis, ordering and a
+                    clear headline qualify. None of our deceptive decisions needed a truncated axis or a false number:
+                    every axis includes zero and every figure cites its source. The line is crossed when a choice
+                    depends on the reader not knowing an alternative. A measure, threshold or aggregation chosen because
+                    the obvious alternative weakens the conclusion is misleading even when every number is correct.
+                    Median callouts that make modest gains read as stagnation, a best-case group shown first, and group
+                    medians that turn a correlation of 0.18 into a clean upward sequence all fall on the wrong side. A
+                    practical test is whether the
+                    designer would be comfortable showing the reader the discarded version.
                 </p>
             </section>
         </main>

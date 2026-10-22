@@ -270,7 +270,7 @@ def chart_against(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
                      va="center", fontsize=12.5, fontweight="bold", color=WORK,
                      bbox=dict(boxstyle="square,pad=0.15", fc="white", ec="none"))
     last = grp.iloc[-1]
-    ax2.text(len(grp) - 1, last.p25 - 0.8, f"Even its lower quarter\ngained {last.p25:+.1f}", ha="center",
+    ax2.text(len(grp) - 1, last.p25 - 0.8, f"Lower quartile:\n{last.p25:+.1f} points", ha="center",
              va="top", fontsize=10, color=WORK)
     ax2.set_xticks(x)
     ax2.set_xticklabels([f"{r.lo:+.1f} to {r.hi:+.1f}" for _, r in grp.iterrows()], color=EDU, fontsize=10)

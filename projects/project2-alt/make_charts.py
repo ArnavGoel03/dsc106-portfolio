@@ -183,7 +183,7 @@ def chart_for(s: dict) -> None:
     fig = plt.figure(figsize=(13, 6.6), dpi=200)
     headline(
         fig,
-        "Climate-related disasters are nearly three times as frequent as in the early 1980s, even among consistent reporters",
+        "Climate-related disasters are three times as frequent as in the early 1980s, even among consistent reporters",
         "Recorded climate-related disasters worldwide, averaged within five-year periods, 1980 to 2022",
     )
     gs = fig.add_gridspec(1, 2, width_ratios=[1.35, 1], left=0.06, right=0.985, top=0.84, bottom=0.14, wspace=0.22)
@@ -218,7 +218,7 @@ def chart_for(s: dict) -> None:
     ax2.set_xticks(x, labels, fontsize=8.5, rotation=30, ha="right")
     ax2.set_ylim(0, 440)
     ax2.set_ylabel("Recorded disasters per year")
-    ax2.set_title(f"The {s['stats']['panel_size']} countries with records in every period")
+    ax2.set_title(f"The {s['stats']['panel_size']} countries with at least one record in every period", fontsize=10.5)
     ax2.yaxis.grid(True, color=GRID)
     ax2.set_axisbelow(True)
     ax2.annotate(f"{pp.iloc[0]:.0f}", (0, pp.iloc[0]), xytext=(0, 9), textcoords="offset points", ha="center", fontsize=9.5, color=INK)
@@ -260,7 +260,7 @@ def chart_against(s: dict) -> None:
     ax.yaxis.grid(True, color=GRID)
     ax.set_axisbelow(True)
     ax.annotate(f"{int(rec.loc[2000])} in 2000", (2000, rec.loc[2000]), xytext=(6, 14), textcoords="offset points", fontsize=9.5, color=INK)
-    ax.annotate(f"{int(rec.loc[2022])} in 2022", (2022, rec.loc[2022]), xytext=(0, -36), textcoords="offset points", ha="center", fontsize=9.5, color=INK)
+    ax.annotate(f"{int(rec.loc[2022])} in 2022", (2022, rec.loc[2022]), xytext=(2, -26), textcoords="offset points", ha="right", fontsize=9.5, color=INK)
     ax.annotate(
         f"Trend: {slope:+.1f} per year",
         (2014, b0 + slope * 2014),
@@ -280,7 +280,8 @@ def chart_against(s: dict) -> None:
     ax2.bar(xs, counts.values, color=colours, width=0.72)
     for i, v in enumerate(counts.values):
         label, colour = (f"{int(v)}\nunchanged", MUTED) if i == 3 else (str(int(v)), INK)
-        ax2.text(i, v + 1.2, label, ha="center", va="bottom", fontsize=9.5, color=colour)
+        ax2.text(i, v + 1.2, label, ha="center", va="bottom", fontsize=9.5, color=colour,
+                 bbox=dict(fc="white", ec="none", pad=1.5))
     ax2.set_xticks(xs, cats, fontsize=8.5)
     ax2.set_xlabel("Change in a country's recorded disasters, 2010s minus 2000s")
     ax2.set_ylabel("Countries and territories")
@@ -324,7 +325,7 @@ DECISIONS = {
         ("A final period of only three years (2020-22)", -1.0),
         ("Stacked bars, every type, axis from zero", 1.5),
         ("A fixed panel of consistent reporters", -1.0),
-        ("Title: nearly three times as frequent", -0.5),
+        ("Title: three times as frequent", -0.5),
     ],
     "AGAINST": [
         ("Window opens in 2000, not 1980", -1.5),
