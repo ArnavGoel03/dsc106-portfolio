@@ -29,7 +29,7 @@ TYPES = ["Flood", "Storm", "Drought", "Extreme temperature", "Landslide", "Wildf
 
 BLUE = "#2f6690"  # primary series colour, shared by both charts
 SIENNA = "#a0522d"  # secondary colour (decline / contrast), not an alarm red
-TYPE_COLOURS = ["#2f6690", "#5d8aa8", "#8fb0c4", "#b9cbd6", "#d6dfe5", "#ebeff2"]
+TYPE_COLOURS = ["#173f5f", "#2f6690", "#5689ad", "#81a9c5", "#a9c5d8", "#cfdde8"]
 INK = "#222222"
 MUTED = "#6b6b6b"
 GRID = "#e6e6e6"
@@ -183,7 +183,7 @@ def chart_for(s: dict) -> None:
     fig = plt.figure(figsize=(13, 6.6), dpi=200)
     headline(
         fig,
-        "Climate-related disasters are three times as frequent as in the early 1980s, even in the same 82 countries",
+        "Recorded climate-related disasters are three times as frequent as in the early 1980s, even in the same 82 countries",
         "Recorded climate-related disasters worldwide, averaged within five-year periods, 1980 to 2022",
     )
     gs = fig.add_gridspec(1, 2, width_ratios=[1.35, 1], left=0.06, right=0.985, top=0.84, bottom=0.14, wspace=0.22)
@@ -242,7 +242,7 @@ def chart_against(s: dict) -> None:
     fig = plt.figure(figsize=(13, 6.6), dpi=200)
     headline(
         fig,
-        "The number of climate-related disasters recorded each year has held steady for more than two decades",
+        "Since 2000, the number of climate-related disasters recorded each year has held steady",
         "Recorded climate-related disasters worldwide, 2000 to 2022, and the change in each country between the 2000s and the 2010s",
     )
     gs = fig.add_gridspec(1, 2, width_ratios=[1.3, 1], left=0.06, right=0.985, top=0.84, bottom=0.14, wspace=0.22)
