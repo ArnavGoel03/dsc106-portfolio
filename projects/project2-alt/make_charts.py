@@ -183,7 +183,7 @@ def chart_for(s: dict) -> None:
     fig = plt.figure(figsize=(13, 6.6), dpi=200)
     headline(
         fig,
-        "Climate-related disasters are three times as frequent as in the early 1980s, even among consistent reporters",
+        "Climate-related disasters are three times as frequent as in the early 1980s, even in the same 82 countries",
         "Recorded climate-related disasters worldwide, averaged within five-year periods, 1980 to 2022",
     )
     gs = fig.add_gridspec(1, 2, width_ratios=[1.35, 1], left=0.06, right=0.985, top=0.84, bottom=0.14, wspace=0.22)
