@@ -279,7 +279,7 @@ def chart_against(s: dict) -> None:
     xs = np.arange(len(cats))
     ax2.bar(xs, counts.values, color=colours, width=0.72)
     for i, v in enumerate(counts.values):
-        label, colour = (f"{int(v)}\nunchanged", MUTED) if i == 3 else (str(int(v)), INK)
+        label, colour = (str(int(v)), MUTED) if i == 3 else (str(int(v)), INK)
         ax2.text(i, v + 1.2, label, ha="center", va="bottom", fontsize=9.5, color=colour,
                  bbox=dict(fc="white", ec="none", pad=1.5))
     ax2.set_xticks(xs, cats, fontsize=8.5)

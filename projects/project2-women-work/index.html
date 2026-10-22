@@ -198,7 +198,7 @@
                 We fetched the years 1990 to 2019 from the
                 <a href="https://datahelpdesk.worldbank.org/knowledgebase/articles/889392">World Bank Indicators API</a>
                 on 21 October 2026 (Pacific time) and cached them in a data/ folder, which is not part of the published
-                site. Running <a href="make_charts.py">make_charts.py</a> fetches the same indicators again. The
+                site. Running <a href="make_charts.py">make_charts.py</a> reuses that cache, and fetches the indicators again only when it is missing. The
                 indicators are female gross tertiary enrollment (SE.TER.ENRR.FE), female labor force participation,
                 ages 15 and over (SL.TLF.CACT.FE.ZS), and the ratio of the female to the male labor force
                 participation rate (SL.TLF.CACT.FM.ZS).
@@ -245,9 +245,9 @@
                         two measures have different denominators: gross tertiary enrollment is measured against the
                         university-age cohort (and can exceed 100%), whilst participation is measured against all women
                         aged 15 and over. Two different measures on one scale invite a comparison of levels, and the gap
-                        then looks like one series failing to follow the other. The separate panels in the opposing chart
-                        (+1.5) are the earnest counterpart of this choice, so the two scores are consistent. Alternative
-                        considered: two separate panels, which would be more honest but far less persuasive.
+                        then looks like one series failing to follow the other. The opposing chart draws its two measures in
+                        separate, separately titled panels and scores +1.5. Alternative considered: two separate panels,
+                        which we rejected because the gap between the two lines reads far less directly.
                     </li>
                     <li>
                         <strong>Women's own participation rate instead of the female-to-male ratio (score: -1.5).</strong> We measure work with the female participation rate and never show the ratio of the female to the
@@ -294,7 +294,7 @@
                             src="against_education_did_pay.png"
                             width="2600"
                             height="1320"
-                            alt="Left: two small slope panels on one 0 to 80% scale for the 25 countries and territories with the largest rise in women's enrollment; median enrollment rises from 20.5% to 71.7% and the median female-to-male participation ratio from 54.5% to 70.4%. Right: dot plot of 98 countries and territories split into four equal groups by the rise in women's enrollment (-4.5 to +8.5, +8.7 to +21.2, +21.6 to +33.9 and +34.1 to +105.7 points); the median change in the female-to-male participation ratio is +1.3, +3.4, +4.3 and +8.8 points, and bands show the middle half of each group. Callouts read: +51.2 points and +15.9 points on the left; lower quartile: +3.5 points on the right."
+                            alt="Left: two small slope panels on one 0 to 80% scale for the 25 countries and territories with the largest rise in women's enrollment; median enrollment rises from 20.5% to 71.7% and the median female-to-male participation ratio from 54.5% to 70.4%. Right: dot plot of 98 countries and territories split into four equal groups by the rise in women's enrollment (-4.5 to +8.5, +8.7 to +21.2, +21.6 to +33.9 and +34.1 to +105.7 points); the median change in the female-to-male participation ratio is +1.3, +3.4, +4.3 and +8.8 points, and bands show the middle half of each group. Start (1990 to 2000) and End (2014 to 2019) mark each axis. Callouts read: +51.2 points and +15.9 points on the left; top group's lower quartile: +3.5 points on the right."
                         />
                     </a>
                     <figcaption>
@@ -323,9 +323,10 @@
                     </li>
                     <li>
                         <strong>Two small panels on one 0 to 80% scale (score: +1.5).</strong> Enrollment and the participation ratio are different measures, so we draw them in separate,
-                        separately titled panels. Both share a 0 to 80% scale starting at zero, so the steeper education
-                        slope is shown at its true size relative to the work slope. We regard this as earnest, and it is
-                        the counterpart of the single shared axis in the supporting chart (-1). Alternative considered:
+                        separately titled panels. Both share a 0 to 80% scale starting at zero, so the two changes can be
+                        compared in size, whilst the separate titles make clear that the levels are not comparable. This is
+                        what distinguishes it from the single overlaid axis in the supporting chart (-1), so we regard it as
+                        earnest. Alternative considered:
                         two crossing lines on one plot, which we rejected because they invite a comparison of levels that
                         means nothing.
                     </li>
@@ -385,8 +386,9 @@
                     The supporting chart was the more straightforward to build, because the world figures alone make
                     the case: enrollment roughly tripled whilst participation fell. The opposing side was harder. The TA feedback observed that our checkpoint did not show the
                     enrollment trend or clearly oppose the proposition, and it asked that the supporting side use global rather
-                    than single-country data. Meeting both requests put the two charts on the same 98 countries and
-                    territories, which made an honest opposing case harder. The most
+                    than single-country data. Meeting both requests meant building both charts on the same 98
+                    countries and territories that report all three indicators, so the opposing side could no longer
+                    rely on a separately chosen region. The most
                     surprising finding was that the choice of work measure decides the conclusion. Women's own
                     participation rate fell worldwide, whereas the ratio of the female to the male rate rose, so each
                     side could pick the indicator that suited it without altering a single value.
@@ -405,7 +407,7 @@
                 <p>
                     Acceptable persuasion directs attention to something genuinely in the data. Emphasis, ordering and a
                     clear headline qualify. None of our deceptive decisions needed a truncated axis or a false number:
-                    every axis includes zero and every figure cites its source. The line is crossed when a choice
+                    every percentage axis starts at zero and every figure cites its source. The line is crossed when a choice
                     depends on the reader not knowing an alternative. A measure, threshold or aggregation chosen because
                     the obvious alternative weakens the conclusion is misleading even when every number is correct.
                     Median callouts that make modest gains read as stagnation, a best-case group shown first, and group

@@ -249,12 +249,12 @@ def chart_against(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
         a.set_title(name, fontsize=10.5, color=color)
         a.set_xlim(-0.35, 1.35)
         a.set_xticks([0, 1])
-        a.set_xticklabels(["Start", "End"])
+        a.set_xticklabels(["Start\n(1990 to 2000)", "End\n(2014 to 2019)"], fontsize=9.5)
         a.tick_params(axis="x", length=0)
         a.grid(axis="y", color=GRID)
     pct_axis(axl[0], 80)
     axl[1].tick_params(axis="y", labelleft=False, length=0)
-    fig.text(0.04, 0.815, f"Largest-rise group ({len(top)} countries and territories), median values",
+    fig.text(0.04, 0.815, f"Largest-rise group ({len(top)} countries and territories), medians at start and end",
              ha="left", fontsize=12.5, fontweight="bold", color=INK)
 
     # Right: quartiles of enrollment gain; dot = median change in the ratio, line = middle half.
@@ -270,7 +270,7 @@ def chart_against(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
                      va="center", fontsize=12.5, fontweight="bold", color=WORK,
                      bbox=dict(boxstyle="square,pad=0.15", fc="white", ec="none"))
     last = grp.iloc[-1]
-    ax2.text(len(grp) - 1, last.p25 - 0.8, f"Lower quartile:\n{last.p25:+.1f} points", ha="center",
+    ax2.text(len(grp) - 1, last.p25 - 0.8, f"Top group's lower\nquartile: {last.p25:+.1f} points", ha="center",
              va="top", fontsize=10, color=WORK)
     ax2.set_xticks(x)
     ax2.set_xticklabels([f"{r.lo:+.1f} to {r.hi:+.1f}" for _, r in grp.iterrows()], color=EDU, fontsize=10)
