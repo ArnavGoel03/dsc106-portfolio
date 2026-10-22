@@ -238,14 +238,11 @@ def chart_against(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
         a.set_axisbelow(True)
         v0, v1 = med[c0], med[c1]
         a.plot([0, 1], [v0, v1], color=color, lw=3, marker="o", ms=7)
-        # One decimal on the endpoints so the printed change is exactly their difference.
+        # One decimal on the endpoints so the change quoted in the text is exactly their difference.
         a.annotate(f"{v0:.1f}%", (0, v0), xytext=(0, -16), textcoords="offset points", ha="center",
                    color=color, fontweight="bold")
         a.annotate(f"{v1:.1f}%", (1, v1), xytext=(0, 9), textcoords="offset points", ha="center",
                    color=color, fontweight="bold")
-        # Change printed in the empty top-left corner, clear of the line and both endpoint labels.
-        a.text(0.05, 0.97, f"{round(v1, 1) - round(v0, 1):+.1f} points", transform=a.transAxes, ha="left",
-               va="top", color=color, fontsize=10.5, fontweight="bold")
         a.set_title(name, fontsize=10.5, color=color)
         a.set_xlim(-0.35, 1.35)
         a.set_xticks([0, 1])
@@ -254,7 +251,7 @@ def chart_against(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
         a.grid(axis="y", color=GRID)
     pct_axis(axl[0], 80)
     axl[1].tick_params(axis="y", labelleft=False, length=0)
-    fig.text(0.04, 0.815, f"Largest-rise group ({len(top)} countries and territories), medians at start and end",
+    fig.text(0.04, 0.815, f"{len(top)} countries and territories, medians at start and end",
              ha="left", fontsize=12.5, fontweight="bold", color=INK)
 
     # Right: quartiles of enrollment gain; dot = median change in the ratio, line = middle half.
