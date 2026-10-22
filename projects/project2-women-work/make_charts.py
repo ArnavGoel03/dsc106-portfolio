@@ -124,7 +124,7 @@ def footer(fig):
 
 
 def headline(fig, title: str, sub: str):
-    fig.suptitle(title, x=0.012, y=0.975, ha="left", fontsize=16.5, fontweight="bold", color=INK)
+    fig.suptitle(title, x=0.012, y=0.975, ha="left", fontsize=15.5, fontweight="bold", color=INK)
     fig.text(0.012, 0.895, sub, ha="left", fontsize=11.5, color=MUTED)
 
 
@@ -169,6 +169,7 @@ def chart_for(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
                 arrowprops=dict(arrowstyle="-", color=WORK, lw=0.8))
     ax.set_xlim(1986, 2023.5)
     pct_axis(ax, 60)
+    ax.set_ylabel("Percent", color=MUTED, fontsize=9.5)
     ax.set_title("The world, 1990 to 2019")
 
     # Right: same places, distribution of each computed change on one shared points axis.
@@ -230,7 +231,7 @@ def chart_against(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
              "ordered by enrollment gain.")
 
     # Left: the largest-rise group, education and work in two small panels on one shared 0-80% scale.
-    left = outer[0, 0].subgridspec(1, 2, wspace=0.12)
+    left = outer[0, 0].subgridspec(1, 2, wspace=0.28)
     axl = [fig.add_subplot(left[0, 0])]
     axl.append(fig.add_subplot(left[0, 1], sharey=axl[0]))
     for a, (c0, c1), color, name in [(axl[0], ("e0", "e1"), EDU, "Women's higher-\neducation enrollment"),
@@ -261,7 +262,7 @@ def chart_against(df: pd.DataFrame, ch: pd.DataFrame) -> dict:
     x = np.arange(len(grp))
     ytop = grp.p75.max() + 2
     for i, r in grp.iterrows():
-        ax2.plot([i, i], [r.p25, r.p75], color=WORK, lw=7, alpha=0.28, solid_capstyle="butt")
+        ax2.plot([i, i], [r.p25, r.p75], color=WORK, lw=7, alpha=0.42, solid_capstyle="butt")
         ax2.plot(i, r.med, "o", color=WORK, ms=13, zorder=3)
         ax2.annotate(f"{r.med:+.1f}", (i, r.med), xytext=(13, 0), textcoords="offset points", ha="left",
                      va="center", fontsize=12.5, fontweight="bold", color=WORK,
