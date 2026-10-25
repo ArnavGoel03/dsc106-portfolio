@@ -116,7 +116,7 @@ function escapeHTML(text) {
 
 const HEADING_LEVELS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 
-// Lab 4, Step 1.4: render projects into a container; reused by the Projects and Home pages
+// Lab 4, Step 1.4 + Lab 5, Step 0.1: render projects (description and year share one div, one grid cell) into a container; reused by the Projects and Home pages
 export function renderProjects(projects, containerElement, headingLevel = 'h2') {
   if (!(containerElement instanceof Element)) return;
   const level = HEADING_LEVELS.includes(headingLevel) ? headingLevel : 'h2';
@@ -135,7 +135,10 @@ export function renderProjects(projects, containerElement, headingLevel = 'h2') 
     article.innerHTML = `
       <${level}>${title}</${level}>
       <img src="${escapeHTML(image)}" alt="${title}">
-      <p>${escapeHTML(project.description ?? '')}</p>
+      <div>
+        <p>${escapeHTML(project.description ?? '')}</p>
+        <p class="year">${escapeHTML(project.year ?? '')}</p>
+      </div>
     `;
     containerElement.appendChild(article);
   }

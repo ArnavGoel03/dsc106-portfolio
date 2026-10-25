@@ -180,3 +180,80 @@ section article {
     font-weight: bold;
   }
 }
+
+/* Lab 5, Step 0.1: year under the description, oldstyle numerals like the spec */
+.projects .year {
+  font-family: Baskerville, serif;
+  font-variant-numeric: oldstyle-nums;
+  margin-block: 0.5em 0;
+}
+
+/* Lab 5, Step 1.1 + 2.3: pie and legend side by side */
+.container {
+  display: flex;
+  align-items: center;
+  gap: 2em;
+  margin-block: 2em;
+}
+
+#projects-pie-plot {
+  max-width: 20em;
+  flex: 0 1 20em;
+  overflow: visible;
+
+  /* Lab 5, Step 5.1: fade the other wedges while one is hovered */
+  &:has(path:hover) path:not(:hover) {
+    opacity: 0.5;
+  }
+
+  path {
+    transition: 300ms;
+    cursor: pointer;
+  }
+}
+
+/* Lab 5, Step 2.2: legend as an auto-fill grid; item gap is smaller than the grid gap (Proximity) */
+.legend {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9em, 1fr));
+  gap: 1em;
+  margin: 0;
+  padding: 1em;
+  list-style: none;
+  border: 1px solid var(--border-gray);
+  border-radius: 0.5em;
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    cursor: pointer;
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 1em;
+    aspect-ratio: 1 / 1;
+    background-color: var(--color);
+    border-radius: 50%;
+  }
+}
+
+/* Lab 5, Step 5.2: selected wedge and legend item; !important beats the inline --color */
+.selected {
+  --color: oklch(60% 45% 0) !important;
+
+  &:is(path) {
+    fill: var(--color);
+  }
+}
+
+/* Lab 5, Step 4.1 */
+.searchBar {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 1em;
+  padding: 0.5em;
+}
