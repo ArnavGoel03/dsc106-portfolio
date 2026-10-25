@@ -33,6 +33,12 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   it plus a 3 s frame sheet: home 3 projects, GitHub stats, Projects page with "12 Projects", learned point, and the
   "why clear the container" Think About It answer are all present. Slip days used: 1 of 6.
 
+- Lab 5 (D3 pie chart): code done and live 2026-10-25, commit c38f1e4. All steps plus the Step 5.4 extra-credit fix
+  (search and pie selection combine both ways via update() in projects/projects.js). Verified headless (12 cards, 2 wedges,
+  search+wedge both orders, stale selection cleared) and live file cmp. OWNER ACTION: record the 1 minute video from
+  https://claude.ai/artifact/5DqNs9BG7BgxvXMTCPzj3r and submit on Gradescope by Fri Oct 30 11:59 PM PDT.
+  Course-wide dates and slip days: ~/Documents/Coursework/FALL-2026-COURSES.md (private, not in this repo).
+
 ## Other coursework asked for in the same session
 - ~~DSC 102 second assignment: BLOCKED on the course website URL.~~ Cleared 2026-10-15: it is PA1 (site
   https://aismithlab.com/DSC102FA26/assignments/), verified 80/80 against the TA answers on the real data and
