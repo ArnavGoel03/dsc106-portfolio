@@ -23,9 +23,15 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   for the stats. Verified on localhost in Chrome: 12 cards and "12 Projects" on /projects/, 3 cards + live GitHub
   numbers on home, all images load, no console errors; item-by-item spec grading in the session report.
   Years are my guesses from project context, edit lib/projects.json if wrong.
-  OWNER ACTION: record a 1 minute mp4 in your own voice (present the site, show the projects page count, the home
+  ~~OWNER ACTION: record a 1 minute mp4 in your own voice (present the site, show the projects page count, the home
   page latest projects and GitHub stats, say the most interesting thing learned AND answer one "Think about it"
-  question from the lab), then submit repo link + site link + video on Gradescope. Due Fri Oct 23 11:59 PM PDT.
+  question from the lab), then submit repo link + site link + video on Gradescope. Due Fri Oct 23 11:59 PM PDT.~~
+  SUBMITTED 2026-10-25 ~12:24 IST (Sat Oct 24 23:54 PDT) using 1 lab slip day (labs allow max 1): Gradescope
+  submission 441082661, shows "23 Hours, 55 Minutes Late". Q1 repo + site links, Q2 DSC106-Lab4-ArnavGoel-FINAL.mp4
+  (57.4 s, h264+aac, cut from a 144 s Zoom take: dead air, false starts and the optional projects.json beat removed,
+  1.15x, loudnorm). Verified on Gradescope by a Chrome-enabled helper session, and the cut checked by re-transcribing
+  it plus a 3 s frame sheet: home 3 projects, GitHub stats, Projects page with "12 Projects", learned point, and the
+  "why clear the container" Think About It answer are all present. Slip days used: 1 of 6.
 
 ## Other coursework asked for in the same session
 - ~~DSC 102 second assignment: BLOCKED on the course website URL.~~ Cleared 2026-10-15: it is PA1 (site
@@ -48,7 +54,7 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   by Chrome's multiple-download guard; read in the viewer instead.
 - DSC 102 Canvas scores: one-time pull + tracker file. BLOCKED on owner allowing canvas.ucsd.edu in the Claude
   extension site permissions.
-- DSC 106 Lab 4: open, due 10/23 11:59 PM PDT. Lecture 8 check-in draft ready, owner submits.
+- ~~DSC 106 Lab 4: open, due 10/23 11:59 PM PDT.~~ Submitted 2026-10-25 with 1 slip day (see Labs). Lecture 8 check-in draft ready, owner submits.
 
 - 2026-10-22 status, Project 2 finals (both live on GitHub Pages, checked over the network: page 200, both PNGs 200):
   - Team A (Zhu, Li, Goel): https://arnavgoel03.github.io/dsc106-portfolio/projects/project2-wealth-health/
