@@ -100,7 +100,7 @@ export async function fetchJSON(url) {
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`Failed to fetch projects: ${response.statusText}`);
+      throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
     }
     const data = await response.json();
     return data;
@@ -122,7 +122,12 @@ export function renderProjects(projects, containerElement, headingLevel = 'h2') 
   const level = HEADING_LEVELS.includes(headingLevel) ? headingLevel : 'h2';
   containerElement.innerHTML = '';
 
-  for (const project of Array.isArray(projects) ? projects : []) {
+  if (!Array.isArray(projects) || projects.length === 0) {
+    containerElement.innerHTML = '<p>No projects to show right now.</p>';
+    return;
+  }
+
+  for (const project of projects) {
     const article = document.createElement('article');
     // Image paths in the JSON are relative to the site root, so they work from any page
     const image = project.image?.startsWith('http') ? project.image : BASE_PATH + (project.image ?? '');

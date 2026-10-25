@@ -19,4 +19,6 @@ if (profileStats && githubData) {
           <dt>Following:</dt><dd>${githubData.following}</dd>
         </dl>
     `;
+} else if (profileStats) {
+  profileStats.innerHTML = '<p>GitHub stats are unavailable right now.</p>';
 }

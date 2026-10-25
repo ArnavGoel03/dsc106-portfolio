@@ -1,73 +1,73 @@
 [
   {
     "title": "Watch Together",
-    "year": "2025",
+    "year": 2025,
     "image": "images/projects/watch-together.jpg",
     "description": "Cross-site video-sync extension shipping on the Chrome Web Store. WebSocket relay with heartbeat drift correction (<0.5s), host-mode enforcement, site-specific player adapters, 59 vitest tests + Puppeteer e2e."
   },
   {
     "title": "Gondilal Saraf",
-    "year": "2025",
+    "year": 2025,
     "image": "images/projects/gondilal-saraf.jpg",
     "description": "Three surfaces (public site + bilingual catalogue + admin ERP) in one Next.js 15 codebase. Image pipeline: Photoroom → Sharp → Gemini 2.0 Flash → Replicate SDXL. 15 Prisma models, 26 API routes, 85 tests."
   },
   {
     "title": "Serenity",
-    "year": "2026",
+    "year": 2026,
     "image": "images/projects/serenity.jpg",
     "description": "Rant-first health logging where Claude extracts structured symptoms, medications, and mood from free-form text. Lab-report PDF parser with Zod-validated JSON output and manual fallback form. 15 Prisma models."
   },
   {
     "title": "Red Bull YouTube Sentiment Analytics",
-    "year": "2025",
+    "year": 2025,
     "image": "images/projects/redbull-youtube-analytics.jpg",
     "description": "VADER sentiment on 500 YouTube comments. Net Sentiment Score +28.6 pp (2× industry benchmark), 100% hashtag discipline across a 50-video catalog, 8-chart Excel dashboard + executive-summary PDF."
   },
   {
     "title": "U.S. Power Outages (DSC 80)",
-    "year": "2025",
+    "year": 2025,
     "image": "images/projects/power-grid-analysis.jpg",
     "description": "Analysed 1,534 major U.S. power outages (2000 to 2016). Random Forest with engineered features reached RMSE 6,189 min and R² 0.220, with fairness checks across weather vs. non-weather outages (p ≈ 0.007 on price-tier hypothesis test)."
   },
   {
     "title": "MLB Playoff Prediction (COGS 108)",
-    "year": "2026",
+    "year": 2026,
     "image": "images/projects/mlb-playoff-cogs108.jpg",
     "description": "Team-of-5 Winter 2026 final project on early-season predictors of MLB playoff qualification 2015 to 2023 via Fangraphs pybaseball. Proposal → EDA → final analysis across four notebooks. I led the ethics section."
   },
   {
     "title": "Circuit (Glass Table Games)",
-    "year": "2026",
+    "year": 2026,
     "image": "images/projects/circuit.jpg",
     "description": "Board games with dice you can check. Circuit holds Ludo and Snakes and Ladders."
   },
   {
     "title": "Deal (Glass Table Games)",
-    "year": "2026",
+    "year": 2026,
     "image": "images/projects/deal.jpg",
     "description": "The card games, dealt where anybody can check the deal. Deal holds Judgement, 29, Call Break, Pachisa, 3-2-5, FreeCell, Klondike and Spider."
   },
   {
     "title": "Lattice (Glass Table Games)",
-    "year": "2026",
+    "year": 2026,
     "image": "images/projects/lattice.jpg",
     "description": "Lattice is a crossing-words board played at a table or solo against the computer."
   },
   {
     "title": "Upkeep",
-    "year": "2026",
+    "year": 2026,
     "image": "images/projects/upkeep.jpg",
     "description": "How an Indian home actually works, and what actually worked on it."
   },
   {
     "title": "Fitout",
-    "year": "2026",
+    "year": 2026,
     "image": "images/projects/fitout.jpg",
     "description": "What goes into an Indian room, what it costs, and what it commits you to."
   },
   {
     "title": "Larder",
-    "year": "2026",
+    "year": 2026,
     "image": "images/projects/larder.jpg",
     "description": "An Indian kitchen reference where every answer is computed from a registry and checked by the build, not typed twice and left to drift."
   }
