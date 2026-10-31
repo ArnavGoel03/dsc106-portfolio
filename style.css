@@ -364,3 +364,105 @@ section article {
   margin-bottom: 1em;
   padding: 0.5em;
 }
+
+/* Lab 6, Step 1.3: summary stats, labels above values, same look as the home page stats */
+dl.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8em, 1fr));
+  margin: 0;
+  text-align: center;
+
+  dt {
+    grid-row: 1;
+    font-size: 90%;
+    color: color-mix(in oklch, canvastext 70%, canvas);
+  }
+
+  dd {
+    grid-row: 2;
+    margin: 0;
+    font-size: 2em;
+    font-weight: bold;
+  }
+}
+
+/* The language breakdown lists pairs row by row instead */
+#language-breakdown {
+  grid-template-columns: repeat(auto-fit, minmax(8em, 1fr));
+
+  dd {
+    font-size: 1em;
+    font-weight: normal;
+  }
+}
+
+/* Lab 6, Step 2.3: faint gridlines */
+.gridlines {
+  stroke-opacity: 0.2;
+}
+
+/* Lab 6, Step 3.1 + 3.2: info list and floating tooltip */
+dl.info {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25em 1em;
+  margin: 0;
+
+  dt {
+    color: color-mix(in oklch, canvastext 70%, canvas);
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  transition-duration: 500ms;
+  transition-property: opacity, visibility;
+}
+
+dl.info[hidden]:not(:hover, :focus-within) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.tooltip {
+  position: fixed;
+  top: 1em;
+  left: 1em;
+  padding: 0.75em;
+  background-color: color-mix(in oklch, canvas, transparent 20%);
+  border-radius: 0.5em;
+  box-shadow: 0 0.25em 1em color-mix(in oklch, canvastext, transparent 80%);
+  backdrop-filter: blur(0.5em);
+}
+
+/* Lab 6, Step 3.1 + 5.4: dots scale from their center on hover, selected dots use the accent */
+#chart circle {
+  fill: color-mix(in oklch, canvastext 55%, canvas);
+  transition: 200ms;
+  transform-origin: center;
+  transform-box: fill-box;
+
+  &:hover {
+    transform: scale(1.5);
+  }
+
+  &.selected {
+    fill: var(--color-accent);
+  }
+}
+
+/* Lab 6, Step 5.3: marching ants selection rectangle */
+@keyframes marching-ants {
+  to {
+    stroke-dashoffset: -8; /* 5 + 3 */
+  }
+}
+
+#chart .selection {
+  fill-opacity: 0.1;
+  stroke: canvastext;
+  stroke-opacity: 0.7;
+  stroke-dasharray: 5 3;
+  animation: marching-ants 2s linear infinite;
+}

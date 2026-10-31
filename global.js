@@ -11,6 +11,8 @@ const pages = [
   { url: 'projects/', title: 'Projects' },
   { url: 'contact/', title: 'Contact' },
   { url: 'cv/', title: 'CV' },
+  // Lab 6, Step 0.1
+  { url: 'meta/', title: 'Meta' },
   { url: 'https://github.com/ArnavGoel03', title: 'GitHub' },
 ];
 
