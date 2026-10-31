@@ -33,6 +33,12 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   it plus a 3 s frame sheet: home 3 projects, GitHub stats, Projects page with "12 Projects", learned point, and the
   "why clear the container" Think About It answer are all present. Slip days used: 1 of 6.
 
+- Lab 6 (D3 quantitative viz): code done 2026-10-31, spec https://dsc106.com/labs/lab06/. meta/index.html + meta/main.js
+  (summary stats, commit scatterplot, tooltip, sqrt dot size, brushing with count and language breakdown), Meta nav link,
+  meta/loc.csv from elocuent (re-run `npx elocuent -d . -o meta/loc.csv --spaces 2` after new commits). Live files
+  fetched from Pages; not yet render-checked in a browser by the agent (sandbox blocked Chrome).
+  OWNER ACTION: record the 1 minute mp4 (script: Coursework/DSC106/DSC106-Lab6-Video-Script.md), submit repo + site + video
+  on Gradescope. Due Fri Nov 6 11:59 PM PDT.
 - Lab 5 (D3 pie chart): code done and live 2026-10-25, commit c38f1e4. All steps plus the Step 5.4 extra-credit fix
   (search and pie selection combine both ways via update() in projects/projects.js). Verified headless (12 cards, 2 wedges,
   search+wedge both orders, stale selection cleared) and live file cmp. OWNER ACTION: record the 1 minute video from
