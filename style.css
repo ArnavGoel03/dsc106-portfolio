@@ -55,9 +55,18 @@ nav {
     text-align: center;
     padding: 0.5em;
 
+    /* Tap target of at least 44px, text centered */
+    min-block-size: 2.75rem;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
     &.current {
-      border-bottom: 0.4em solid var(--border-color);
+      /* Stronger than the hover underline's neighbours: bold text and a full-contrast bar */
+      border-bottom: 0.4em solid canvastext;
       padding-bottom: 0.1em;
+      font-weight: bold;
     }
 
     &:hover {
@@ -69,6 +78,12 @@ nav {
   }
 }
 
+/* One visible keyboard focus ring for every interactive element, built from the accent variable */
+:is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 /* Lab 3, Step 4.3: theme switcher pinned to the top right corner */
 .color-scheme {
   position: absolute;
@@ -78,6 +93,9 @@ nav {
 
   select {
     font: inherit;
+    /* 44px tap target */
+    min-block-size: 2.75rem;
+    cursor: pointer;
   }
 }
 
@@ -104,6 +122,36 @@ form {
 
   button {
     grid-column: 1 / -1;
+    min-block-size: 2.75rem;
+    cursor: pointer;
+
+    &:hover {
+      background-color: color-mix(in oklch, var(--color-accent), canvas 80%);
+    }
+
+    &:active {
+      background-color: color-mix(in oklch, var(--color-accent), canvas 60%);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  input, textarea, select {
+    min-block-size: 2.75rem;
+    box-sizing: border-box;
+
+    /* A field holding text reads as filled */
+    &:not(:placeholder-shown):not(select) {
+      border-color: var(--color-accent);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
 }
 
@@ -206,9 +254,34 @@ section article {
     opacity: 0.5;
   }
 
+  /* Once a year is chosen, fade every other wedge so the chosen one stands out */
+  &:has(path.selected) path:not(.selected) {
+    opacity: 0.35;
+  }
+
   path {
     transition: 300ms;
     cursor: pointer;
+    /* Sizeable hit area even for thin wedges */
+    stroke: canvas;
+    stroke-width: 0.5;
+    paint-order: stroke;
+
+    &:hover {
+      stroke: canvastext;
+    }
+
+    &:focus-visible {
+      outline: none;
+      stroke: canvastext;
+      stroke-width: 2;
+    }
+
+    &.selected {
+      stroke: canvastext;
+      stroke-width: 1.5;
+      transform: scale(1.08);
+    }
   }
 }
 
@@ -229,6 +302,26 @@ section article {
     align-items: center;
     gap: 0.5em;
     cursor: pointer;
+    /* 44px tap target, with room for the selected highlight so nothing shifts */
+    min-block-size: 2.75rem;
+    padding-inline: 0.5em;
+    border: 2px solid transparent;
+    border-radius: 0.5em;
+    transition: 300ms;
+
+    &:hover {
+      background-color: color-mix(in oklch, canvastext, canvas 92%);
+    }
+
+    &.selected {
+      font-weight: bold;
+      border-color: canvastext;
+      background-color: color-mix(in oklch, var(--color), canvas 80%);
+    }
+  }
+
+  &:has(.selected) .legend-item:not(.selected) {
+    opacity: 0.55;
   }
 
   .swatch {
@@ -249,8 +342,22 @@ section article {
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  #projects-pie-plot path, .legend .legend-item {
+    transition: none;
+  }
+}
+
 /* Lab 5, Step 4.1 */
 .searchBar {
+  min-block-size: 2.75rem;
+
+  /* A search with text in it is visibly active */
+  &:not(:placeholder-shown) {
+    border-color: var(--color-accent);
+    outline: 2px solid var(--color-accent);
+  }
+
   display: block;
   width: 100%;
   box-sizing: border-box;
