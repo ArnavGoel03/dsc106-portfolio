@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How Much Warmer Will Your Region Get, and How Sure Are We?</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <p class="tag">DSC 106 Project 3, checkpoint prototype</p>
+    <h1 id="title">How Much Warmer Will Your Region Get, and How Sure Are We?</h1>
+    <p class="sub" id="subtitle"></p>
+  </header>
+  <section class="controls" aria-label="Controls">
+    <fieldset>
+      <legend>Emissions scenario</legend>
+      <div id="scenario-radios"></div>
+    </fieldset>
+    <label class="year-ctl">Period ending in <output id="year-out"></output>
+      <input type="range" id="year" />
+    </label>
+    <button id="play" type="button" aria-label="Play year animation">Play</button>
+    <label>Model <select id="model"></select></label>
+    <label class="check"><input type="checkbox" id="hatch" checked /> Hatch where models disagree</label>
+  </section>
+  <main>
+    <figure class="map-wrap">
+      <svg id="map" role="img" aria-label="World map of projected warming on a 10 degree grid"></svg>
+      <figcaption id="map-caption"></figcaption>
+    </figure>
+    <figure class="line-wrap">
+      <svg id="line" role="img" aria-label="Annual temperature change for the selected cell"></svg>
+      <figcaption id="line-caption"></figcaption>
+    </figure>
+  </main>
+  <div id="tip" role="status" hidden></div>
+  <footer>
+    <p>Data: CMIP6 monthly near-surface air temperature (tas), NOAA/Google Cloud public zarr store. Six models (<span id="model-list"></span>), member r1i1p1f1, regridded by averaging onto a 10 degree grid. Land outline: Natural Earth via world-atlas. Checkpoint prototype; write-up and final design come later.</p>
+  </footer>
+  <script src="vendor/d3.min.js"></script>
+  <script src="vendor/topojson-client.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
