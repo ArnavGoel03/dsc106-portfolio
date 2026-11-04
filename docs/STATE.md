@@ -76,3 +76,9 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   B ~13.5/14; not independently re-graded after the last round. Charts viewed by eye after the final render.
   OWNER ACTION: each team submits its own URL plus the team feedback form on Gradescope (due 10/21 11:59 PM PDT,
   late until 10/23). Only ONE team may add Yash, since Gradescope keeps the latest group submission per student.
+
+## Project 3 (interactive, CMIP6), 2026-11-05
+- Prototype LIVE: https://arnavgoel03.github.io/dsc106-portfolio/projects/project3-checkpoint/ (commit 4ed2286). Pages build "built"; page and all 6 assets return 200.
+- Verified locally in chrome-headless-shell before the push: 0 console errors; scenario radios, year slider, Play, model dropdown, hatch toggle, cell tooltip and click-for-lines all work at 1440 and 390 px. Phone width still renders about 470 px wide (scenario fieldset); not fixed yet.
+- Published only page files plus data pipeline scripts. Kept local and unpublished: narration, team.json, README/REDTEAM, EDA, shots, video (they name the old team).
+- Official group changed 2026-11-02 to Yash + Chau Nguyen (TA Ben Pham, Group 19). Still owed: write-up (rationale, transformations, work split, people-hours), Gradescope URL by Wed 11/11 11:59 PM PT (owner said do not submit yet).
