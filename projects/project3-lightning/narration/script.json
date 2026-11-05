@@ -83,7 +83,7 @@
       "id": "question",
       "item": "Title of the graph and the question",
       "split": "yash",
-      "text": "Our title: {title} Our question: at what hour does lightning peak over land and ocean, and where does it strike at night?",
+      "text": "Our title: {title}. Our question: at what hour does lightning peak over land and ocean, and where does it strike at night?",
       "visual": [
         "cards/card_question.png"
       ]

@@ -41,7 +41,7 @@ Sixth, four hours on one scale. At 3 PM the continents light up. At 3 AM the lig
 ## Yash
 **1:22 to 1:36** (Title of the graph and the question, 31 words)
 
-Our title: When Does Lightning Strike? Day and Night over the Americas Our question: at what hour does lightning peak over land and ocean, and where does it strike at night?
+Our title: When Does Lightning Strike? Day and Night over the Americas. Our question: at what hour does lightning peak over land and ocean, and where does it strike at night?
 
 **1:36 to 1:56** (Current progress on the final dynamic graph, 47 words)
 
