@@ -1,0 +1,41 @@
+# Fetch six years (2019 to 2024) of the GOES-16 GLM sample for projects/project3-lightning-climatology on GitHub's
+# US runners, one job per (year, month). Manual trigger only. Each job uploads data/glm_grid_<year>.npz for its month;
+# scripts/merge_grids.py sums the months per year and averages the years locally.
+name: glm-climatology-fetch
+on:
+  workflow_dispatch:
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        year: [2019, 2020, 2021, 2022, 2023, 2024]
+        month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    defaults:
+      run:
+        working-directory: projects/project3-lightning-climatology
+    env:
+      GLM_YEAR: ${{ matrix.year }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+      - name: Fetch and bin one month
+        run: |
+          python - <<'PY'
+          import calendar, datetime, subprocess, sys
+          y, m = ${{ matrix.year }}, ${{ matrix.month }}
+          first = datetime.date(y, m, 1).timetuple().tm_yday
+          last = first + calendar.monthrange(y, m)[1] - 1
+          subprocess.run([sys.executable, "fetch_glm.py", *[str(d) for d in range(first, last + 1)]], cwd="scripts", check=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: glm-grid-${{ matrix.year }}-${{ matrix.month }}
+          path: projects/project3-lightning-climatology/data/glm_grid_${{ matrix.year }}.npz
+          retention-days: 7

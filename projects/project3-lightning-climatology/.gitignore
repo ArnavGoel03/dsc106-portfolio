@@ -1,0 +1,7 @@
+/data/
+.venv
+/video/
+/shots/clip/
+/shots/frame*.png
+/shots/eda_contact.png
+/shots/clip.mp4

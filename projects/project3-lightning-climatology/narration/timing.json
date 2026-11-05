@@ -1,0 +1,96 @@
+{
+ "total": 118.3,
+ "segments": [
+  {
+   "id": "team",
+   "start": 0.0,
+   "dur": 4.59,
+   "visual": [
+    "cards/card_team.png"
+   ]
+  },
+  {
+   "id": "dataset",
+   "start": 4.6,
+   "dur": 15.3,
+   "visual": [
+    "cards/card_dataset.png"
+   ]
+  },
+  {
+   "id": "g1",
+   "start": 19.9,
+   "dur": 8.44,
+   "visual": [
+    "eda/g1_map_total.png"
+   ]
+  },
+  {
+   "id": "g2",
+   "start": 28.3,
+   "dur": 8.87,
+   "visual": [
+    "eda/g2_all_by_hour.png"
+   ]
+  },
+  {
+   "id": "g3",
+   "start": 37.2,
+   "dur": 9.73,
+   "visual": [
+    "eda/g3_land_vs_ocean.png"
+   ]
+  },
+  {
+   "id": "g4",
+   "start": 46.9,
+   "dur": 13.59,
+   "visual": [
+    "eda/g4_peak_hour_map.png"
+   ]
+  },
+  {
+   "id": "g5",
+   "start": 60.5,
+   "dur": 12.3,
+   "visual": [
+    "eda/g5_regions.png"
+   ]
+  },
+  {
+   "id": "g6",
+   "start": 72.8,
+   "dur": 13.59,
+   "visual": [
+    "eda/g7_four_seasons.png"
+   ]
+  },
+  {
+   "id": "question",
+   "start": 86.4,
+   "dur": 13.59,
+   "visual": [
+    "cards/card_question.png"
+   ]
+  },
+  {
+   "id": "progress",
+   "start": 100.0,
+   "dur": 18.3,
+   "visual": [
+    [
+     "shots/proto_default.png",
+     0.28
+    ],
+    [
+     "shots/clip.mp4",
+     0.42
+    ],
+    [
+     "shots/proto_year.png",
+     0.3
+    ]
+   ]
+  }
+ ]
+}

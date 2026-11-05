@@ -1,0 +1,112 @@
+{
+  "wpm": 140,
+  "max_seconds": 120,
+  "pad_seconds": 0.3,
+  "speakers": {
+    "yash": "Yash",
+    "chau": "Chau"
+  },
+  "segments": [
+    {
+      "id": "team",
+      "item": "Team name and members",
+      "split": "yash",
+      "text": "We are {team_name}: {others} and me, Yash Goel.",
+      "visual": [
+        "cards/card_team.png"
+      ]
+    },
+    {
+      "id": "dataset",
+      "item": "Dataset and the aspects used",
+      "split": "yash",
+      "text": "Our dataset is GOES-16's lightning mapper. One file every 5 minutes through all of 2024, {flashes_m} million flashes, binned to a 1 degree grid by hour and by season, in UTC and local solar time.",
+      "visual": [
+        "cards/card_dataset.png"
+      ]
+    },
+    {
+      "id": "g1",
+      "item": "Exploratory graph 1",
+      "split": "yash",
+      "text": "First, where. Land dominates: {land_share:.0f} percent of flashes, with hotspots in Colombia, the Amazon, Florida and the Gulf coast.",
+      "visual": [
+        "eda/g1_map_total.png"
+      ]
+    },
+    {
+      "id": "g2",
+      "item": "Exploratory graph 2",
+      "split": "yash",
+      "text": "Second, when. Across the hemisphere lightning peaks at {all_peak}; 1 to 6 PM holds {all_afternoon:.0f} percent of all flashes.",
+      "visual": [
+        "eda/g2_all_by_hour.png"
+      ]
+    },
+    {
+      "id": "g3",
+      "item": "Exploratory graph 3",
+      "split": "chau",
+      "text": "Third, land against ocean. Land peaks at {land_peak}, ocean at {ocean_peak}, and {ocean_night:.0f} percent of ocean flashes happen at night.",
+      "visual": [
+        "eda/g3_land_vs_ocean.png"
+      ]
+    },
+    {
+      "id": "g4",
+      "item": "Exploratory graph 4",
+      "split": "chau",
+      "text": "Fourth, each cell's peak hour. {land_aft:.0f} percent of land cells peak in the afternoon, {ocean_night_cells:.0f} percent of ocean cells at night. The Great Plains are a night patch inside a continent.",
+      "visual": [
+        "eda/g4_peak_hour_map.png"
+      ]
+    },
+    {
+      "id": "g5",
+      "item": "Exploratory graph 5",
+      "split": "chau",
+      "text": "Fifth, three regions. The Southeast peaks at {se_peak}, the Amazon at {amazon_peak}, but the Plains at {plains_peak}, with {plains_night:.0f} percent of their lightning at night.",
+      "visual": [
+        "eda/g5_regions.png"
+      ]
+    },
+    {
+      "id": "g6",
+      "item": "Exploratory graph 6",
+      "split": "chau",
+      "text": "Sixth, the seasons. Summer holds {jja_share:.0f} percent of the year's flashes. In winter the north goes dark and the Amazon and Argentina take over, so our page has a season switch.",
+      "visual": [
+        "eda/g7_four_seasons.png"
+      ]
+    },
+    {
+      "id": "question",
+      "item": "Title of the graph and the question",
+      "split": "yash",
+      "text": "Our title: {title}. Our question: at what hour does lightning peak over land and ocean, and where does it strike at night?",
+      "visual": [
+        "cards/card_question.png"
+      ]
+    },
+    {
+      "id": "progress",
+      "item": "Current progress on the final dynamic graph",
+      "split": "yash",
+      "text": "Our D3 prototype: drag or play the hour and watch land light up by afternoon and the sea by night. Switch season or clock, click two cells to compare, or jump to Florida, the Plains and Maracaibo. Left: polish and the write-up.",
+      "visual": [
+        [
+          "shots/proto_default.png",
+          0.28
+        ],
+        [
+          "shots/clip.mp4",
+          0.42
+        ],
+        [
+          "shots/proto_year.png",
+          0.3
+        ]
+      ]
+    }
+  ]
+}
