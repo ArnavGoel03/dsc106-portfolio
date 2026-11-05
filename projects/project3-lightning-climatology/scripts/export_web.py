@@ -102,8 +102,8 @@ def main():
         "year_flashes": {str(y): int(f) for y, f in zip(g["years"].tolist(), g["year_flashes"].tolist())},
         "year_curves": year_curves(),
         "sample": f"one 20 s file every {C.FILE_STRIDE * 20 // 60} minutes (1 in {C.FILE_STRIDE})",
-        "files": int(g["files"].sum()), "flashes": int(round(g["utc"].sum())),
-        "flashes_by_season": {s: int(round(seasons[s]["utc"].sum())) for s in C.SEASONS},
+        "files": int(g["files"].sum()), "flashes": int(stack[:, 0].sum()),  # from the rounded stack, so the page's sums match the meta exactly
+        "flashes_by_season": {s: int(stack[k, 0].sum()) for k, s in enumerate(C.SEASONS)},
         "seasons": list(C.SEASONS), "season_months": {s: list(m) for s, m in C.SEASONS.items()}, "default_season": C.DEFAULT_SEASON,
         "clocks": ["utc", "local"], "counts_file": "web/data/glm_counts.bin", "counts_gzip": "web/data/glm_counts.bin.gz", "counts_dtype": "uint16 little-endian",
         "lat0": C.LAT0, "lon0": C.LON0, "cell": C.CELL_DEG, "nlat": C.NLAT, "nlon": C.NLON, "hours": C.HOURS,
