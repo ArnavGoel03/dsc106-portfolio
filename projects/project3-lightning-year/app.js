@@ -2,7 +2,8 @@
 // Single source of truth for tunable values in the prototype.
 const CONFIG = {
   dataUrl: "web/data/glm.json",
-  countsUrl: "web/data/glm_counts.bin",  // uint16 LE [season][clock][cell][hour], see scripts/export_web.py
+  countsUrl: "web/data/glm_counts.bin",     // uint16 LE [season][clock][cell][hour], see scripts/export_web.py
+  countsGzUrl: "web/data/glm_counts.bin.gz", // same bytes gzipped (about 1 MB instead of 5); inflated in the browser
   seasonLabels: { DJF: "Winter (DJF)", MAM: "Spring (MAM)", JJA: "Summer (JJA)", SON: "Autumn (SON)", YEAR: "Whole year" },
   landUrl: "vendor/land-110m.json",
   teamUrl: "team.json",
@@ -53,7 +54,19 @@ const KM2_PER_DEG2_EQUATOR = 111.2 * 111.2;
 let rowDensityFactor = [];  // per latitude row: 10,000 / cell area in km2
 const density = (c, v) => v * rowDensityFactor[Math.floor(c / M.nlon)];
 
-Promise.all([d3.json(CONFIG.dataUrl), d3.json(CONFIG.landUrl), d3.json(CONFIG.teamUrl), fetch(CONFIG.countsUrl).then((r) => r.arrayBuffer())]).then(([data, land, team, buf]) => {
+// Counts: fetch the gzipped file and inflate it with DecompressionStream; fall back to the raw file where that API
+// is missing. Either way the subtitle says what is loading, because the file is the slowest part of first paint.
+async function loadCounts() {
+  if (typeof DecompressionStream === "function") {
+    try {
+      const r = await fetch(CONFIG.countsGzUrl);
+      if (r.ok) return await new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+    } catch (e) { /* fall through to the raw file */ }
+  }
+  return (await fetch(CONFIG.countsUrl)).arrayBuffer();
+}
+$("#subtitle").textContent = "Loading the lightning counts (about 1 MB)...";
+Promise.all([d3.json(CONFIG.dataUrl), d3.json(CONFIG.landUrl), d3.json(CONFIG.teamUrl), loadCounts()]).then(([data, land, team, buf]) => {
   D = data; M = data.meta; landMask = data.land; RAW = new Uint16Array(buf);
   state.season = M.default_season;
   rowDensityFactor = d3.range(M.nlat).map((i) => 1e4 / (KM2_PER_DEG2_EQUATOR * M.cell * M.cell * Math.cos(((M.lat0 + (i + 0.5) * M.cell) * Math.PI) / 180)));

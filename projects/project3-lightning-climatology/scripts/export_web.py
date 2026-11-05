@@ -90,7 +90,10 @@ def main():
     stack = np.rint(stack)  # mean flashes per year in the sample, rounded to whole flashes for the uint16 file
     assert stack.max() < 65535, f"cell-hour count {stack.max()} overflows uint16"
     (C.WEB / "data").mkdir(parents=True, exist_ok=True)
-    (C.WEB / "data" / "glm_counts.bin").write_bytes(stack.astype("<u2").tobytes())
+    raw = stack.astype("<u2").tobytes()
+    (C.WEB / "data" / "glm_counts.bin").write_bytes(raw)
+    import gzip
+    (C.WEB / "data" / "glm_counts.bin.gz").write_bytes(gzip.compress(raw, 9))  # the page fetches this and inflates it; .bin is the fallback
     meta = {
         "title": C.TEAM["title"],
         "source": "GOES-16 GLM L2 LCFA flashes, NOAA Open Data on AWS (s3://noaa-goes16/GLM-L2-LCFA/)",
@@ -102,15 +105,15 @@ def main():
         "files": int(g["files"].sum()), "flashes": int(round(g["utc"].sum())),
         "flashes_by_season": {s: int(round(seasons[s]["utc"].sum())) for s in C.SEASONS},
         "seasons": list(C.SEASONS), "season_months": {s: list(m) for s, m in C.SEASONS.items()}, "default_season": C.DEFAULT_SEASON,
-        "clocks": ["utc", "local"], "counts_file": "web/data/glm_counts.bin", "counts_dtype": "uint16 little-endian",
+        "clocks": ["utc", "local"], "counts_file": "web/data/glm_counts.bin", "counts_gzip": "web/data/glm_counts.bin.gz", "counts_dtype": "uint16 little-endian",
         "lat0": C.LAT0, "lon0": C.LON0, "cell": C.CELL_DEG, "nlat": C.NLAT, "nlon": C.NLON, "hours": C.HOURS,
         "local_time": "local solar hour = UTC hour + longitude / 15",
         "artifact_cells_removed": removed,
     }
     p = C.WEB / "data" / "glm.json"
     p.write_text(json.dumps({"meta": meta, "land": land_mask().tolist()}, separators=(",", ":")))
-    b = (C.WEB / "data" / "glm_counts.bin").stat().st_size / 1e6
-    print(p, f"{p.stat().st_size / 1e6:.2f} MB json, {b:.2f} MB bin, days {days_done}, flashes {meta['flashes']}, by season {meta['flashes_by_season']}")
+    b = (C.WEB / "data" / "glm_counts.bin.gz").stat().st_size / 1e6
+    print(p, f"{p.stat().st_size / 1e6:.2f} MB json, {b:.2f} MB bin.gz, days {days_done}, flashes {meta['flashes']}, by season {meta['flashes_by_season']}")
 
 
 def month_of_index(k):
