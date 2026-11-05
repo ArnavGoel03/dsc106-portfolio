@@ -24,7 +24,7 @@ const CONFIG = {
 };
 
 const state = { hour: CONFIG.hourStart, clock: "local", season: "JJA", sel: [], timer: null };
-let D, M, path, cellsSel, legendG, colorScale, landMask, RAW;
+let D, M, path, cellsSel, legendG, colorScale, landMask, RAW, DOMAINS;
 const gridCache = new Map();  // "season|clock" -> Uint32Array of nlat*nlon*24 counts
 const $ = (s) => document.querySelector(s);
 const hourLabel = (h) => `${((h + 11) % 12) + 1} ${h < 12 ? "AM" : "PM"}`;
@@ -124,7 +124,7 @@ function init(landTopo, team) {
   [...M.seasons, "YEAR"].forEach((sn) => {
     const l = document.createElement("label");
     l.innerHTML = `<input type="radio" name="season" value="${sn}" ${sn === state.season ? "checked" : ""}/> ${CONFIG.seasonLabels[sn]}`;
-    l.querySelector("input").addEventListener("change", () => { state.season = sn; setSubtitle(); render(); drawLine(); });
+    l.querySelector("input").addEventListener("change", () => { state.season = sn; setColorScale(); setSubtitle(); render(); drawLine(); });
     sr.appendChild(l);
   });
   const jumps = $("#jumps");
@@ -168,13 +168,11 @@ function init(landTopo, team) {
 
   // Colour: sqrt scale on the per-hour flash density, domain fixed across hours AND seasons so the animation and the
   // season switch stay comparable (winter looks dimmer because it is).
-  let maxCount = 1;
-  for (const sn of M.seasons) {
-    const a = grid(sn, "local");
-    for (let c = 0; c < cells.length; c++) for (let h = 0; h < M.hours; h++) { const v = density(c, a[c * M.hours + h]); if (v > maxCount) maxCount = v; }
-  }
-  colorScale = d3.scaleSequentialSqrt([0, maxCount], d3.interpolateYlOrRd);
-  drawLegend(maxCount);
+  // Two domains: one shared by the four seasons (so switching season is comparable) and one for the whole-year
+  // view, whose cells hold about four times the flashes; the legend is redrawn whenever the domain changes.
+  const maxOf = (names) => { let m = 1; for (const sn of names) { const a = grid(sn, "local"); for (let c = 0; c < cells.length; c++) for (let h = 0; h < M.hours; h++) { const v = density(c, a[c * M.hours + h]); if (v > m) m = v; } } return m; };
+  DOMAINS = { season: maxOf(M.seasons), YEAR: maxOf(["YEAR"]) };
+  setColorScale();
 
   select(cellOf(CONFIG.jumps[0].lat, CONFIG.jumps[0].lon));
   render(); drawLine(); drawYears();
@@ -201,6 +199,13 @@ function drawYears() {
   const peaks = (k) => years.map((yr) => M.year_curves[yr][k + "_peak"]);
   const span = (a) => { const lo = d3.min(a), hi = d3.max(a); return lo === hi ? hourLabel(lo) : `between ${hourLabel(lo)} and ${hourLabel(hi)}`; };
   $("#years-caption").textContent = `${years[0]} to ${years[years.length - 1]}, one line per year for land (solid) and ocean (dashed). Land peaked at ${span(peaks("land"))} in all ${years.length} years; the ocean peak stayed ${span(peaks("ocean"))}. The daily rhythm barely moves from year to year, which is why one averaged year can stand for all six.`;
+}
+
+function setColorScale() {
+  const maxCount = state.season === "YEAR" ? DOMAINS.YEAR : DOMAINS.season;
+  colorScale = d3.scaleSequentialSqrt([0, maxCount], d3.interpolateYlOrRd);
+  legendG.selectAll("*").remove();
+  drawLegend(maxCount);
 }
 
 function select(c) {
@@ -235,7 +240,7 @@ function drawLegend(maxCount) {
   legendG.selectAll("text.t").data(ticks).join("text").attr("class", "t")
     .attr("x", (_, i) => (i / (ticks.length - 1)) * w).attr("y", hgt + 12).attr("text-anchor", (_, i) => (i === 0 ? "start" : i === ticks.length - 1 ? "end" : "middle"))
     .text((v) => v.toLocaleString());
-  legendG.append("text").attr("y", -4).text("Flashes per 10,000 km2, sqrt scale");
+  legendG.append("text").attr("y", -4).text(state.season === "YEAR" ? "Flashes per 10,000 km2 (whole year), sqrt scale" : "Flashes per 10,000 km2 (one season), sqrt scale");
 }
 
 function togglePlay() { state.timer ? stopPlay() : startPlay(); }

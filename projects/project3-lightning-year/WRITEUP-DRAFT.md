@@ -8,7 +8,7 @@ What changes from the 92-day version
 Design change: a season switch
 - Why: the 92-day version answers "what hour" for the northern summer only. On a full year the honest answer depends on season and hemisphere, so the reader needs to move through seasons as well as hours.
 - The switch has five positions: Winter, Spring, Summer, Autumn, Whole year. It opens on Summer so the first view matches the 92-day story.
-- The colour scale is fixed across seasons as well as hours, so winter looks dimmer because it is.
+- The colour scale is fixed across the four seasons as well as hours, so winter looks dimmer because it is. The whole-year view holds about four times the flashes per cell, so it gets its own scale and the legend redraws when you switch.
 
 What the full year shows
 - Land peaks at 4 PM, ocean at 4 AM; 41 percent of ocean flashes happen at night. 79 percent of land cells peak in the afternoon, 54 percent of ocean cells at night.
