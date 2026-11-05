@@ -31,7 +31,8 @@ def make_clip():
     if not frames:
         sys.exit("no frames in shots/clip, run scripts/capture_clip.sh first")
     out = ROOT / "shots" / "clip.mp4"
-    run("ffmpeg", "-y", "-framerate", CLIP_FPS, "-i", ROOT / "shots/clip/f%03d.png", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", 16, out)
+    # Frames are full-page screenshots, so their height can be odd; libx264 needs even dimensions.
+    run("ffmpeg", "-y", "-framerate", CLIP_FPS, "-i", ROOT / "shots/clip/f%03d.png", "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", 16, out)
     return out
 
 

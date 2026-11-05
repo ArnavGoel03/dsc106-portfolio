@@ -6,7 +6,7 @@ mkdir -p shots/clip && rm -f shots/clip/*.png
 i=0
 for h in $(seq 0 23); do
   f=$(printf "shots/clip/f%03d.png" $i)
-  node ~/.claude/scripts/shot.mjs '{"url":"http://localhost:8766/index.html","width":1800,"scale":1,"out":"'$f'","settle":1200,"before":"(async()=>{await new Promise(r=>setTimeout(r,900));const y=document.querySelector(\"#hour\");y.value='$h';y.dispatchEvent(new Event(\"input\"));})()"}' >/dev/null 2>&1
+  node ~/.claude/scripts/shot.mjs '{"url":"http://localhost:8767/index.html","width":1800,"scale":1,"out":"'$f'","settle":1200,"before":"(async()=>{await new Promise(r=>setTimeout(r,900));const y=document.querySelector(\"#hour\");y.value='$h';y.dispatchEvent(new Event(\"input\"));})()"}' >/dev/null 2>&1
   i=$((i+1))
 done
 ls shots/clip | wc -l

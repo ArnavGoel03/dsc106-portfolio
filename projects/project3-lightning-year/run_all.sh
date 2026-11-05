@@ -1,6 +1,7 @@
 #!/bin/bash
-# Reproduce everything from scratch: venv, GLM sample (about 6 GB streamed from S3, several hours from a slow link,
-# resumable), EDA graphs, web data, cards, narration, silent video. Screenshots/clip need chrome-headless-shell on :9333
+# Reproduce everything from scratch: venv, GLM sample for all of 2024 (about 26 GB streamed from S3; use the
+# glm-year-fetch Actions workflow + scripts/merge_grids.py instead of a slow link), EDA graphs, web data, cards,
+# narration, silent video. Screenshots/clip need chrome-headless-shell on :9333
 # and a static server on :8766 (see scripts/shots.sh).
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -14,8 +15,8 @@ cd scripts
 ../.venv/bin/python build_narration.py      # narration/*.md + timing.json
 cd ..
 if curl -s --max-time 1 http://127.0.0.1:9333/json/version >/dev/null; then
-  (python3 -m http.server 8766 >/dev/null 2>&1 &) ; sleep 1
+  (python3 -m http.server 8767 >/dev/null 2>&1 &) ; sleep 1
   bash scripts/shots.sh && bash scripts/capture_clip.sh
-  pkill -f "http.server 8766" || true
+  pkill -f "http.server 8767" || true
 fi
 ./make_video.sh                             # video/*_SILENT_DRAFT.mp4

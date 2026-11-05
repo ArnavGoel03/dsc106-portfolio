@@ -20,7 +20,7 @@
       "id": "dataset",
       "item": "Dataset and the aspects used",
       "split": "yash",
-      "text": "Our dataset is GOES-16's lightning mapper. We sampled one file every 5 minutes for summer 2024, {flashes_m} million flashes, binned to a 1 degree grid by hour of day, in UTC and local solar time.",
+      "text": "Our dataset is GOES-16's lightning mapper. One file every 5 minutes through all of 2024, {flashes_m} million flashes, binned to a 1 degree grid by hour and by season, in UTC and local solar time.",
       "visual": [
         "cards/card_dataset.png"
       ]
@@ -29,7 +29,7 @@
       "id": "g1",
       "item": "Exploratory graph 1",
       "split": "yash",
-      "text": "First, where. Land dominates: {land_share:.0f} percent of flashes, with hotspots in Florida, Colombia and the Amazon.",
+      "text": "First, where. Land dominates: {land_share:.0f} percent of flashes, with hotspots in Colombia, the Amazon, Florida and the Gulf coast.",
       "visual": [
         "eda/g1_map_total.png"
       ]
@@ -74,9 +74,9 @@
       "id": "g6",
       "item": "Exploratory graph 6",
       "split": "chau",
-      "text": "Sixth, four hours on one scale. At 3 PM the continents light up. At 3 AM the lightning sits over the sea and the Plains.",
+      "text": "Sixth, the seasons. Summer holds {jja_share:.0f} percent of the year's flashes. In winter the north goes dark and the Amazon and Argentina take over, so our page has a season switch.",
       "visual": [
-        "eda/g6_four_hours.png"
+        "eda/g7_four_seasons.png"
       ]
     },
     {
@@ -92,7 +92,7 @@
       "id": "progress",
       "item": "Current progress on the final dynamic graph",
       "split": "yash",
-      "text": "Our D3 prototype: drag or play the hour and watch land light up by afternoon and the sea by night. Toggle local solar time to UTC. Click two cells to compare their daily curves, or jump to Florida, the Plains and Maracaibo. Left: polish and the write-up.",
+      "text": "Our D3 prototype: drag or play the hour and watch land light up by afternoon and the sea by night. Switch season or clock, click two cells to compare, or jump to Florida, the Plains and Maracaibo. Left: polish and the write-up.",
       "visual": [
         [
           "shots/proto_default.png",
@@ -103,7 +103,7 @@
           0.42
         ],
         [
-          "shots/proto_night.png",
+          "shots/proto_year.png",
           0.3
         ]
       ]
