@@ -1,5 +1,5 @@
 {
- "total": 117.0,
+ "total": 115.7,
  "segments": [
   {
    "id": "team",
@@ -28,14 +28,14 @@
   {
    "id": "g2",
    "start": 28.3,
-   "dur": 8.87,
+   "dur": 7.59,
    "visual": [
     "eda/g2_all_by_hour.png"
    ]
   },
   {
    "id": "g3",
-   "start": 37.2,
+   "start": 35.9,
    "dur": 9.73,
    "visual": [
     "eda/g3_land_vs_ocean.png"
@@ -43,7 +43,7 @@
   },
   {
    "id": "g4",
-   "start": 46.9,
+   "start": 45.6,
    "dur": 13.59,
    "visual": [
     "eda/g4_peak_hour_map.png"
@@ -51,23 +51,23 @@
   },
   {
    "id": "g5",
-   "start": 60.5,
-   "dur": 12.3,
+   "start": 59.2,
+   "dur": 11.44,
    "visual": [
     "eda/g5_regions.png"
    ]
   },
   {
    "id": "g6",
-   "start": 72.8,
-   "dur": 13.16,
+   "start": 70.7,
+   "dur": 16.59,
    "visual": [
     "eda/g8_six_years.png"
    ]
   },
   {
    "id": "question",
-   "start": 86.0,
+   "start": 87.3,
    "dur": 13.59,
    "visual": [
     "cards/card_question.png"
@@ -75,8 +75,8 @@
   },
   {
    "id": "progress",
-   "start": 99.6,
-   "dur": 17.44,
+   "start": 100.8,
+   "dur": 14.87,
    "visual": [
     [
      "shots/proto_default.png",

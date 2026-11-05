@@ -17,7 +17,7 @@ YEARS = [2019, 2020, 2021, 2022, 2023, 2024]  # every complete year of GOES-16 G
 YEAR = int(os.environ.get("GLM_YEAR", YEARS[-1]))  # the year fetch_glm.py works on; one Actions job per (year, month)
 import calendar
 DAY_START, DAY_END = 1, 366 if calendar.isleap(YEAR) else 365
-SEASONS = {"DJF": (12, 1, 2), "MAM": (3, 4, 5), "JJA": (6, 7, 8), "SON": (9, 10, 11)}  # months per season; DJF = Jan, Feb and Dec of 2024
+SEASONS = {"DJF": (12, 1, 2), "MAM": (3, 4, 5), "JJA": (6, 7, 8), "SON": (9, 10, 11)}  # months per season; DJF = Dec, Jan and Feb of the same calendar year
 DEFAULT_SEASON = "JJA"  # the page opens on summer, the same window as the 92-day version
 FILE_STRIDE = 15  # GLM writes one 20 s file every 20 s (180 per hour); keep every 15th = one file per 5 min, a 1-in-15 sample
 # Grid over the GLM field of view, 1 degree cells. Edges beyond about 54 deg latitude or far from nadir (75.2 W) see little.
@@ -53,3 +53,11 @@ ARTIFACT_MIN_TOTAL = 1000  # per year; below this the cell holds ordinary weathe
 # Inland water that Natural Earth 110m draws as sea. Lake Maracaibo (9.5N 71.5W) is the world's lightning hotspot and
 # sits inside Venezuela, so its cell counts as land; left as "ocean" it would inflate the ocean night curve.
 LAKE_CELLS = [(9.5, -71.5)]  # (lat, lon) cell centres
+# A cell is land when at least this fraction of a 4x4 grid of sample points inside it falls on a Natural Earth land
+# polygon. A single centre test called the Maracaibo gulf cell (10.5N 71.5W) and coastal Cuba (20.5N 77.5W) sea.
+LAND_FRACTION_MIN = 0.5
+LAND_SUBSAMPLE = 4
+# Hour windows used by every graph and fact, so "afternoon" and "night" mean one thing everywhere.
+AFTERNOON_HOURS = list(range(13, 19))                    # 1 PM to 6:59 PM
+NIGHT_HOURS = list(range(0, 6)) + list(range(21, 24))    # 9 PM to 5:59 AM
+

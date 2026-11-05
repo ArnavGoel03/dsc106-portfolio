@@ -14,7 +14,8 @@ vals = dict(
     all_peak=F["g2_all_peak_label"], all_afternoon=F["g2_all_afternoon_share_pct"],
     land_peak=F["g3_land_peak_label"], ocean_peak=F["g3_ocean_peak_label"], ocean_night=F["g3_ocean_night_share_pct"],
     land_aft=F["g4_land_afternoon_peak_pct"], ocean_night_cells=F["g4_ocean_night_peak_pct"],
-    jja_share=100 * F["g7_season_totals"]["JJA"] / max(sum(F["g7_season_totals"].values()), 1),
+    son_share=100 * F["g7_season_totals"]["SON"] / max(sum(F["g7_season_totals"].values()), 1),
+    djf_share=100 * F["g7_season_totals"]["DJF"] / max(sum(F["g7_season_totals"].values()), 1),
     se_peak=R["Southeastern US"]["peak_label"], amazon_peak=R["Amazon basin"]["peak_label"], plains_peak=R["Great Plains"]["peak_label"], plains_night=R["Great Plains"]["night_share_pct"],
 )
 # a scenario name like SSP5-8.5 is spoken as about 5 words

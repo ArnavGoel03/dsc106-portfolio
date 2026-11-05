@@ -11,21 +11,30 @@ import config as C
 
 
 def land_mask():
-    """1 for cells whose centre lies on land (Natural Earth 110m, vendor/land-110m.json via data/land.geojson)."""
+    """1 for cells where at least config.LAND_FRACTION_MIN of a LAND_SUBSAMPLE x LAND_SUBSAMPLE point grid lies on land
+    (Natural Earth 110m, vendor/land-110m.json via data/land.geojson), plus the LAKE_CELLS overrides."""
     gj = json.loads((C.DATA / "land.geojson").read_text())
-    lat = C.LAT0 + (np.arange(C.NLAT) + 0.5) * C.CELL_DEG
-    lon = C.LON0 + (np.arange(C.NLON) + 0.5) * C.CELL_DEG
-    LON, LAT = np.meshgrid(lon, lat)
-    pts = np.column_stack([LON.ravel(), LAT.ravel()])
-    mask = np.zeros(len(pts), bool)
+    polys = []
     for feat in gj["features"]:
         geom = feat["geometry"]
-        polys = geom["coordinates"] if geom["type"] == "MultiPolygon" else [geom["coordinates"]]
-        for poly in polys:
-            inside = MPath(np.array(poly[0])).contains_points(pts)
-            for hole in poly[1:]:
-                inside &= ~MPath(np.array(hole)).contains_points(pts)
-            mask |= inside
+        polys += geom["coordinates"] if geom["type"] == "MultiPolygon" else [geom["coordinates"]]
+    k = C.LAND_SUBSAMPLE
+    offsets = (np.arange(k) + 0.5) / k * C.CELL_DEG
+    lat_edge = C.LAT0 + np.arange(C.NLAT) * C.CELL_DEG
+    lon_edge = C.LON0 + np.arange(C.NLON) * C.CELL_DEG
+    hits = np.zeros(C.NLAT * C.NLON)
+    for da in offsets:
+        for dl in offsets:
+            LON, LAT = np.meshgrid(lon_edge + dl, lat_edge + da)
+            pts = np.column_stack([LON.ravel(), LAT.ravel()])
+            inside = np.zeros(len(pts), bool)
+            for poly in polys:
+                hit = MPath(np.array(poly[0])).contains_points(pts)
+                for hole in poly[1:]:
+                    hit &= ~MPath(np.array(hole)).contains_points(pts)
+                inside |= hit
+            hits += inside
+    mask = hits / (k * k) >= C.LAND_FRACTION_MIN
     for la, lo in C.LAKE_CELLS:
         mask[int((la - C.LAT0) // C.CELL_DEG) * C.NLON + int((lo - C.LON0) // C.CELL_DEG)] = True
     return mask.astype(int)

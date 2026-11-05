@@ -22,7 +22,7 @@ const CONFIG = {
   selColors: ["var(--sel-a)", "var(--sel-b)"],
 };
 
-const state = { hour: CONFIG.hourStart, clock: "local", season: "JJA", sel: [], timer: null };
+const state = { hour: CONFIG.hourStart, clock: "local", season: "JJA", sel: [], selAge: [], timer: null };
 let D, M, path, cellsSel, legendG, colorScale, landMask, RAW, DOMAINS;
 const gridCache = new Map();  // "season|clock" -> Uint32Array of nlat*nlon*24 counts
 const $ = (s) => document.querySelector(s);
@@ -67,10 +67,17 @@ async function loadCounts() {
 }
 $("#subtitle").textContent = "Loading the lightning counts (about 1 MB)...";
 Promise.all([d3.json(CONFIG.dataUrl), d3.json(CONFIG.landUrl), d3.json(CONFIG.teamUrl), loadCounts()]).then(([data, land, team, buf]) => {
-  D = data; M = data.meta; landMask = data.land; RAW = new Uint16Array(buf);
+  D = data; M = data.meta; landMask = data.land;
+  // 4 seasons x 2 clocks x cells x 24 hours of uint16; a 404 page or a truncated download would otherwise mis-index silently
+  const expected = M.seasons.length * 2 * M.nlat * M.nlon * M.hours * 2;
+  if (buf.byteLength !== expected) throw new Error(`counts file is ${buf.byteLength} bytes, expected ${expected}`);
+  RAW = new Uint16Array(buf);
   state.season = M.default_season;
   rowDensityFactor = d3.range(M.nlat).map((i) => 1e4 / (KM2_PER_DEG2_EQUATOR * M.cell * M.cell * Math.cos(((M.lat0 + (i + 0.5) * M.cell) * Math.PI) / 180)));
   init(land, team);
+}).catch((err) => {
+  console.error(err);
+  $("#subtitle").textContent = "";
 });
 
 function cellOf(lat, lon) {
@@ -117,13 +124,13 @@ function init(landTopo, team) {
   hourIn.addEventListener("input", () => { state.hour = +hourIn.value; render(); });
   $("#play").addEventListener("click", togglePlay);
   document.querySelectorAll("input[name=clock]").forEach((r) => r.addEventListener("change", () => {
-    state.clock = r.value; render(); drawLine();
+    state.clock = r.value; hideTip(); render(); drawLine();
   }));
   const sr = $("#season-radios");
   [...M.seasons, "YEAR"].forEach((sn) => {
     const l = document.createElement("label");
     l.innerHTML = `<input type="radio" name="season" value="${sn}" ${sn === state.season ? "checked" : ""}/> ${CONFIG.seasonLabels[sn]}`;
-    l.querySelector("input").addEventListener("change", () => { state.season = sn; setColorScale(); setSubtitle(); render(); drawLine(); });
+    l.querySelector("input").addEventListener("change", () => { state.season = sn; hideTip(); setColorScale(); setSubtitle(); render(); drawLine(); });
     sr.appendChild(l);
   });
   const jumps = $("#jumps");
@@ -184,10 +191,13 @@ function setColorScale() {
   drawLegend(maxCount);
 }
 
+let selClock = 0;
 function select(c) {
+  // A third click replaces the oldest pick in place, so the other pick keeps its colour.
   if (state.sel.includes(c)) return;
-  state.sel.push(c);
-  if (state.sel.length > CONFIG.maxSelected) state.sel.shift();
+  if (state.sel.length < CONFIG.maxSelected) { state.sel.push(c); state.selAge.push(++selClock); return; }
+  const k = d3.minIndex(state.selAge);
+  state.sel[k] = c; state.selAge[k] = ++selClock;
 }
 
 function render() {
@@ -271,6 +281,7 @@ function drawLine() {
     .attr("x", w - m.r).attr("y", (_, i) => m.t + 12 + i * 14).attr("text-anchor", "end")
     .attr("fill", (d) => d[1] || null).attr("font-weight", (d) => (d[1] ? 700 : null)).text((d) => d[0]);
   const peak = (a) => hourLabel(d3.maxIndex(a));
-  const pick = state.sel.map((c) => `${cellLabel(c)} peaks at ${peak(curve(c))}`).join("; ");
+  // an empty cell would otherwise report a peak at 12 AM (maxIndex of all zeros)
+  const pick = state.sel.map((c) => { const a = curve(c); return d3.sum(a) ? `${cellLabel(c)} peaks at ${peak(a)}` : `${cellLabel(c)}: no flashes in the sample`; }).join("; ");
   $("#line-caption").textContent = `${CONFIG.seasonLabels[state.season]}: land peaks at ${peak(ref.land)} and ocean at ${peak(ref.ocean)} (${clockLabel()}). ${pick}. Each curve is divided by its own busiest hour, so shapes compare even where GLM detects fewer daytime flashes.`;
 }

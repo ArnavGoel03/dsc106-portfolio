@@ -19,7 +19,7 @@ const CONFIG = {
   selColors: ["var(--sel-a)", "var(--sel-b)"],
 };
 
-const state = { hour: CONFIG.hourStart, clock: "local", sel: [], timer: null };
+const state = { hour: CONFIG.hourStart, clock: "local", sel: [], selAge: [], timer: null };
 let D, M, path, cellsSel, legendG, colorScale, landMask;
 const $ = (s) => document.querySelector(s);
 const hourLabel = (h) => `${((h + 11) % 12) + 1} ${h < 12 ? "AM" : "PM"}`;
@@ -38,7 +38,7 @@ Promise.all([d3.json(CONFIG.dataUrl), d3.json(CONFIG.landUrl), d3.json(CONFIG.te
   D = data; M = data.meta; landMask = data.land;
   rowDensityFactor = d3.range(M.nlat).map((i) => 1e4 / (KM2_PER_DEG2_EQUATOR * M.cell * M.cell * Math.cos(((M.lat0 + (i + 0.5) * M.cell) * Math.PI) / 180)));
   init(land, team);
-});
+}).catch((err) => { console.error(err); });
 
 function cellOf(lat, lon) {
   return cellId(Math.floor((lat - M.lat0) / M.cell), Math.floor((lon - M.lon0) / M.cell));
@@ -80,7 +80,7 @@ function init(landTopo, team) {
   hourIn.addEventListener("input", () => { state.hour = +hourIn.value; render(); });
   $("#play").addEventListener("click", togglePlay);
   document.querySelectorAll("input[name=clock]").forEach((r) => r.addEventListener("change", () => {
-    state.clock = r.value; render(); drawLine();
+    state.clock = r.value; hideTip(); render(); drawLine();
   }));
   const jumps = $("#jumps");
   CONFIG.jumps.forEach((p) => {
@@ -122,7 +122,7 @@ function init(landTopo, team) {
   legendG = svg.append("g").attr("class", "legend").attr("transform", `translate(${x1 - 222}, ${y0 + 18})`);
 
   // Colour: sqrt scale on the per-hour flash density, domain fixed across hours so the animation is comparable.
-  const maxCount = d3.max(cells, (c) => d3.max(d3.range(M.hours), (h) => density(c, D.local[c * M.hours + h]))) || 1;
+  const maxCount = d3.max(cells, (c) => d3.max(d3.range(M.hours), (h) => Math.max(density(c, D.local[c * M.hours + h]), density(c, D.utc[c * M.hours + h])))) || 1;  // UTC can exceed local
   colorScale = d3.scaleSequentialSqrt([0, maxCount], d3.interpolateYlOrRd);
   drawLegend(maxCount);
 
@@ -130,10 +130,13 @@ function init(landTopo, team) {
   render(); drawLine();
 }
 
+let selClock = 0;
 function select(c) {
+  // A third click replaces the oldest pick in place, so the other pick keeps its colour.
   if (state.sel.includes(c)) return;
-  state.sel.push(c);
-  if (state.sel.length > CONFIG.maxSelected) state.sel.shift();
+  if (state.sel.length < CONFIG.maxSelected) { state.sel.push(c); state.selAge.push(++selClock); return; }
+  const k = d3.minIndex(state.selAge);
+  state.sel[k] = c; state.selAge[k] = ++selClock;
 }
 
 function render() {
@@ -217,6 +220,7 @@ function drawLine() {
     .attr("x", w - m.r).attr("y", (_, i) => m.t + 12 + i * 14).attr("text-anchor", "end")
     .attr("fill", (d) => d[1] || null).attr("font-weight", (d) => (d[1] ? 700 : null)).text((d) => d[0]);
   const peak = (a) => hourLabel(d3.maxIndex(a));
-  const pick = state.sel.map((c) => `${cellLabel(c)} peaks at ${peak(curve(c))}`).join("; ");
+  // an empty cell would otherwise report a peak at 12 AM (maxIndex of all zeros)
+  const pick = state.sel.map((c) => { const a = curve(c); return d3.sum(a) ? `${cellLabel(c)} peaks at ${peak(a)}` : `${cellLabel(c)}: no flashes in the sample`; }).join("; ");
   $("#line-caption").textContent = `Land peaks at ${peak(ref.land)} and ocean at ${peak(ref.ocean)} (${clockLabel()}). ${pick}. Each curve is divided by its own busiest hour, so shapes compare even where GLM detects fewer daytime flashes.`;
 }

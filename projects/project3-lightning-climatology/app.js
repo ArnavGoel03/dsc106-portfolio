@@ -19,11 +19,11 @@ const CONFIG = {
   ],
   map: { w: 960, h: 880 },  // 120 x 110 degree field of view at equal degrees
   line: { w: 640, h: 420, m: { t: 18, r: 14, b: 42, l: 46 } },
-  years: { w: 640, h: 260, m: { t: 18, r: 14, b: 36, l: 46 } },
+  years: { w: 640, h: 260, m: { t: 18, r: 52, b: 36, l: 46 } },  // right margin holds the Land and Ocean labels
   selColors: ["var(--sel-a)", "var(--sel-b)"],
 };
 
-const state = { hour: CONFIG.hourStart, clock: "local", season: "JJA", sel: [], timer: null };
+const state = { hour: CONFIG.hourStart, clock: "local", season: "JJA", sel: [], selAge: [], timer: null };
 let D, M, path, cellsSel, legendG, colorScale, landMask, RAW, DOMAINS;
 const gridCache = new Map();  // "season|clock" -> Uint32Array of nlat*nlon*24 counts
 const $ = (s) => document.querySelector(s);
@@ -68,10 +68,17 @@ async function loadCounts() {
 }
 $("#subtitle").textContent = "Loading the lightning counts (about 1 MB)...";
 Promise.all([d3.json(CONFIG.dataUrl), d3.json(CONFIG.landUrl), d3.json(CONFIG.teamUrl), loadCounts()]).then(([data, land, team, buf]) => {
-  D = data; M = data.meta; landMask = data.land; RAW = new Uint16Array(buf);
+  D = data; M = data.meta; landMask = data.land;
+  // 4 seasons x 2 clocks x cells x 24 hours of uint16; a 404 page or a truncated download would otherwise mis-index silently
+  const expected = M.seasons.length * 2 * M.nlat * M.nlon * M.hours * 2;
+  if (buf.byteLength !== expected) throw new Error(`counts file is ${buf.byteLength} bytes, expected ${expected}`);
+  RAW = new Uint16Array(buf);
   state.season = M.default_season;
   rowDensityFactor = d3.range(M.nlat).map((i) => 1e4 / (KM2_PER_DEG2_EQUATOR * M.cell * M.cell * Math.cos(((M.lat0 + (i + 0.5) * M.cell) * Math.PI) / 180)));
   init(land, team);
+}).catch((err) => {
+  console.error(err);
+  $("#subtitle").textContent = "";
 });
 
 function cellOf(lat, lon) {
@@ -118,13 +125,13 @@ function init(landTopo, team) {
   hourIn.addEventListener("input", () => { state.hour = +hourIn.value; render(); });
   $("#play").addEventListener("click", togglePlay);
   document.querySelectorAll("input[name=clock]").forEach((r) => r.addEventListener("change", () => {
-    state.clock = r.value; render(); drawLine();
+    state.clock = r.value; hideTip(); render(); drawLine();
   }));
   const sr = $("#season-radios");
   [...M.seasons, "YEAR"].forEach((sn) => {
     const l = document.createElement("label");
     l.innerHTML = `<input type="radio" name="season" value="${sn}" ${sn === state.season ? "checked" : ""}/> ${CONFIG.seasonLabels[sn]}`;
-    l.querySelector("input").addEventListener("change", () => { state.season = sn; setColorScale(); setSubtitle(); render(); drawLine(); });
+    l.querySelector("input").addEventListener("change", () => { state.season = sn; hideTip(); setColorScale(); setSubtitle(); render(); drawLine(); });
     sr.appendChild(l);
   });
   const jumps = $("#jumps");
@@ -190,15 +197,19 @@ function drawYears() {
   svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`)
     .call(d3.axisBottom(x).tickValues([0, 6, 12, 18, 23]).tickFormat((d) => (d === 0 ? "midnight" : d === 12 ? "noon" : hourLabel(d))));
   svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat((d) => d + "%"));
-  svg.append("text").attr("class", "lbl").attr("x", m.l).attr("y", m.t - 6).text("Share of the year's flashes in each local solar hour, one line per year");
+  svg.append("text").attr("class", "lbl").attr("x", m.l).attr("y", m.t - 6).text("Share of the year's flashes in each local solar hour, one line per year (whole year, local solar time)");
   const line = d3.line().x((_, i) => x(i)).y((v) => y(v)).curve(d3.curveMonotoneX);
   years.forEach((yr) => {
     svg.append("path").datum(M.year_curves[yr].land).attr("class", "year-line land-year").attr("d", line);
     svg.append("path").datum(M.year_curves[yr].ocean).attr("class", "year-line ocean-year").attr("d", line);
   });
+  // direct labels at the right end of each bundle, so the chart reads without the caption
+  const last = (k) => d3.mean(years, (yr) => M.year_curves[yr][k][M.hours - 1]);
+  svg.append("text").attr("class", "lbl land-year-lbl").attr("x", x(M.hours - 1) + 4).attr("y", y(last("land"))).attr("dominant-baseline", "middle").text("Land");
+  svg.append("text").attr("class", "lbl ocean-year-lbl").attr("x", x(M.hours - 1) + 4).attr("y", y(last("ocean"))).attr("dominant-baseline", "middle").text("Ocean");
   const peaks = (k) => years.map((yr) => M.year_curves[yr][k + "_peak"]);
   const span = (a) => { const lo = d3.min(a), hi = d3.max(a); return lo === hi ? hourLabel(lo) : `between ${hourLabel(lo)} and ${hourLabel(hi)}`; };
-  $("#years-caption").textContent = `${years[0]} to ${years[years.length - 1]}, one line per year for land (solid) and ocean (dashed). Land peaked at ${span(peaks("land"))} in all ${years.length} years; the ocean peak stayed ${span(peaks("ocean"))}. The daily rhythm barely moves from year to year, which is why one averaged year can stand for all six.`;
+  $("#years-caption").textContent = `${years[0]} to ${years[years.length - 1]}, one line per year for land (solid) and ocean (dashed). Land peaked at ${span(peaks("land"))} in all ${years.length} years; the ocean peak stayed ${span(peaks("ocean"))}. Whole year, local solar time. The shape of the day barely moves from year to year; only the totals do.`;
 }
 
 function setColorScale() {
@@ -208,10 +219,13 @@ function setColorScale() {
   drawLegend(maxCount);
 }
 
+let selClock = 0;
 function select(c) {
+  // A third click replaces the oldest pick in place, so the other pick keeps its colour.
   if (state.sel.includes(c)) return;
-  state.sel.push(c);
-  if (state.sel.length > CONFIG.maxSelected) state.sel.shift();
+  if (state.sel.length < CONFIG.maxSelected) { state.sel.push(c); state.selAge.push(++selClock); return; }
+  const k = d3.minIndex(state.selAge);
+  state.sel[k] = c; state.selAge[k] = ++selClock;
 }
 
 function render() {
@@ -295,6 +309,7 @@ function drawLine() {
     .attr("x", w - m.r).attr("y", (_, i) => m.t + 12 + i * 14).attr("text-anchor", "end")
     .attr("fill", (d) => d[1] || null).attr("font-weight", (d) => (d[1] ? 700 : null)).text((d) => d[0]);
   const peak = (a) => hourLabel(d3.maxIndex(a));
-  const pick = state.sel.map((c) => `${cellLabel(c)} peaks at ${peak(curve(c))}`).join("; ");
+  // an empty cell would otherwise report a peak at 12 AM (maxIndex of all zeros)
+  const pick = state.sel.map((c) => { const a = curve(c); return d3.sum(a) ? `${cellLabel(c)} peaks at ${peak(a)}` : `${cellLabel(c)}: no flashes in the sample`; }).join("; ");
   $("#line-caption").textContent = `${CONFIG.seasonLabels[state.season]}: land peaks at ${peak(ref.land)} and ocean at ${peak(ref.ocean)} (${clockLabel()}). ${pick}. Each curve is divided by its own busiest hour, so shapes compare even where GLM detects fewer daytime flashes.`;
 }

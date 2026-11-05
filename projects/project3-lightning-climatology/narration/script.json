@@ -20,7 +20,7 @@
       "id": "dataset",
       "item": "Dataset and the aspects used",
       "split": "yash",
-      "text": "Our dataset is GOES-16's lightning mapper. One file every 5 minutes through six years, 2019 to 2024, averaged to one typical year of {flashes_m} million flashes on a 1 degree grid by hour and by season.",
+      "text": "Our dataset is GOES-16's lightning mapper. One file every 5 minutes through six years, 2019 to 2024, averaged to one typical year of {flashes_m} million sampled flashes on a 1 degree grid by hour and season.",
       "visual": [
         "cards/card_dataset.png"
       ]
@@ -29,7 +29,7 @@
       "id": "g1",
       "item": "Exploratory graph 1",
       "split": "yash",
-      "text": "First, where. Land dominates: {land_share:.0f} percent of flashes, with hotspots in Colombia, the Amazon and the Gulf coast.",
+      "text": "First, where. Land dominates: {land_share:.0f} percent of flashes, hotspots: Lake Maracaibo, northern Colombia, the Amazon, the Gulf coast.",
       "visual": [
         "eda/g1_map_total.png"
       ]
@@ -38,7 +38,7 @@
       "id": "g2",
       "item": "Exploratory graph 2",
       "split": "yash",
-      "text": "Second, when. Across the hemisphere lightning peaks at {all_peak}; 1 to 6 PM holds {all_afternoon:.0f} percent of all flashes.",
+      "text": "Second, when. Lightning peaks at {all_peak}; 1 to 6 PM holds {all_afternoon:.0f} percent of all flashes.",
       "visual": [
         "eda/g2_all_by_hour.png"
       ]
@@ -56,7 +56,7 @@
       "id": "g4",
       "item": "Exploratory graph 4",
       "split": "chau",
-      "text": "Fourth, each cell's peak hour. {land_aft:.0f} percent of land cells peak in the afternoon, {ocean_night_cells:.0f} percent of ocean cells at night. The Great Plains are a night patch inside a continent.",
+      "text": "Fourth, each cell's peak hour. {land_aft:.0f} percent of land cells peak in the afternoon, {ocean_night_cells:.0f} percent of ocean cells at night. The Great Plains are the evening patch inside a continent.",
       "visual": [
         "eda/g4_peak_hour_map.png"
       ]
@@ -65,7 +65,7 @@
       "id": "g5",
       "item": "Exploratory graph 5",
       "split": "chau",
-      "text": "Fifth, three regions. The Southeast peaks at {se_peak}, the Amazon at {amazon_peak}, but the Plains at {plains_peak}, with {plains_night:.0f} percent of their lightning at night.",
+      "text": "Fifth, three regions. The Southeast peaks at {se_peak}, the Amazon at {amazon_peak}, but the Plains at {plains_peak}, {plains_night:.0f} percent of it at night.",
       "visual": [
         "eda/g5_regions.png"
       ]
@@ -74,7 +74,7 @@
       "id": "g6",
       "item": "Exploratory graph 6",
       "split": "chau",
-      "text": "Sixth, six years, one shape. Land peaked at {land_peak} in all six years; the ocean peak stays between {ocean_lo} and {ocean_hi}. A climatology, not one year's weather.",
+      "text": "Sixth, six years, one shape. Land peaked at {land_peak} in all six years; the ocean peak drifts between {ocean_lo} and {ocean_hi} on a curve that is nearly flat overnight. A climatology, not one year's weather.",
       "visual": [
         "eda/g8_six_years.png"
       ]
@@ -92,7 +92,7 @@
       "id": "progress",
       "item": "Current progress on the final dynamic graph",
       "split": "yash",
-      "text": "Our D3 prototype: drag or play the hour and watch land light up by afternoon and the sea by night. Switch season or clock, click two cells to compare, and read the six-year chart underneath. Left: polish and the write-up.",
+      "text": "Our D3 prototype: play the hour and watch land light up by afternoon, the sea by night. Switch season or clock, click two cells, read the six-year chart underneath. Left: polish and the write-up.",
       "visual": [
         [
           "shots/proto_default.png",

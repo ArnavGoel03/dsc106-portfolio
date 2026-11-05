@@ -26,7 +26,7 @@
   "flashes": 45659,
   "land": true
  },
- "g1_land_share_pct": 80.8,
+ "g1_land_share_pct": 80.9,
  "g2_all_peak_hour": 16,
  "g2_all_peak_label": "4 PM",
  "g2_all_peak_share_pct": 9.2,
@@ -36,11 +36,11 @@
  "g3_land_peak_label": "4 PM",
  "g3_ocean_peak_label": "3 AM",
  "g3_land_peak_share_pct": 10.4,
- "g3_ocean_peak_share_pct": 5.1,
- "g3_land_night_share_pct": 26.0,
- "g3_ocean_night_share_pct": 41.4,
- "g4_land_afternoon_peak_pct": 86.3,
- "g4_ocean_night_peak_pct": 59.2,
+ "g3_ocean_peak_share_pct": 5.2,
+ "g3_land_night_share_pct": 25.9,
+ "g3_ocean_night_share_pct": 42.0,
+ "g4_land_afternoon_peak_pct": 81.3,
+ "g4_ocean_night_peak_pct": 50.1,
  "g5_regions": {
   "Great Plains": {
    "peak_hour": 19,
@@ -51,8 +51,8 @@
   "Southeastern US": {
    "peak_hour": 15,
    "peak_label": "3 PM",
-   "night_share_pct": 14.1,
-   "flashes": 757142
+   "night_share_pct": 13.8,
+   "flashes": 739817
   },
   "Amazon basin": {
    "peak_hour": 16,
@@ -105,7 +105,7 @@
   "2021": "2 AM",
   "2022": "3 AM",
   "2023": "3 AM",
-  "2024": "4 AM"
+  "2024": "3 AM"
  },
  "g8_year_flashes": {
   "2019": 24232958,

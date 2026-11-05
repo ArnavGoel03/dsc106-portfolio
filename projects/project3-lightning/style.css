@@ -33,7 +33,7 @@ svg { width: 100%; height: auto; display: block; }
 figcaption { color: var(--muted); font-size: 0.85rem; padding: 2px 4px 4px; }
 #tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--panel); font-size: 0.85rem; padding: 6px 9px; border-radius: 6px; z-index: 5; max-width: 260px; }
 footer { color: var(--muted); font-size: 0.75rem; margin-top: 6px; max-width: 150ch; }
-.cell { stroke: none; cursor: pointer; }
+.cell { stroke: none; cursor: pointer; pointer-events: all; } /* fill="none" cells must still take hover and click */
 .cell:hover { stroke: var(--ink); stroke-width: 1.4; }
 .cell.sel { stroke: var(--ink); stroke-width: 2.4; }
 .ocean-bg { fill: var(--map-bg); }

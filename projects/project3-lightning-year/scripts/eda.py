@@ -75,7 +75,7 @@ ax.bar(range(24), 100 * allh / allh.sum(), color=ACCENT)
 ax.set_xticks(range(0, 24, 3)); ax.set_xticklabels(HOURS12); ax.set_ylabel("Share of all flashes (%)")
 F["g2_all_peak_hour"] = int(allh.argmax()); F["g2_all_peak_label"] = hour_label(int(allh.argmax()))
 F["g2_all_peak_share_pct"] = round(100 * allh.max() / allh.sum(), 1)
-F["g2_all_afternoon_share_pct"] = round(100 * allh[13:19].sum() / allh.sum(), 1)  # 1 PM to 6 PM
+F["g2_all_afternoon_share_pct"] = round(100 * allh[AFTERNOON_HOURS].sum() / allh.sum(), 1)  # 1 PM to 6 PM
 save(f, "g2_all_by_hour.png")
 
 # g3: land vs ocean by local solar hour
@@ -89,7 +89,7 @@ ax.set_xticks(range(0, 24, 3)); ax.set_xticklabels(HOURS12); ax.set_ylabel("Shar
 F["g3_land_peak_hour"] = int(lc.argmax()); F["g3_ocean_peak_hour"] = int(oc.argmax())
 F["g3_land_peak_label"] = hour_label(int(lc.argmax())); F["g3_ocean_peak_label"] = hour_label(int(oc.argmax()))
 F["g3_land_peak_share_pct"] = round(100 * lc.max() / lc.sum(), 1); F["g3_ocean_peak_share_pct"] = round(100 * oc.max() / oc.sum(), 1)
-night = np.r_[0:6, 21:24]
+night = np.array(NIGHT_HOURS)
 F["g3_land_night_share_pct"] = round(100 * lc[night].sum() / lc.sum(), 1)
 F["g3_ocean_night_share_pct"] = round(100 * oc[night].sum() / oc.sum(), 1)
 save(f, "g3_land_vs_ocean.png")
@@ -103,9 +103,9 @@ ax = f.add_axes([0.07, 0.08, 0.86, 0.78])
 im = ax.pcolormesh(lon - 0.5, lat - 0.5, peak, cmap="twilight_shifted", vmin=0, vmax=24, shading="auto")
 coast(ax); cb = f.colorbar(im, ax=ax, shrink=0.7, ticks=[0, 6, 12, 18, 24]); cb.set_ticklabels(["midnight", "6 AM", "noon", "6 PM", "midnight"])
 ok = ~np.isnan(peak)
-aft = (peak >= 13) & (peak <= 19)
+aft = np.isin(peak, AFTERNOON_HOURS)
 F["g4_land_afternoon_peak_pct"] = round(100 * (aft & land & ok).sum() / (land & ok).sum(), 1)
-F["g4_ocean_night_peak_pct"] = round(100 * (((peak <= 6) | (peak >= 21)) & ~land & ok).sum() / (~land & ok).sum(), 1)
+F["g4_ocean_night_peak_pct"] = round(100 * (np.isin(peak, NIGHT_HOURS) & ~land & ok).sum() / (~land & ok).sum(), 1)
 save(f, "g4_peak_hour_map.png")
 
 # g5: regions by local hour, each as a share of its own daily total

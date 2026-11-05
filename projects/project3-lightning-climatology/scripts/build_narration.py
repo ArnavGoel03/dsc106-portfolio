@@ -14,7 +14,7 @@ vals = dict(
     all_peak=F["g2_all_peak_label"], all_afternoon=F["g2_all_afternoon_share_pct"],
     land_peak=F["g3_land_peak_label"], ocean_peak=F["g3_ocean_peak_label"], ocean_night=F["g3_ocean_night_share_pct"],
     land_aft=F["g4_land_afternoon_peak_pct"], ocean_night_cells=F["g4_ocean_night_peak_pct"],
-    ocean_lo=F["g8_ocean_peaks_by_year"][min(F["g8_ocean_peaks_by_year"], key=lambda y: list(F["g8_ocean_peaks_by_year"].values()).index(F["g8_ocean_peaks_by_year"][y]))] if False else sorted(F["g8_ocean_peaks_by_year"].values(), key=lambda h: int(h.split()[0]) % 12 + (12 if "PM" in h else 0))[0],
+    ocean_lo=sorted(F["g8_ocean_peaks_by_year"].values(), key=lambda h: int(h.split()[0]) % 12 + (12 if "PM" in h else 0))[0],
     ocean_hi=sorted(F["g8_ocean_peaks_by_year"].values(), key=lambda h: int(h.split()[0]) % 12 + (12 if "PM" in h else 0))[-1],
     jja_share=100 * F["g7_season_totals"]["JJA"] / max(sum(F["g7_season_totals"].values()), 1),
     se_peak=R["Southeastern US"]["peak_label"], amazon_peak=R["Amazon basin"]["peak_label"], plains_peak=R["Great Plains"]["peak_label"], plains_night=R["Great Plains"]["night_share_pct"],

@@ -1,4 +1,4 @@
-"""Stream a 1-in-15 sample of GOES-16 GLM flash files for the 2024 summer and bin every flash into a
+"""Stream a 1-in-15 sample of GOES-16 GLM flash files for the all of 2024 and bin every flash into a
 1 degree x hour-of-day grid, twice: by UTC hour and by local solar hour (UTC + longitude/15).
 Nothing is kept on disk but the counts (data/glm_grid.npz) and a per-day progress log for resume.
 
