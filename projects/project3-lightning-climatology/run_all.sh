@@ -15,8 +15,8 @@ cd scripts
 ../.venv/bin/python build_narration.py      # narration/*.md + timing.json
 cd ..
 if curl -s --max-time 1 http://127.0.0.1:9333/json/version >/dev/null; then
-  (python3 -m http.server 8767 >/dev/null 2>&1 &) ; sleep 1
+  (python3 -m http.server 8768 >/dev/null 2>&1 &) ; sleep 1
   bash scripts/shots.sh && bash scripts/capture_clip.sh
-  pkill -f "http.server 8767" || true
+  pkill -f "http.server 8768" || true
 fi
 ./make_video.sh                             # video/*_SILENT_DRAFT.mp4

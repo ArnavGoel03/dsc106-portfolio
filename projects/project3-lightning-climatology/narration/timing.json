@@ -1,5 +1,5 @@
 {
- "total": 118.3,
+ "total": 117.0,
  "segments": [
   {
    "id": "team",
@@ -12,15 +12,15 @@
   {
    "id": "dataset",
    "start": 4.6,
-   "dur": 15.3,
+   "dur": 15.73,
    "visual": [
     "cards/card_dataset.png"
    ]
   },
   {
    "id": "g1",
-   "start": 19.9,
-   "dur": 8.44,
+   "start": 20.3,
+   "dur": 8.01,
    "visual": [
     "eda/g1_map_total.png"
    ]
@@ -60,14 +60,14 @@
   {
    "id": "g6",
    "start": 72.8,
-   "dur": 13.59,
+   "dur": 13.16,
    "visual": [
-    "eda/g7_four_seasons.png"
+    "eda/g8_six_years.png"
    ]
   },
   {
    "id": "question",
-   "start": 86.4,
+   "start": 86.0,
    "dur": 13.59,
    "visual": [
     "cards/card_question.png"
@@ -75,8 +75,8 @@
   },
   {
    "id": "progress",
-   "start": 100.0,
-   "dur": 18.3,
+   "start": 99.6,
+   "dur": 17.44,
    "visual": [
     [
      "shots/proto_default.png",

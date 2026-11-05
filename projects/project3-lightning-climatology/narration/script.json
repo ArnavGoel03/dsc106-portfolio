@@ -20,7 +20,7 @@
       "id": "dataset",
       "item": "Dataset and the aspects used",
       "split": "yash",
-      "text": "Our dataset is GOES-16's lightning mapper. One file every 5 minutes through all of 2024, {flashes_m} million flashes, binned to a 1 degree grid by hour and by season, in UTC and local solar time.",
+      "text": "Our dataset is GOES-16's lightning mapper. One file every 5 minutes through six years, 2019 to 2024, averaged to one typical year of {flashes_m} million flashes on a 1 degree grid by hour and by season.",
       "visual": [
         "cards/card_dataset.png"
       ]
@@ -29,7 +29,7 @@
       "id": "g1",
       "item": "Exploratory graph 1",
       "split": "yash",
-      "text": "First, where. Land dominates: {land_share:.0f} percent of flashes, with hotspots in Colombia, the Amazon, Florida and the Gulf coast.",
+      "text": "First, where. Land dominates: {land_share:.0f} percent of flashes, with hotspots in Colombia, the Amazon and the Gulf coast.",
       "visual": [
         "eda/g1_map_total.png"
       ]
@@ -74,9 +74,9 @@
       "id": "g6",
       "item": "Exploratory graph 6",
       "split": "chau",
-      "text": "Sixth, the seasons. Summer holds {jja_share:.0f} percent of the year's flashes. In winter the north goes dark and the Amazon and Argentina take over, so our page has a season switch.",
+      "text": "Sixth, six years, one shape. Land peaked at {land_peak} in all six years; the ocean peak stays between {ocean_lo} and {ocean_hi}. A climatology, not one year's weather.",
       "visual": [
-        "eda/g7_four_seasons.png"
+        "eda/g8_six_years.png"
       ]
     },
     {
@@ -92,7 +92,7 @@
       "id": "progress",
       "item": "Current progress on the final dynamic graph",
       "split": "yash",
-      "text": "Our D3 prototype: drag or play the hour and watch land light up by afternoon and the sea by night. Switch season or clock, click two cells to compare, or jump to Florida, the Plains and Maracaibo. Left: polish and the write-up.",
+      "text": "Our D3 prototype: drag or play the hour and watch land light up by afternoon and the sea by night. Switch season or clock, click two cells to compare, and read the six-year chart underneath. Left: polish and the write-up.",
       "visual": [
         [
           "shots/proto_default.png",

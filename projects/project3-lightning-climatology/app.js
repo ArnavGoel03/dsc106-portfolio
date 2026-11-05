@@ -18,6 +18,7 @@ const CONFIG = {
   ],
   map: { w: 960, h: 880 },  // 120 x 110 degree field of view at equal degrees
   line: { w: 640, h: 420, m: { t: 18, r: 14, b: 42, l: 46 } },
+  years: { w: 640, h: 260, m: { t: 18, r: 14, b: 36, l: 46 } },
   selColors: ["var(--sel-a)", "var(--sel-b)"],
 };
 
@@ -90,7 +91,7 @@ function cellLabel(c) {
 }
 
 function setSubtitle() {
-  $("#subtitle").textContent = `${M.source}. ${M.period}, ${M.days_sampled} days sampled at ${M.sample}: ${M.flashes.toLocaleString()} flashes on a ${M.cell} degree grid. Showing ${CONFIG.seasonLabels[state.season]}: ${seasonDays()} days, ${seasonFlashes().toLocaleString()} flashes. Drag the hour, press Play, switch season, and click up to two cells to compare their daily rhythm.`;
+  $("#subtitle").textContent = `${M.source}. ${M.period}, ${M.days_sampled} days sampled at ${M.sample}, averaged to one typical year: ${M.flashes.toLocaleString()} flashes per year on a ${M.cell} degree grid. Showing ${CONFIG.seasonLabels[state.season]}: ${seasonFlashes().toLocaleString()} flashes per year. Drag the hour, press Play, switch season, and click up to two cells to compare their daily rhythm.`;
 }
 
 function init(landTopo, team) {
@@ -163,7 +164,30 @@ function init(landTopo, team) {
   drawLegend(maxCount);
 
   select(cellOf(CONFIG.jumps[0].lat, CONFIG.jumps[0].lon));
-  render(); drawLine();
+  render(); drawLine(); drawYears();
+}
+
+// "Six years, one shape": land and ocean shares by local solar hour, one thin line per year. Stability is the point.
+function drawYears() {
+  const { w, h, m } = CONFIG.years;
+  const svg = d3.select("#years").attr("viewBox", `0 0 ${w} ${h}`);
+  svg.selectAll("*").remove();
+  const years = Object.keys(M.year_curves);
+  const all = years.flatMap((y) => M.year_curves[y].land.concat(M.year_curves[y].ocean));
+  const x = d3.scaleLinear([0, M.hours - 1], [m.l, w - m.r]);
+  const y = d3.scaleLinear([0, d3.max(all)], [h - m.b, m.t]).nice();
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`)
+    .call(d3.axisBottom(x).tickValues([0, 6, 12, 18, 23]).tickFormat((d) => (d === 0 ? "midnight" : d === 12 ? "noon" : hourLabel(d))));
+  svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat((d) => d + "%"));
+  svg.append("text").attr("class", "lbl").attr("x", m.l).attr("y", m.t - 6).text("Share of the year's flashes in each local solar hour, one line per year");
+  const line = d3.line().x((_, i) => x(i)).y((v) => y(v)).curve(d3.curveMonotoneX);
+  years.forEach((yr) => {
+    svg.append("path").datum(M.year_curves[yr].land).attr("class", "year-line land-year").attr("d", line);
+    svg.append("path").datum(M.year_curves[yr].ocean).attr("class", "year-line ocean-year").attr("d", line);
+  });
+  const peaks = (k) => years.map((yr) => M.year_curves[yr][k + "_peak"]);
+  const span = (a) => { const lo = d3.min(a), hi = d3.max(a); return lo === hi ? hourLabel(lo) : `between ${hourLabel(lo)} and ${hourLabel(hi)}`; };
+  $("#years-caption").textContent = `${years[0]} to ${years[years.length - 1]}, one line per year for land (solid) and ocean (dashed). Land peaked at ${span(peaks("land"))} in all ${years.length} years; the ocean peak stayed ${span(peaks("ocean"))}. The daily rhythm barely moves from year to year, which is why one averaged year can stand for all six.`;
 }
 
 function select(c) {

@@ -32,8 +32,8 @@ card("card_dataset.png", [
     ("Geostationary Lightning Mapper on NOAA's GOES-16 (GOES-East), Level 2 flash product, NOAA Open Data on AWS", 24, "normal", MUTED, 0.80),
     ("Aspects we use", 28, "bold", ACCENT, 0.70),
     ("- Variables: flash_lat, flash_lon, file time stamp, flash_energy, flash_area", 23, "normal", INK, 0.62),
-    (f"- Period: the whole of 2024, {F['days_sampled']} days, one 20 s file every 5 minutes (1 in {F['sample_stride']})", 23, "normal", INK, 0.52),
-    (f"- Processing: {F['flashes']:,} flashes binned to a 1 degree grid by hour and by season, in UTC and local solar time", 23, "normal", INK, 0.42),
+    (f"- Period: 2019 to 2024, six complete years, {F['days_sampled']} days, one 20 s file every 5 minutes (1 in {F['sample_stride']})", 23, "normal", INK, 0.52),
+    (f"- Processing: {F['flashes']:,} flashes per year (six-year mean) on a 1 degree grid by hour and season, UTC and local solar time", 23, "normal", INK, 0.42),
     ("- Local solar hour = UTC hour + longitude / 15, so 4 PM means mid afternoon everywhere", 23, "normal", INK, 0.32),
     ("Streamed from S3 with boto3 and netCDF4, nothing kept but the counts. About 5 MB of binary counts feeds the D3 prototype.", 18, "normal", MUTED, 0.14),
 ])

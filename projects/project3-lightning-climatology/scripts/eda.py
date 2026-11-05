@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import PowerNorm
 from config import *
-from export_web import land_mask, load_grid, season_grids
+from export_web import land_mask, load_grid, season_grids, year_curves
 
 INK, MUTED, ACCENT, BLUE = "#1d2733", "#5a6675", "#b8431a", "#2a6f9e"
 plt.rcParams.update({"font.family": "sans-serif", "font.size": 13, "axes.edgecolor": MUTED, "axes.labelcolor": INK,
@@ -22,7 +22,8 @@ lat = LAT0 + (np.arange(NLAT) + 0.5) * CELL_DEG
 lon = LON0 + (np.arange(NLON) + 0.5) * CELL_DEG
 HOURS12 = ["midnight", "3 AM", "6 AM", "9 AM", "noon", "3 PM", "6 PM", "9 PM"]
 land_gj = json.loads((DATA / "land.geojson").read_text())
-F = {"days_sampled": days, "files": int(G["files"].sum()), "flashes": int(utc.sum()), "sample_stride": FILE_STRIDE, "artifact_cells_removed": removed}
+F = {"days_sampled": days, "files": int(G["files"].sum()), "flashes": int(round(utc.sum())), "sample_stride": FILE_STRIDE, "artifact_cells_removed": removed,
+     "years": YEARS, "year_flashes": {str(y): int(f) for y, f in zip(G["years"].tolist(), G["year_flashes"].tolist())}}
 
 
 def coast(ax):
@@ -57,8 +58,8 @@ def hour_label(h):
 tot = utc.sum(2)
 cell_km2 = (111.2 * CELL_DEG) ** 2 * np.cos(np.deg2rad(lat))[:, None]
 dens = tot / cell_km2 * 1e4
-f = fig("Where lightning happens: flash density, 2024",
-        f"GOES-16 GLM, {days} days of 2024 sampled at one 20 s file per 5 min, {F['flashes']:,} flashes. Flashes per 10,000 km2 per 1 degree cell, square-root colour scale.")
+f = fig("Where lightning happens: flash density, six-year average",
+        f"GOES-16 GLM, {YEARS[0]} to {YEARS[-1]}, {days} days sampled at one 20 s file per 5 min, {F['flashes']:,} flashes per year. Flashes per 10,000 km2 per 1 degree cell per year, square-root colour scale.")
 ax = f.add_axes([0.07, 0.08, 0.86, 0.78])
 im = ax.pcolormesh(lon - 0.5, lat - 0.5, np.where(tot > 0, dens, np.nan), cmap="YlOrRd", norm=PowerNorm(0.5), shading="auto")
 coast(ax); f.colorbar(im, ax=ax, shrink=0.7, label="Flashes per 10,000 km2 in the sample")
@@ -69,7 +70,7 @@ save(f, "g1_map_total.png")
 
 # g2: all of the Americas by local solar hour
 allh = loc.sum((0, 1))
-f = fig("Lightning across the Americas by local solar hour", "Share of all sampled flashes in each local solar hour (UTC + longitude / 15). Whole of 2024, all cells.")
+f = fig("Lightning across the Americas by local solar hour", "Share of all sampled flashes in each local solar hour (UTC + longitude / 15). Six-year average, all cells.")
 ax = f.add_axes([0.08, 0.12, 0.86, 0.72])
 ax.bar(range(24), 100 * allh / allh.sum(), color=ACCENT)
 ax.set_xticks(range(0, 24, 3)); ax.set_xticklabels(HOURS12); ax.set_ylabel("Share of all flashes (%)")
@@ -133,30 +134,43 @@ for k, h in enumerate(hours):
     ax = f.add_axes([0.06 + (k % 2) * 0.46, 0.46 - (k // 2) * 0.41, 0.40, 0.34])
     v = loc[:, :, h]
     im = ax.pcolormesh(lon - 0.5, lat - 0.5, np.where(v > 0, v, np.nan), cmap="YlOrRd", norm=PowerNorm(0.5, vmax=vmax), shading="auto")
-    coast(ax); ax.set_title(f"{hour_label(h)} local solar time, {v.sum():,} flashes", fontsize=13, color=INK)
+    coast(ax); ax.set_title(f"{hour_label(h)} local solar time, {v.sum():,.0f} flashes per year", fontsize=13, color=INK)
     ax.set_xlabel(""); ax.set_ylabel(""); ax.set_xticks([]); ax.set_yticks([])
-F["g6_hour_totals"] = {hour_label(h): int(loc[:, :, h].sum()) for h in hours}
+F["g6_hour_totals"] = {hour_label(h): int(round(loc[:, :, h].sum())) for h in hours}
 save(f, "g6_four_hours.png")
 
 # g7: the same hour (4 PM local) in each season, one colour scale
 H7 = 16
-f = fig("The same hour, four seasons: 4 PM local solar time", "Flashes per cell at 4 PM local solar time in each season of 2024 (DJF = Jan, Feb, Dec). One colour scale for all four panels.")
+f = fig("The same hour, four seasons: 4 PM local solar time", "Flashes per cell per year at 4 PM local solar time in each season, six-year average (DJF = Jan, Feb, Dec). One colour scale for all four panels.")
 vmax = max(SEAS[sn]["local"][:, :, H7].max() for sn in SEASONS)
 F["g7_season_4pm_totals"] = {}
-F["g7_season_totals"] = {sn: int(SEAS[sn]["local"].sum()) for sn in SEASONS}
+F["g7_season_totals"] = {sn: int(round(SEAS[sn]["local"].sum())) for sn in SEASONS}
 F["g7_season_land_peak"] = {}
 F["g7_season_ocean_peak"] = {}
 for k, sn in enumerate(SEASONS):
     ax = f.add_axes([0.06 + (k % 2) * 0.46, 0.46 - (k // 2) * 0.41, 0.40, 0.34])
     v = SEAS[sn]["local"][:, :, H7]
     im = ax.pcolormesh(lon - 0.5, lat - 0.5, np.where(v > 0, v, np.nan), cmap="YlOrRd", norm=PowerNorm(0.5, vmax=max(vmax, 1)), shading="auto")
-    coast(ax); ax.set_title(f"{sn}: {v.sum():,} flashes at 4 PM, {SEAS[sn]['local'].sum():,} in the season", fontsize=13, color=INK)
+    coast(ax); ax.set_title(f"{sn}: {v.sum():,.0f} flashes at 4 PM, {SEAS[sn]['local'].sum():,.0f} in the season", fontsize=13, color=INK)
     ax.set_xlabel(""); ax.set_ylabel(""); ax.set_xticks([]); ax.set_yticks([])
-    F["g7_season_4pm_totals"][sn] = int(v.sum())
+    F["g7_season_4pm_totals"][sn] = int(round(v.sum()))
     sl, so = SEAS[sn]["local"][land].sum(0), SEAS[sn]["local"][~land].sum(0)
     F["g7_season_land_peak"][sn] = hour_label(int(sl.argmax())) if sl.sum() else None
     F["g7_season_ocean_peak"][sn] = hour_label(int(so.argmax())) if so.sum() else None
 save(f, "g7_four_seasons.png")
+
+# g8: six years, one shape
+YC = year_curves()
+f = fig("Six years, one shape: the daily rhythm does not move", f"Land (solid) and ocean (dashed) flashes by local solar hour, one line per year, {YEARS[0]} to {YEARS[-1]}, each as a share of that year's total.")
+ax = f.add_axes([0.08, 0.12, 0.86, 0.72])
+for k, (yr, c) in enumerate(YC.items()):
+    ax.plot(range(24), c["land"], color=ACCENT, lw=1.6, alpha=0.8, label="Land, one line per year" if k == 0 else None)
+    ax.plot(range(24), c["ocean"], color=BLUE, lw=1.6, alpha=0.8, ls="--", label="Ocean, one line per year" if k == 0 else None)
+ax.set_xticks(range(0, 24, 3)); ax.set_xticklabels(HOURS12); ax.set_ylabel("Share of the year's flashes (%)"); ax.legend(frameon=False)
+F["g8_land_peaks_by_year"] = {yr: hour_label(c["land_peak"]) for yr, c in YC.items()}
+F["g8_ocean_peaks_by_year"] = {yr: hour_label(c["ocean_peak"]) for yr, c in YC.items()}
+F["g8_year_flashes"] = {yr: c["flashes"] for yr, c in YC.items()}
+save(f, "g8_six_years.png")
 
 # Reference places for the prototype's jump buttons (not a graph)
 F["places"] = {}

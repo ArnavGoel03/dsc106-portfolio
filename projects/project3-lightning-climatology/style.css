@@ -48,6 +48,10 @@ footer { color: var(--muted); font-size: 0.75rem; margin-top: 6px; max-width: 15
 .hour-mark { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 3 3; }
 .legend text { font-size: 11px; fill: var(--muted); }
 .legend-bg { fill: var(--panel); opacity: 0.88; }
+.year-line { fill: none; stroke-width: 1.4; opacity: 0.75; }
+.land-year { stroke: var(--accent); }
+.ocean-year { stroke: var(--sel-b); stroke-dasharray: 4 3; }
+#years { margin-top: 10px; }
 .lbl { font-size: 12px; fill: var(--muted); }
 @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
 @media (max-width: 600px) { fieldset { flex-direction: column; align-items: flex-start; width: 100%; } legend { float: none; } }

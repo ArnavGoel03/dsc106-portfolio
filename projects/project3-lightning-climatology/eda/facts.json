@@ -1,0 +1,150 @@
+{
+ "days_sampled": 2192,
+ "files": 628930,
+ "flashes": 22516755,
+ "sample_stride": 15,
+ "artifact_cells_removed": 1,
+ "years": [
+  2019,
+  2020,
+  2021,
+  2022,
+  2023,
+  2024
+ ],
+ "year_flashes": {
+  "2019": 24232958,
+  "2020": 20564955,
+  "2021": 20705127,
+  "2022": 21277633,
+  "2023": 26209977,
+  "2024": 22109881
+ },
+ "g1_top_cell": {
+  "lat": 9.5,
+  "lon": -71.5,
+  "flashes": 45659,
+  "land": true
+ },
+ "g1_land_share_pct": 80.8,
+ "g2_all_peak_hour": 16,
+ "g2_all_peak_label": "4 PM",
+ "g2_all_peak_share_pct": 9.2,
+ "g2_all_afternoon_share_pct": 46.8,
+ "g3_land_peak_hour": 16,
+ "g3_ocean_peak_hour": 3,
+ "g3_land_peak_label": "4 PM",
+ "g3_ocean_peak_label": "3 AM",
+ "g3_land_peak_share_pct": 10.4,
+ "g3_ocean_peak_share_pct": 5.1,
+ "g3_land_night_share_pct": 26.0,
+ "g3_ocean_night_share_pct": 41.4,
+ "g4_land_afternoon_peak_pct": 86.3,
+ "g4_ocean_night_peak_pct": 59.2,
+ "g5_regions": {
+  "Great Plains": {
+   "peak_hour": 19,
+   "peak_label": "7 PM",
+   "night_share_pct": 45.2,
+   "flashes": 681094
+  },
+  "Southeastern US": {
+   "peak_hour": 15,
+   "peak_label": "3 PM",
+   "night_share_pct": 14.1,
+   "flashes": 757142
+  },
+  "Amazon basin": {
+   "peak_hour": 16,
+   "peak_label": "4 PM",
+   "night_share_pct": 20.3,
+   "flashes": 3332513
+  }
+ },
+ "g6_hour_totals": {
+  "3 AM": 652636,
+  "9 AM": 295951,
+  "3 PM": 1955524,
+  "9 PM": 925811
+ },
+ "g7_season_4pm_totals": {
+  "DJF": 408987,
+  "MAM": 378778,
+  "JJA": 591804,
+  "SON": 685410
+ },
+ "g7_season_totals": {
+  "DJF": 4205092,
+  "MAM": 4543119,
+  "JJA": 6678797,
+  "SON": 7089747
+ },
+ "g7_season_land_peak": {
+  "DJF": "4 PM",
+  "MAM": "4 PM",
+  "JJA": "4 PM",
+  "SON": "4 PM"
+ },
+ "g7_season_ocean_peak": {
+  "DJF": "6 AM",
+  "MAM": "5 AM",
+  "JJA": "3 AM",
+  "SON": "3 AM"
+ },
+ "g8_land_peaks_by_year": {
+  "2019": "4 PM",
+  "2020": "4 PM",
+  "2021": "4 PM",
+  "2022": "4 PM",
+  "2023": "4 PM",
+  "2024": "4 PM"
+ },
+ "g8_ocean_peaks_by_year": {
+  "2019": "6 AM",
+  "2020": "5 AM",
+  "2021": "2 AM",
+  "2022": "3 AM",
+  "2023": "3 AM",
+  "2024": "4 AM"
+ },
+ "g8_year_flashes": {
+  "2019": 24232958,
+  "2020": 20564955,
+  "2021": 20705127,
+  "2022": 21277633,
+  "2023": 26209977,
+  "2024": 22109881
+ },
+ "places": {
+  "florida": {
+   "label": "Central Florida",
+   "peak_hour": 16,
+   "peak_label": "4 PM",
+   "flashes": 18189
+  },
+  "plains": {
+   "label": "Great Plains (Nebraska)",
+   "peak_hour": 23,
+   "peak_label": "11 PM",
+   "flashes": 5911
+  },
+  "maracaibo": {
+   "label": "Lake Maracaibo, Venezuela",
+   "peak_hour": 2,
+   "peak_label": "2 AM",
+   "flashes": 45659
+  },
+  "gulf": {
+   "label": "Gulf of Mexico (open water)",
+   "peak_hour": 15,
+   "peak_label": "3 PM",
+   "flashes": 5004
+  },
+  "amazon": {
+   "label": "Amazon basin",
+   "peak_hour": 16,
+   "peak_label": "4 PM",
+   "flashes": 17115
+  }
+ }
+}

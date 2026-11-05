@@ -1,12 +1,12 @@
-# Project 3 (one-year lightning version): When Does Lightning Strike? Day and Night over the Americas
+# Project 3 (six-year climatology version): When Does Lightning Strike? Day and Night over the Americas
 
-Same question and page as `../project3-lightning/` (92 summer days), but on the whole of 2024 with the counts kept
-per calendar month, so the page adds a Season toggle (DJF, MAM, JJA, SON, whole year; opens on summer). Third
-sibling next to the CMIP6 and 92-day versions; the owner compares them before choosing what to submit.
+Fourth sibling beside the CMIP6, 92-day and one-year versions. Same question and page as `../project3-lightning-year/`,
+on all complete GOES-16 GLM years (2019 to 2024). The map shows the six-year average of flashes per year, the season
+switch stays, and a new chart under the hour chart draws land and ocean curves once per year ("six years, one shape").
 
-- Counts ship as `web/data/glm_counts.bin` (uint16, [season][clock][cell][hour], about 5 MB) plus `web/data/glm.json` (meta + land).
-- Fetch: `scripts/fetch_glm.py` locally (resumable, slow from India), or the `glm-year-fetch` GitHub Actions workflow
-  (one job per month on US runners), then download the twelve artifacts to `data/parts/<name>/glm_grid.npz` and run
-  `scripts/merge_grids.py`.
-- `GLM_GRID=<file>` points the build at another grid (used with `data/glm_grid.npz.fixture`, the 92-day summer grid, for page tests).
-- Seven EDA graphs: the six from the 92-day version on the full year, plus `g7_four_seasons.png` (4 PM in each season).
+- Fetch: the `glm-climatology-fetch` GitHub Actions workflow, one job per (year, month), 72 jobs; download the
+  artifacts to `data/parts/` and run `scripts/merge_grids.py` (per-year grids in `data/years/`, mean in
+  `data/glm_climatology.npz`). `GLM_YEAR=<year>` selects the year for a local `fetch_glm.py` run.
+- Exports: `web/data/glm_counts.bin` (uint16 mean counts per year, [season][clock][cell][hour]) and `web/data/glm.json`
+  (meta, land mask, per-year land and ocean curves).
+- Eight EDA graphs: the seven from the one-year version on the six-year mean, plus `g8_six_years.png`.
