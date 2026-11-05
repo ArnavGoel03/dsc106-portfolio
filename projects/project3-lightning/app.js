@@ -11,8 +11,8 @@ const CONFIG = {
   // Jump-to presets: cell centre (lat, lon) and the local solar hour that shows the pattern.
   jumps: [
     { id: "florida", label: "Central Florida", lat: 28.0, lon: -81.5, hour: 16 },
-    { id: "plains", label: "Great Plains", lat: 41.0, lon: -98.5, hour: 2 },
-    { id: "maracaibo", label: "Lake Maracaibo", lat: 9.5, lon: -71.5, hour: 3 },
+    { id: "plains", label: "Great Plains", lat: 41.0, lon: -98.5, hour: 22 },
+    { id: "maracaibo", label: "Lake Maracaibo", lat: 9.5, lon: -71.5, hour: 2 },
   ],
   map: { w: 960, h: 880 },  // 120 x 110 degree field of view at equal degrees
   line: { w: 640, h: 420, m: { t: 18, r: 14, b: 42, l: 46 } },
@@ -65,7 +65,8 @@ function refCurves() {
 }
 function cellLabel(c) {
   const { lat, lon } = cellCentre(c);
-  return `${landMask[c] ? "Land" : "Ocean"}, ${fmtDeg(lat, "N", "S")} ${fmtDeg(lon, "E", "W")}`;
+  const preset = CONFIG.jumps.find((p) => cellOf(p.lat, p.lon) === c);
+  return `${preset ? preset.label : landMask[c] ? "Land" : "Ocean"}, ${fmtDeg(lat, "N", "S")} ${fmtDeg(lon, "E", "W")}`;
 }
 
 function init(landTopo, team) {

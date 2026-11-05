@@ -20,7 +20,7 @@
       "id": "dataset",
       "item": "Dataset and the aspects used",
       "split": "yash",
-      "text": "Our dataset is GOES-16's lightning mapper. We sampled one file every 5 minutes for summer 2024, {flashes_k} thousand flashes, binned to a 1 degree grid by hour of day, in UTC and local solar time.",
+      "text": "Our dataset is GOES-16's lightning mapper. We sampled one file every 5 minutes for summer 2024, {flashes_m} million flashes, binned to a 1 degree grid by hour of day, in UTC and local solar time.",
       "visual": [
         "cards/card_dataset.png"
       ]

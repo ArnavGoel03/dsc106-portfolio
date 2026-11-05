@@ -22,6 +22,8 @@ def land_mask():
             for hole in poly[1:]:
                 inside &= ~MPath(np.array(hole)).contains_points(pts)
             mask |= inside
+    for la, lo in C.LAKE_CELLS:
+        mask[int((la - C.LAT0) // C.CELL_DEG) * C.NLON + int((lo - C.LON0) // C.CELL_DEG)] = True
     return mask.astype(int)
 
 

@@ -10,7 +10,7 @@ F = json.loads((ROOT / "eda" / "facts.json").read_text())
 R = F["g5_regions"]
 vals = dict(
     team_name=TEAM["teamName"], title=TEAM["title"], others=", ".join(m for m in TEAM["members"] if m != "Yash Goel"),
-    flashes_k=round(F["flashes"] / 1000), land_share=F["g1_land_share_pct"],
+    flashes_m=f"{F['flashes'] / 1e6:.1f}", land_share=F["g1_land_share_pct"],
     all_peak=F["g2_all_peak_label"], all_afternoon=F["g2_all_afternoon_share_pct"],
     land_peak=F["g3_land_peak_label"], ocean_peak=F["g3_ocean_peak_label"], ocean_night=F["g3_ocean_night_share_pct"],
     land_aft=F["g4_land_afternoon_peak_pct"], ocean_night_cells=F["g4_ocean_night_peak_pct"],

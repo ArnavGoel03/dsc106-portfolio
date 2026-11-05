@@ -41,3 +41,7 @@ PLACES = {
 # flatness still holds (quietest hour at least ARTIFACT_MIN_FLAT of the mean) so this list cannot silently hide weather.
 ARTIFACT_CELLS = [(-7.5, -96.5)]  # (lat, lon) cell centres
 ARTIFACT_MIN_FLAT = 0.25
+
+# Inland water that Natural Earth 110m draws as sea. Lake Maracaibo (9.5N 71.5W) is the world's lightning hotspot and
+# sits inside Venezuela, so its cell counts as land; left as "ocean" it would inflate the ocean night curve.
+LAKE_CELLS = [(9.5, -71.5)]  # (lat, lon) cell centres

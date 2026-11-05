@@ -10,27 +10,27 @@ We are Group 19: Chau Nguyen and me, Yash Goel.
 
 **0:04 to 0:19** (Dataset and the aspects used, 35 words)
 
-Our dataset is GOES-16's lightning mapper. We sampled one file every 5 minutes for summer 2024, 314 thousand flashes, binned to a 1 degree grid by hour of day, in UTC and local solar time.
+Our dataset is GOES-16's lightning mapper. We sampled one file every 5 minutes for summer 2024, 6.1 million flashes, binned to a 1 degree grid by hour of day, in UTC and local solar time.
 
 **0:19 to 0:27** (Exploratory graph 1, 16 words)
 
-First, where. Land dominates: 63 percent of flashes, with hotspots in Florida, Colombia and the Amazon.
+First, where. Land dominates: 75 percent of flashes, with hotspots in Florida, Colombia and the Amazon.
 
 **0:27 to 0:35** (Exploratory graph 2, 20 words)
 
-Second, when. Across the hemisphere lightning peaks at 4 PM; 1 to 6 PM holds 39 percent of all flashes.
+Second, when. Across the hemisphere lightning peaks at 4 PM; 1 to 6 PM holds 45 percent of all flashes.
 
 **0:35 to 0:45** (Exploratory graph 3, 22 words)
 
-Third, land against ocean. Land peaks at 5 PM, ocean at 9 AM, and 38 percent of ocean flashes happen at night.
+Third, land against ocean. Land peaks at 4 PM, ocean at 3 AM, and 40 percent of ocean flashes happen at night.
 
 **0:45 to 0:59** (Exploratory graph 4, 31 words)
 
-Fourth, each cell's peak hour. 57 percent of land cells peak in the afternoon, 44 percent of ocean cells at night. The Great Plains are a night patch inside a continent.
+Fourth, each cell's peak hour. 71 percent of land cells peak in the afternoon, 50 percent of ocean cells at night. The Great Plains are a night patch inside a continent.
 
 **0:59 to 1:11** (Exploratory graph 5, 28 words)
 
-Fifth, three regions. The Southeast peaks at 4 PM, the Amazon at 5 PM, but the Plains at 6 PM, with 47 percent of their lightning at night.
+Fifth, three regions. The Southeast peaks at 4 PM, the Amazon at 4 PM, but the Plains at 6 PM, with 47 percent of their lightning at night.
 
 **1:11 to 1:22** (Exploratory graph 6, 25 words)
 
