@@ -211,6 +211,8 @@ function drawLine() {
   svg.append("line").attr("class", "hour-mark").attr("y1", m.t).attr("y2", h - m.b).attr("x1", x(state.hour)).attr("x2", x(state.hour));
   // Legend as text rows under the title.
   const rows = [["All land cells (solid grey)", null], ["All ocean cells (dashed grey)", null]].concat(state.sel.map((c, k) => [cellLabel(c), CONFIG.selColors[k]]));
+  // Backing panel so the legend stays readable where a curve runs under it.
+  svg.append("rect").attr("class", "legend-bg").attr("x", w - m.r - 232).attr("y", m.t + 1).attr("width", 236).attr("height", rows.length * 14 + 6);
   svg.append("g").selectAll("text").data(rows).join("text").attr("class", "lbl")
     .attr("x", w - m.r).attr("y", (_, i) => m.t + 12 + i * 14).attr("text-anchor", "end")
     .attr("fill", (d) => d[1] || null).attr("font-weight", (d) => (d[1] ? 700 : null)).text((d) => d[0]);

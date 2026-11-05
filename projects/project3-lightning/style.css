@@ -46,6 +46,7 @@ footer { color: var(--muted); font-size: 0.75rem; margin-top: 6px; max-width: 15
 .pick { fill: none; stroke-width: 2.6; }
 .hour-mark { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 3 3; }
 .legend text { font-size: 11px; fill: var(--muted); }
+.legend-bg { fill: var(--panel); opacity: 0.88; }
 .lbl { font-size: 12px; fill: var(--muted); }
 @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
 @media (max-width: 600px) { fieldset { flex-direction: column; align-items: flex-start; width: 100%; } legend { float: none; } }
