@@ -1,0 +1,110 @@
+{
+ "days_sampled": 92,
+ "files": 26480,
+ "flashes": 6138931,
+ "sample_stride": 15,
+ "artifact_cells_removed": 1,
+ "g1_top_cell": {
+  "lat": 7.5,
+  "lon": -75.5,
+  "flashes": 22283,
+  "land": true
+ },
+ "g1_land_share_pct": 74.6,
+ "g2_all_peak_hour": 16,
+ "g2_all_peak_label": "4 PM",
+ "g2_all_peak_share_pct": 8.9,
+ "g2_all_afternoon_share_pct": 45.3,
+ "g3_land_peak_hour": 16,
+ "g3_ocean_peak_hour": 3,
+ "g3_land_peak_label": "4 PM",
+ "g3_ocean_peak_label": "3 AM",
+ "g3_land_peak_share_pct": 10.3,
+ "g3_ocean_peak_share_pct": 5.1,
+ "g3_land_night_share_pct": 26.1,
+ "g3_ocean_night_share_pct": 40.3,
+ "g4_land_afternoon_peak_pct": 70.7,
+ "g4_ocean_night_peak_pct": 49.5,
+ "g5_regions": {
+  "Great Plains": {
+   "peak_hour": 18,
+   "peak_label": "6 PM",
+   "night_share_pct": 46.7,
+   "flashes": 417090
+  },
+  "Southeastern US": {
+   "peak_hour": 16,
+   "peak_label": "4 PM",
+   "night_share_pct": 7.3,
+   "flashes": 379766
+  },
+  "Amazon basin": {
+   "peak_hour": 16,
+   "peak_label": "4 PM",
+   "night_share_pct": 25.7,
+   "flashes": 438467
+  }
+ },
+ "g6_hour_totals": {
+  "3 AM": 180914,
+  "9 AM": 86304,
+  "3 PM": 510986,
+  "9 PM": 264000
+ },
+ "g7_season_4pm_totals": {
+  "DJF": 0,
+  "MAM": 0,
+  "JJA": 543573,
+  "SON": 0
+ },
+ "g7_season_totals": {
+  "DJF": 0,
+  "MAM": 0,
+  "JJA": 6138931,
+  "SON": 0
+ },
+ "g7_season_land_peak": {
+  "DJF": null,
+  "MAM": null,
+  "JJA": "4 PM",
+  "SON": null
+ },
+ "g7_season_ocean_peak": {
+  "DJF": null,
+  "MAM": null,
+  "JJA": "3 AM",
+  "SON": null
+ },
+ "places": {
+  "florida": {
+   "label": "Central Florida",
+   "peak_hour": 16,
+   "peak_label": "4 PM",
+   "flashes": 11439
+  },
+  "plains": {
+   "label": "Great Plains (Nebraska)",
+   "peak_hour": 22,
+   "peak_label": "10 PM",
+   "flashes": 2625
+  },
+  "maracaibo": {
+   "label": "Lake Maracaibo, Venezuela",
+   "peak_hour": 2,
+   "peak_label": "2 AM",
+   "flashes": 19771
+  },
+  "gulf": {
+   "label": "Gulf of Mexico (open water)",
+   "peak_hour": 12,
+   "peak_label": "12 PM",
+   "flashes": 474
+  },
+  "amazon": {
+   "label": "Amazon basin",
+   "peak_hour": 15,
+   "peak_label": "3 PM",
+   "flashes": 2153
+  }
+ }
+}

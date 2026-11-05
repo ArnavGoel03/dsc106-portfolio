@@ -1,0 +1,42 @@
+# Fetch the one-year GOES-16 GLM sample for projects/project3-lightning-year on GitHub's US runners, one job per
+# month (S3 is in us-east-1, so each month takes minutes instead of hours over a home link). Manual trigger only.
+# Each job writes data/glm_grid.npz for its month and uploads it; scripts/merge_grids.py sums the twelve locally.
+name: glm-year-fetch
+on:
+  workflow_dispatch:
+    inputs:
+      stride:
+        description: "FILE_STRIDE override (15 = one file per 5 min)"
+        default: "15"
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    defaults:
+      run:
+        working-directory: projects/project3-lightning-year
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+      - name: Fetch and bin one month
+        run: |
+          python - <<'PY'
+          import calendar, datetime, subprocess, sys
+          m = ${{ matrix.month }}
+          first = datetime.date(2024, m, 1).timetuple().tm_yday
+          last = first + calendar.monthrange(2024, m)[1] - 1
+          days = [str(d) for d in range(first, last + 1)]
+          subprocess.run([sys.executable, "fetch_glm.py", *days], cwd="scripts", check=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: glm-grid-month-${{ matrix.month }}
+          path: projects/project3-lightning-year/data/glm_grid.npz
+          retention-days: 7
