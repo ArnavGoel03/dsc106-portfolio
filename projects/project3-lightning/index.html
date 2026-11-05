@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>When Does Lightning Strike? Day and Night over the Americas</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <p class="tag">DSC 106 Project 3, checkpoint prototype</p>
+    <h1 id="title">When Does Lightning Strike? Day and Night over the Americas</h1>
+    <p class="sub" id="subtitle"></p>
+  </header>
+  <section class="controls" aria-label="Controls">
+    <label class="hour-ctl">Hour <output id="hour-out"></output>
+      <input type="range" id="hour" min="0" max="23" step="1" value="16" />
+    </label>
+    <button id="play" type="button" aria-label="Play hour animation">Play</button>
+    <fieldset>
+      <legend>Clock</legend>
+      <label><input type="radio" name="clock" value="local" checked /> Local solar time</label>
+      <label><input type="radio" name="clock" value="utc" /> UTC</label>
+    </fieldset>
+    <fieldset>
+      <legend>Jump to</legend>
+      <div id="jumps"></div>
+    </fieldset>
+  </section>
+  <main>
+    <figure class="map-wrap">
+      <svg id="map" role="img" aria-label="Map of lightning flashes per 1 degree cell at the selected hour"></svg>
+      <figcaption id="map-caption"></figcaption>
+    </figure>
+    <figure class="line-wrap">
+      <svg id="line" role="img" aria-label="Flashes by hour of day for the selected cells, each scaled to its own peak"></svg>
+      <figcaption id="line-caption"></figcaption>
+    </figure>
+  </main>
+  <div id="tip" role="status" hidden></div>
+  <footer>
+    <p id="team"></p>
+    <p id="source"></p>
+    <p>GLM counts total lightning flashes (in-cloud plus cloud-to-ground), so this page says flashes, not strikes. GLM detects a smaller share of flashes in daytime and near the edge of its view, so the curves are scaled to each cell's own peak and compare shapes, not raw totals. One summer of one year is a sample, not a climatology. Land outline: Natural Earth via world-atlas.</p>
+  </footer>
+  <script src="vendor/d3.min.js"></script>
+  <script src="vendor/topojson-client.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

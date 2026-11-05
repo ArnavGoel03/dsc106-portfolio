@@ -1,0 +1,9 @@
+/data/
+.venv/
+__pycache__/
+voiceover*.m4a
+/video/
+/shots/clip/
+/shots/frame*.png
+/shots/eda_contact.png
+/shots/clip.mp4

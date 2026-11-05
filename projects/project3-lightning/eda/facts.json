@@ -1,0 +1,86 @@
+{
+ "days_sampled": 6,
+ "files": 1728,
+ "flashes": 313962,
+ "sample_stride": 15,
+ "artifact_cells_removed": 1,
+ "g1_top_cell": {
+  "lat": 32.5,
+  "lon": -95.5,
+  "flashes": 2236,
+  "land": true
+ },
+ "g1_land_share_pct": 63.3,
+ "g2_all_peak_hour": 16,
+ "g2_all_peak_label": "4 PM",
+ "g2_all_peak_share_pct": 7.5,
+ "g2_all_afternoon_share_pct": 38.9,
+ "g3_land_peak_hour": 17,
+ "g3_ocean_peak_hour": 9,
+ "g3_land_peak_label": "5 PM",
+ "g3_ocean_peak_label": "9 AM",
+ "g3_land_peak_share_pct": 9.5,
+ "g3_ocean_peak_share_pct": 4.9,
+ "g3_land_night_share_pct": 29.3,
+ "g3_ocean_night_share_pct": 37.6,
+ "g4_land_afternoon_peak_pct": 56.9,
+ "g4_ocean_night_peak_pct": 43.8,
+ "g5_regions": {
+  "Great Plains": {
+   "peak_hour": 18,
+   "peak_label": "6 PM",
+   "night_share_pct": 46.7,
+   "flashes": 24799
+  },
+  "Southeastern US": {
+   "peak_hour": 16,
+   "peak_label": "4 PM",
+   "night_share_pct": 16.9,
+   "flashes": 23567
+  },
+  "Amazon basin": {
+   "peak_hour": 17,
+   "peak_label": "5 PM",
+   "night_share_pct": 34.0,
+   "flashes": 13211
+  }
+ },
+ "g6_hour_totals": {
+  "3 AM": 10515,
+  "9 AM": 7713,
+  "3 PM": 21518,
+  "9 PM": 13471
+ },
+ "places": {
+  "florida": {
+   "label": "Central Florida",
+   "peak_hour": 17,
+   "peak_label": "5 PM",
+   "flashes": 310
+  },
+  "plains": {
+   "label": "Great Plains (Nebraska)",
+   "peak_hour": 16,
+   "peak_label": "4 PM",
+   "flashes": 123
+  },
+  "maracaibo": {
+   "label": "Lake Maracaibo, Venezuela",
+   "peak_hour": 19,
+   "peak_label": "7 PM",
+   "flashes": 912
+  },
+  "gulf": {
+   "label": "Gulf of Mexico (open water)",
+   "peak_hour": 12,
+   "peak_label": "12 PM",
+   "flashes": 27
+  },
+  "amazon": {
+   "label": "Amazon basin",
+   "peak_hour": 14,
+   "peak_label": "2 PM",
+   "flashes": 53
+  }
+ }
+}
