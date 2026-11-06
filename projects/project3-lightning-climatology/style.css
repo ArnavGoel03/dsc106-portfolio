@@ -35,6 +35,7 @@ figure { margin: 0; background: var(--panel); border: 1px solid var(--rule); bor
 svg { width: 100%; height: auto; display: block; }
 figcaption { color: var(--muted); font-size: 0.85rem; padding: 2px 4px 4px; }
 #tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--panel); font-size: 0.85rem; padding: 6px 9px; border-radius: 6px; z-index: 5; max-width: 260px; }
+.timebar { position: sticky; top: 0; z-index: 4; margin-bottom: 8px; box-shadow: 0 2px 6px hsl(220 10% 50% / 0.12); }
 #writeup { margin-top: 12px; background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); padding: 6px 18px 10px; max-width: 110ch; }
 #writeup h2 { font-size: 1.15rem; margin: 12px 0 4px; } #writeup h3 { font-size: 1rem; margin: 10px 0 2px; }
 #writeup p, #writeup li { margin: 0 0 8px; }
@@ -68,4 +69,8 @@ footer { color: var(--muted); font-size: 0.75rem; margin-top: 6px; max-width: 15
   input[type=radio] { width: 20px; height: 20px; }
   .hour-ctl { flex-wrap: wrap; width: 100%; } input[type=range] { width: 100%; height: 32px; }
   button { min-height: 40px; }
+  /* pinned hour bar: slider block and Play side by side, so the bar stays short */
+  .timebar { flex-wrap: nowrap; gap: 10px; padding: 4px 10px; }
+  .timebar .hour-ctl { width: auto; flex: 1 1 auto; min-height: 0; gap: 0 8px; }
+  .timebar #hour-out { min-width: 0; }
 }

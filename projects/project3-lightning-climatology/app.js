@@ -110,6 +110,9 @@ function renderWriteup(md) {
 }
 fetch(CONFIG.writeupUrl).then((r) => (r.ok ? r.text() : "")).then(renderWriteup).catch(() => {});
 $("#subtitle").textContent = CONFIG.loadText[typeof DecompressionStream === "function" ? "gz" : "raw"];
+// Controls do nothing until the counts arrive, so they stay disabled until init() (and stay so if loading fails).
+const setControls = (on) => document.querySelectorAll(".controls input, .controls button").forEach((e) => { e.disabled = !on; });
+setControls(false);
 Promise.all([d3.json(CONFIG.dataUrl), d3.json(CONFIG.landUrl), d3.json(CONFIG.teamUrl), loadCounts()]).then(([data, land, team, buf]) => {
   D = data; M = data.meta; landMask = data.land;
   // 4 seasons x 2 clocks x cells x 24 hours of uint16; a 404 page or a truncated download would otherwise mis-index silently
@@ -158,6 +161,7 @@ function setSubtitle() {
 }
 
 function init(landTopo, team) {
+  setControls(true);
   setSubtitle();
   $("#source").textContent = `Data: ${M.source}. Local solar hour = UTC hour + longitude / 15, so "4 PM" means mid afternoon everywhere on the map. ${M.artifact_cells_removed} cell${M.artifact_cells_removed === 1 ? "" : "s"} with a flat round-the-clock signal (a GLM false-event source over the Pacific, not weather) removed.`;
   const name = team.teamName === CONFIG.teamPlaceholder ? "" : `${team.teamName}: `;
@@ -291,7 +295,7 @@ function drawYears() {
   svg.append("text").attr("class", "lbl ocean-year-lbl").attr("x", x(M.hours - 1) + 4).attr("y", yo).style("font-size", `${fs}px`).attr("dominant-baseline", "middle").text("Ocean");
   const peaks = (k) => years.map((yr) => M.year_curves[yr][k + "_peak"]);
   const span = (a) => { const lo = d3.min(a), hi = d3.max(a); return lo === hi ? hourLabel(lo) : `between ${hourLabel(lo)} and ${hourLabel(hi)}`; };
-  $("#years-caption").textContent = `${years[0]} to ${years[years.length - 1]}, one line per year for land (solid) and ocean (dashed). Land peaked at ${span(peaks("land"))} in all ${years.length} years; the ocean peak stayed ${span(peaks("ocean"))}. Whole year, local solar time. The shape of the day barely moves from year to year; only the totals do.`;
+  $("#years-caption").textContent = `${years[0]} to ${years[years.length - 1]}, one line per year for land (solid) and ocean (dashed). Land peaked at ${span(peaks("land"))} in all ${years.length} years; the ocean curve is almost flat overnight, so its exact peak hour wanders ${span(peaks("ocean"))}. Whole year, local solar time. Land and ocean keep the same shape of day every year; only the totals change.`;
 }
 
 function setColorScale() {
@@ -423,7 +427,8 @@ function drawLine() {
   svg.append("path").datum(ref.land).attr("class", "ref land-ref").attr("d", line);
   svg.append("path").datum(ref.ocean).attr("class", "ref ocean").attr("d", line);
   state.sel.forEach((c, k) => {
-    svg.append("path").datum(normalise(curve(c))).attr("class", "pick").style("stroke", CONFIG.selColors[k]).attr("d", line);
+    const a = curve(c);
+    if (d3.sum(a)) svg.append("path").datum(normalise(a)).attr("class", "pick").style("stroke", CONFIG.selColors[k]).attr("d", line);
   });
   svg.append("line").attr("class", "hour-mark").attr("y1", top).attr("y2", h - bottom).attr("x1", x(state.hour)).attr("x2", x(state.hour));
   const peak = (a) => hourLabel(d3.maxIndex(a));
