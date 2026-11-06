@@ -8,7 +8,7 @@
 </head>
 <body>
   <header>
-    <p class="tag">DSC 106 Project 3, checkpoint prototype</p>
+    <p class="tag">DSC 106 Project 3</p>
     <h1 id="title">When Does Lightning Strike? Day and Night over the Americas</h1>
     <p class="sub" id="subtitle"></p>
   </header>
@@ -16,7 +16,7 @@
     <label class="hour-ctl">Hour <output id="hour-out"></output>
       <input type="range" id="hour" min="0" max="23" step="1" value="16" />
     </label>
-    <button id="play" type="button" aria-label="Play hour animation">Play</button>
+    <button id="play" type="button">Play</button>
     <fieldset>
       <legend>Clock</legend>
       <label><input type="radio" name="clock" value="local" checked /> Local solar time</label>
@@ -33,7 +33,7 @@
   </section>
   <main>
     <figure class="map-wrap">
-      <svg id="map" role="img" aria-label="Map of lightning flashes per 1 degree cell at the selected hour"></svg>
+      <svg id="map" role="img" aria-label="Map of lightning flashes per 1 degree cell at the selected hour. Focus it and use the arrow keys to move between cells, Enter to pick a cell."></svg>
       <figcaption id="map-caption"></figcaption>
     </figure>
     <figure class="line-wrap">
@@ -43,6 +43,7 @@
       <figcaption id="years-caption"></figcaption>
     </figure>
   </main>
+  <section id="writeup" hidden></section>
   <div id="tip" role="status" hidden></div>
   <footer>
     <p id="team"></p>

@@ -7,24 +7,40 @@ const CONFIG = {
   seasonLabels: { DJF: "Winter (DJF)", MAM: "Spring (MAM)", JJA: "Summer (JJA)", SON: "Autumn (SON)", YEAR: "Whole year" },
   landUrl: "vendor/land-110m.json",
   teamUrl: "team.json",
+  writeupUrl: "writeup.md",  // the team's own write-up; the section stays hidden until this file exists
   teamPlaceholder: "[TEAM NAME]",
   hourStart: 16,
   playMs: 350,
   maxSelected: 2,
-  // Jump-to presets: cell centre (lat, lon) and the local solar hour that shows the pattern.
+  // Jump-to presets: a point inside the cell (lat, lon). The hour is not fixed here: a jump moves the slider to that
+  // cell's own busiest local solar hour in the season on screen, so the preset never lands on a dim hour.
   jumps: [
-    { id: "florida", label: "Central Florida", lat: 28.0, lon: -81.5, hour: 16 },
-    { id: "plains", label: "Great Plains", lat: 41.0, lon: -98.5, hour: 22 },
-    { id: "maracaibo", label: "Lake Maracaibo", lat: 9.5, lon: -71.5, hour: 2 },
+    { id: "florida", label: "Central Florida", lat: 28.5, lon: -81.5 },
+    { id: "plains", label: "Great Plains", lat: 41.5, lon: -98.5 },
+    { id: "maracaibo", label: "Lake Maracaibo", lat: 9.5, lon: -71.5 },
   ],
   map: { w: 960, h: 880 },  // 120 x 110 degree field of view at equal degrees
-  line: { w: 640, h: 420, m: { t: 18, r: 14, b: 42, l: 46 } },
-  years: { w: 640, h: 260, m: { t: 18, r: 52, b: 36, l: 46 } },  // right margin holds the Land and Ocean labels
+  line: { w: 640, h: 400, m: { t: 18, r: 26, b: 42, l: 46 } },  // plot height h - t - b; title and legend band are added above
+  years: { w: 640, h: 270, m: { t: 34, r: 52, b: 36, l: 46 } },  // top holds a two-line title, right the Land/Ocean labels
+  legendPx: 10,       // smallest on-screen size, in CSS px, for SVG legend and axis text on narrow screens
+  narrowPx: 520,      // below this chart width the hour axes show fewer ticks
+  colorFloor: 0.08,   // start of the YlOrRd ramp, so the faintest non-zero cells still read against the ocean grey
+  noneText: "fewer than 1 flash per year in the sample",  // counts are six-year means rounded to whole flashes
+  loadText: { gz: "Loading the lightning counts (about 1 MB)...", raw: "Loading the lightning counts (about 5 MB)..." },
+  failText: "The lightning data did not load. Reload the page to try again.",
   selColors: ["var(--sel-a)", "var(--sel-b)"],
 };
 
-const state = { hour: CONFIG.hourStart, clock: "local", season: "JJA", sel: [], selAge: [], timer: null };
-let D, M, path, cellsSel, legendG, colorScale, landMask, RAW, DOMAINS;
+// tip: the cell under the tooltip and where it was opened, so Play and the keyboard can refresh it in place.
+const state = { hour: CONFIG.hourStart, clock: "local", season: "JJA", sel: [], selAge: [], timer: null, cursor: null, tip: null };
+let D, M, path, cellsSel, legendG, legendAt, cursorRect, cellBox, colorScale, landMask, RAW, DOMAINS;
+// SVG text is sized in viewBox units, so it shrinks with the chart. This returns the font size, in viewBox units,
+// that keeps text at least CONFIG.legendPx CSS px tall (and never below the desktop size `base`).
+function fontFor(svgSel, viewW, base) {
+  const px = svgSel.node().getBoundingClientRect().width || viewW;
+  return Math.max(base, (CONFIG.legendPx * viewW) / px);
+}
+const isNarrow = (svgSel) => (svgSel.node().getBoundingClientRect().width || Infinity) < CONFIG.narrowPx;
 const gridCache = new Map();  // "season|clock" -> Uint32Array of nlat*nlon*24 counts
 const $ = (s) => document.querySelector(s);
 const hourLabel = (h) => `${((h + 11) % 12) + 1} ${h < 12 ? "AM" : "PM"}`;
@@ -47,7 +63,6 @@ function grid(season, clock) {
 }
 const counts = () => grid(state.season, state.clock);
 const seasonFlashes = () => (state.season === "YEAR" ? M.flashes : M.flashes_by_season[state.season]);
-const seasonDays = () => (state.season === "YEAR" ? M.days_sampled : M.days_by_season[state.season]);
 const fmtDeg = (v, p, n) => Math.abs(v).toFixed(1) + "°" + (v < 0 ? n : p);
 // A 1 degree cell is about 12,364 km2 at the equator and shrinks with cos(latitude), so the map colours flash
 // density (flashes per 10,000 km2) rather than raw counts; the tooltip shows both.
@@ -64,9 +79,37 @@ async function loadCounts() {
       if (r.ok) return await new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
     } catch (e) { /* fall through to the raw file */ }
   }
-  return (await fetch(CONFIG.countsUrl)).arrayBuffer();
+  $("#subtitle").textContent = CONFIG.loadText.raw;
+  const r = await fetch(CONFIG.countsUrl);
+  if (!r.ok) throw new Error(`counts file: HTTP ${r.status}`);
+  return r.arrayBuffer();
 }
-$("#subtitle").textContent = "Loading the lightning counts (about 1 MB)...";
+// Write-up: plain text with "## " headings, "- " list items and blank-line paragraphs, rendered as text nodes only
+// (no innerHTML), so nothing in the file can inject markup. Loaded on its own so a missing file never blocks the chart.
+function renderWriteup(md) {
+  const root = $("#writeup");
+  let list = null;
+  for (const block of md.replace(/\r/g, "").split(/\n\s*\n/)) {
+    for (const raw of block.split("\n")) {
+      const line = raw.trim();
+      if (!line) continue;
+      if (line.startsWith("- ")) {
+        if (!list) list = root.appendChild(document.createElement("ul"));
+        list.appendChild(document.createElement("li")).textContent = line.slice(2);
+        continue;
+      }
+      list = null;
+      const m = line.match(/^(#{1,3}) (.*)$/);
+      const el = document.createElement(m ? `h${m[1].length + 1}` : "p");
+      el.textContent = m ? m[2] : line;
+      root.appendChild(el);
+    }
+    list = null;
+  }
+  root.hidden = !root.childElementCount;
+}
+fetch(CONFIG.writeupUrl).then((r) => (r.ok ? r.text() : "")).then(renderWriteup).catch(() => {});
+$("#subtitle").textContent = CONFIG.loadText[typeof DecompressionStream === "function" ? "gz" : "raw"];
 Promise.all([d3.json(CONFIG.dataUrl), d3.json(CONFIG.landUrl), d3.json(CONFIG.teamUrl), loadCounts()]).then(([data, land, team, buf]) => {
   D = data; M = data.meta; landMask = data.land;
   // 4 seasons x 2 clocks x cells x 24 hours of uint16; a 404 page or a truncated download would otherwise mis-index silently
@@ -78,7 +121,7 @@ Promise.all([d3.json(CONFIG.dataUrl), d3.json(CONFIG.landUrl), d3.json(CONFIG.te
   init(land, team);
 }).catch((err) => {
   console.error(err);
-  $("#subtitle").textContent = "";
+  $("#subtitle").textContent = CONFIG.failText;
 });
 
 function cellOf(lat, lon) {
@@ -111,7 +154,7 @@ function cellLabel(c) {
 }
 
 function setSubtitle() {
-  $("#subtitle").textContent = `${M.source}. ${M.period}, ${M.days_sampled} days sampled at ${M.sample}, averaged to one typical year: ${M.flashes.toLocaleString()} flashes per year on a ${M.cell} degree grid. Showing ${CONFIG.seasonLabels[state.season]}: ${seasonFlashes().toLocaleString()} flashes per year. Drag the hour, press Play, switch season, and click up to two cells to compare their daily rhythm.`;
+  $("#subtitle").textContent = `${M.source}. ${M.period}, ${M.days_sampled} days sampled at ${M.sample}, averaged to one typical year: ${M.flashes.toLocaleString()} flashes per year in the sample on a ${M.cell} degree grid. Showing ${CONFIG.seasonLabels[state.season]}: ${seasonFlashes().toLocaleString()} flashes per year in the sample. Drag the hour, press Play, switch season, and click up to two cells to compare their daily rhythm.`;
 }
 
 function init(landTopo, team) {
@@ -140,10 +183,12 @@ function init(landTopo, team) {
     b.type = "button"; b.className = "jump"; b.textContent = p.label; b.dataset.id = p.id;
     b.addEventListener("click", () => {
       stopPlay();
-      select(cellOf(p.lat, p.lon));
-      state.hour = p.hour; hourIn.value = p.hour;
+      const c = cellOf(p.lat, p.lon);
+      select(c);
       if (state.clock !== "local") { state.clock = "local"; $("input[name=clock][value=local]").checked = true; }
-      render(); drawLine();
+      const a = curve(c);
+      if (d3.sum(a)) { state.hour = d3.maxIndex(a); hourIn.value = state.hour; }
+      hideTip(); render(); drawLine();
     });
     jumps.appendChild(b);
   });
@@ -168,10 +213,37 @@ function init(landTopo, team) {
     .attr("x", (c) => x0 + (c % M.nlon) * cw)
     .attr("y", (c) => y1 - (Math.floor(c / M.nlon) + 1) * ch)
     .attr("width", cw + 0.3).attr("height", ch + 0.3)
-    .on("mousemove", showTip).on("mouseleave", hideTip)
-    .on("click", (_, c) => { stopPlay(); select(c); render(); drawLine(); });
+    .on("pointermove", (ev, c) => { if (ev.pointerType === "mouse") showTip(ev, c); })
+    .on("pointerleave", (ev) => { if (ev.pointerType === "mouse") hideTip(); })
+    // A tap or click picks the cell and opens its tooltip, so touch screens get the details too.
+    .on("click", (ev, c) => { stopPlay(); select(c); state.cursor = ev.detail === 0 ? c : null; render(); drawLine(); showTip(ev, c); });
   svg.append("path").datum(topojson.feature(landTopo, landTopo.objects.land)).attr("class", "land").attr("d", path);
-  legendG = svg.append("g").attr("class", "legend").attr("transform", `translate(${x1 - 222}, ${y0 + 18})`);
+  cursorRect = svg.append("rect").attr("class", "cursor").attr("width", cw).attr("height", ch).attr("visibility", "hidden");
+  cellBox = (c) => ({ x: x0 + (c % M.nlon) * cw, y: y1 - (Math.floor(c / M.nlon) + 1) * ch, w: cw, h: ch });
+  // Legend sits over the empty north-east Pacific corner, on its own backing panel.
+  legendG = svg.append("g").attr("class", "legend");
+  legendAt = [x0 + 10, y0 + 10];
+  legendG.style("pointer-events", "none");
+  cursorRect.raise();
+
+  // Keyboard: the map takes focus; arrow keys move a cursor cell, Enter or Space picks it, Escape closes the tooltip.
+  svg.attr("tabindex", 0).on("keydown", (ev) => {
+    const step = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [1, 0], ArrowDown: [-1, 0] }[ev.key];
+    if (step) {
+      ev.preventDefault();
+      const c0 = state.cursor ?? state.sel[state.sel.length - 1] ?? cells[0];
+      const i = Math.min(M.nlat - 1, Math.max(0, Math.floor(c0 / M.nlon) + step[0]));
+      const j = Math.min(M.nlon - 1, Math.max(0, (c0 % M.nlon) + step[1]));
+      state.cursor = cellId(i, j); render(); showTipAtCell(state.cursor);
+    } else if ((ev.key === "Enter" || ev.key === " ") && state.cursor != null) {
+      ev.preventDefault(); stopPlay(); select(state.cursor); render(); drawLine(); showTipAtCell(state.cursor);
+    } else if (ev.key === "Escape") hideTip();
+  }).on("blur", () => { state.cursor = null; render(); hideTip(); });
+  // Tapping anywhere outside a map cell closes a tooltip that a tap opened.
+  document.addEventListener("pointerdown", (ev) => { if (!ev.target.classList || !ev.target.classList.contains("cell")) hideTip(); });
+  // SVG text scales with the chart, so on a narrow screen the legend and axes are redrawn at a readable size.
+  let resizeT;
+  window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTimeout(() => { hideTip(); setColorScale(); drawLine(); drawYears(); }, 150); });
 
   // Colour: sqrt scale on the per-hour flash density, domain fixed across hours AND seasons so the animation and the
   // season switch stay comparable (winter looks dimmer because it is).
@@ -192,12 +264,18 @@ function drawYears() {
   svg.selectAll("*").remove();
   const years = Object.keys(M.year_curves);
   const all = years.flatMap((y) => M.year_curves[y].land.concat(M.year_curves[y].ocean));
-  const x = d3.scaleLinear([0, M.hours - 1], [m.l, w - m.r]);
-  const y = d3.scaleLinear([0, d3.max(all)], [h - m.b, m.t]).nice();
+  const fs = fontFor(svg, w, 12), mt = fs * 2.6 + 6, ml = Math.max(m.l, fs * 3);  // two title lines; room for "10%"
+  const x = d3.scaleLinear([0, M.hours - 1], [ml + fs, w - Math.max(m.r, fs * 3.2)]);  // room for "Ocean" at any size
+  const y = d3.scaleLinear([0, d3.max(all)], [h - m.b, mt]).nice();
   svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`)
-    .call(d3.axisBottom(x).tickValues([0, 6, 12, 18, 23]).tickFormat((d) => (d === 0 ? "midnight" : d === 12 ? "noon" : hourLabel(d))));
-  svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat((d) => d + "%"));
-  svg.append("text").attr("class", "lbl").attr("x", m.l).attr("y", m.t - 6).text("Share of the year's flashes in each local solar hour, one line per year (whole year, local solar time)");
+    .call(d3.axisBottom(x).tickValues(isNarrow(svg) ? [0, 12, 23] : [0, 6, 12, 18, 23]).tickFormat((d) => (d === 0 ? "midnight" : d === 12 ? "noon" : hourLabel(d))))
+    .call((g) => g.selectAll("text").style("font-size", `${fs}px`).attr("text-anchor", (d) => (d === 0 ? "start" : d === 23 ? "end" : "middle")));
+  svg.append("g").attr("class", "axis").attr("transform", `translate(${ml},0)`).call(d3.axisLeft(y).ticks(4).tickFormat((d) => d + "%"))
+    .call((g) => g.selectAll("text").style("font-size", `${fs}px`));
+  // Two lines so the title fits the chart width at any screen size.
+  const title = svg.append("text").attr("class", "lbl").attr("x", 4).attr("y", fs * 1.05).style("font-size", `${fs}px`);
+  title.append("tspan").text("Share of the year's flashes in each local solar hour,");
+  title.append("tspan").attr("x", 4).attr("dy", "1.2em").text("one line per year (whole year, local solar time)");
   const line = d3.line().x((_, i) => x(i)).y((v) => y(v)).curve(d3.curveMonotoneX);
   years.forEach((yr) => {
     svg.append("path").datum(M.year_curves[yr].land).attr("class", "year-line land-year").attr("d", line);
@@ -205,8 +283,12 @@ function drawYears() {
   });
   // direct labels at the right end of each bundle, so the chart reads without the caption
   const last = (k) => d3.mean(years, (yr) => M.year_curves[yr][k][M.hours - 1]);
-  svg.append("text").attr("class", "lbl land-year-lbl").attr("x", x(M.hours - 1) + 4).attr("y", y(last("land"))).attr("dominant-baseline", "middle").text("Land");
-  svg.append("text").attr("class", "lbl ocean-year-lbl").attr("x", x(M.hours - 1) + 4).attr("y", y(last("ocean"))).attr("dominant-baseline", "middle").text("Ocean");
+  // keep the two end labels at least one line apart when the bundles end close together
+  let yl = y(last("land")), yo = y(last("ocean"));
+  const gap = fs * 1.1;
+  if (Math.abs(yl - yo) < gap) { const mid = (yl + yo) / 2, s = yl <= yo ? -1 : 1; yl = mid + (s * gap) / 2; yo = mid - (s * gap) / 2; }
+  svg.append("text").attr("class", "lbl land-year-lbl").attr("x", x(M.hours - 1) + 4).attr("y", yl).style("font-size", `${fs}px`).attr("dominant-baseline", "middle").text("Land");
+  svg.append("text").attr("class", "lbl ocean-year-lbl").attr("x", x(M.hours - 1) + 4).attr("y", yo).style("font-size", `${fs}px`).attr("dominant-baseline", "middle").text("Ocean");
   const peaks = (k) => years.map((yr) => M.year_curves[yr][k + "_peak"]);
   const span = (a) => { const lo = d3.min(a), hi = d3.max(a); return lo === hi ? hourLabel(lo) : `between ${hourLabel(lo)} and ${hourLabel(hi)}`; };
   $("#years-caption").textContent = `${years[0]} to ${years[years.length - 1]}, one line per year for land (solid) and ocean (dashed). Land peaked at ${span(peaks("land"))} in all ${years.length} years; the ocean peak stayed ${span(peaks("ocean"))}. Whole year, local solar time. The shape of the day barely moves from year to year; only the totals do.`;
@@ -214,7 +296,7 @@ function drawYears() {
 
 function setColorScale() {
   const maxCount = state.season === "YEAR" ? DOMAINS.YEAR : DOMAINS.season;
-  colorScale = d3.scaleSequentialSqrt([0, maxCount], d3.interpolateYlOrRd);
+  colorScale = d3.scaleSequentialSqrt([0, maxCount], (t) => d3.interpolateYlOrRd(CONFIG.colorFloor + (1 - CONFIG.colorFloor) * t));
   legendG.selectAll("*").remove();
   drawLegend(maxCount);
 }
@@ -233,9 +315,16 @@ function render() {
   $("#hour-out").textContent = `${hourLabel(h)} ${clockLabel()}`;
   cellsSel
     .attr("fill", (c) => { const v = a[c * M.hours + h]; return v > 0 ? colorScale(density(c, v)) : "none"; })
-    .attr("stroke", (c) => { const k = state.sel.indexOf(c); return k < 0 ? null : CONFIG.selColors[k]; })
+    // style(), not attr(): a presentation attribute loses to the .cell:hover rule, and the two picks must keep the
+    // colours of their curves in the line chart
+    .style("stroke", (c) => { const k = state.sel.indexOf(c); return k < 0 ? null : CONFIG.selColors[k]; })
     .classed("sel", (c) => state.sel.includes(c))
     .filter((c) => state.sel.includes(c)).raise();
+  if (state.cursor != null) {
+    const b = cellBox(state.cursor);
+    cursorRect.attr("x", b.x).attr("y", b.y).attr("visibility", "visible").raise();
+  } else cursorRect.attr("visibility", "hidden");
+  if (state.tip) refreshTip();
   document.querySelectorAll(".jump").forEach((b) => {
     const p = CONFIG.jumps.find((j) => j.id === b.dataset.id);
     b.classList.toggle("on", state.sel.includes(cellOf(p.lat, p.lon)));
@@ -246,15 +335,20 @@ function render() {
 }
 
 function drawLegend(maxCount) {
-  const w = 200, hgt = 10, ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(maxCount * t * t));
+  // Drawn at desktop size on its own backing panel, then scaled as a group so it stays readable on a narrow map.
+  const k = fontFor(d3.select("#map"), CONFIG.map.w, 11) / 11;
+  legendG.attr("transform", `translate(${legendAt[0]}, ${legendAt[1]}) scale(${k})`);
+  const w = 200, hgt = 10, pad = 8, ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(maxCount * t * t));
+  legendG.append("rect").attr("class", "legend-bg").attr("width", 292).attr("height", hgt + 44).attr("rx", 4);
+  const g = legendG.append("g").attr("transform", `translate(${pad}, ${pad + 14})`);
+  g.append("text").attr("y", -4).text(state.season === "YEAR" ? "Flashes per 10,000 km2 (whole year), sqrt scale" : "Flashes per 10,000 km2 (one season), sqrt scale");
   const id = "lg";
-  const defs = legendG.append("defs").append("linearGradient").attr("id", id);
+  const defs = g.append("defs").append("linearGradient").attr("id", id);
   d3.range(0, 1.001, 0.1).forEach((t) => defs.append("stop").attr("offset", t).attr("stop-color", colorScale(maxCount * t * t)));
-  legendG.append("rect").attr("width", w).attr("height", hgt).attr("fill", `url(#${id})`).attr("stroke", "var(--rule)");
-  legendG.selectAll("text.t").data(ticks).join("text").attr("class", "t")
+  g.append("rect").attr("width", w).attr("height", hgt).attr("fill", `url(#${id})`).attr("stroke", "var(--rule)");
+  g.selectAll("text.t").data(ticks).join("text").attr("class", "t")
     .attr("x", (_, i) => (i / (ticks.length - 1)) * w).attr("y", hgt + 12).attr("text-anchor", (_, i) => (i === 0 ? "start" : i === ticks.length - 1 ? "end" : "middle"))
     .text((v) => v.toLocaleString());
-  legendG.append("text").attr("y", -4).text(state.season === "YEAR" ? "Flashes per 10,000 km2 (whole year), sqrt scale" : "Flashes per 10,000 km2 (one season), sqrt scale");
 }
 
 function togglePlay() { state.timer ? stopPlay() : startPlay(); }
@@ -262,54 +356,78 @@ function startPlay() {
   $("#play").textContent = "Pause";
   state.timer = setInterval(() => { state.hour = (state.hour + 1) % M.hours; $("#hour").value = state.hour; render(); }, CONFIG.playMs);
 }
-function stopPlay() { if (state.timer) clearInterval(state.timer); state.timer = null; $("#play").textContent = "Play"; }
+function stopPlay() {
+  if (state.timer) clearInterval(state.timer);
+  state.timer = null; $("#play").textContent = "Play";
+}
 
-function showTip(ev, c) {
-  const a = counts(), v = a[c * M.hours + state.hour], day = d3.sum(curve(c));
-  const share = day ? ((100 * v) / day).toFixed(0) + "% of this cell's daily flashes" : "no flashes in the sample";
+// Tooltip. It remembers its cell and anchor point, so Play and the keyboard refresh it in place instead of leaving
+// the previous hour on screen.
+function showTip(ev, c) { state.tip = { c, x: ev.clientX, y: ev.clientY }; refreshTip(); }
+function showTipAtCell(c) {
+  const r = cellsSel.filter((d) => d === c).node().getBoundingClientRect();
+  state.tip = { c, x: r.right, y: r.bottom }; refreshTip();
+}
+function refreshTip() {
+  const { c, x, y } = state.tip, a = counts(), v = a[c * M.hours + state.hour], day = d3.sum(curve(c));
+  const share = day ? ((100 * v) / day).toFixed(0) + "% of this cell's daily flashes" : CONFIG.noneText;
   const tip = $("#tip");
   tip.hidden = false;
-  tip.innerHTML = `<b>${cellLabel(c)}</b><br>${hourLabel(state.hour)} ${clockLabel()}: ${v.toLocaleString()} flashes (${density(c, v).toFixed(1)} per 10,000 km2)<br>${share}`;
-  const pad = 14;
-  tip.style.left = Math.min(ev.clientX + pad, window.innerWidth - tip.offsetWidth - pad) + "px";
-  tip.style.top = ev.clientY + pad + "px";
+  tip.replaceChildren();
+  tip.appendChild(document.createElement("b")).textContent = cellLabel(c);
+  [`${hourLabel(state.hour)} ${clockLabel()}: ${v.toLocaleString()} flashes (${density(c, v).toFixed(1)} per 10,000 km2)`, share]
+    .forEach((t) => { tip.appendChild(document.createElement("br")); tip.appendChild(document.createTextNode(t)); });
+  // keep it on screen: flip left of / above the anchor when it would run off the right or bottom edge
+  const pad = 14, tw = tip.offsetWidth, th = tip.offsetHeight;
+  const left = x + pad + tw > window.innerWidth - pad ? x - pad - tw : x + pad;
+  const top = y + pad + th > window.innerHeight - pad ? y - pad - th : y + pad;
+  tip.style.left = Math.max(pad, left) + "px";
+  tip.style.top = Math.max(pad, top) + "px";
 }
-function hideTip() { $("#tip").hidden = true; }
+function hideTip() { state.tip = null; $("#tip").hidden = true; }
 
-// Line chart: hour of day on x, each series scaled to its own peak on y.
+// Line chart: hour of day on x, each series scaled to its own peak on y. The legend sits in a band above the plot,
+// never over it, because the peaks it would cover are what the chart is for.
 let lineX = () => 0;
 function drawLine() {
-  const { w, h, m } = CONFIG.line;
-  const svg = d3.select("#line").attr("viewBox", `0 0 ${w} ${h}`);
+  const { w, m } = CONFIG.line;
+  const svg = d3.select("#line");
   svg.selectAll("*").remove();
-  const x = d3.scaleLinear([0, M.hours - 1], [m.l, w - m.r]);
-  const y = d3.scaleLinear([0, 1], [h - m.b, m.t]);
+  const fs = fontFor(svg, w, 12), rowH = fs * 1.35;
+  const rows = [["All land cells", "ref", null], ["All ocean cells", "ref ocean", null]]
+    .concat(state.sel.map((c, k) => [cellLabel(c), "pick", CONFIG.selColors[k]]));
+  const titleH = fs * 1.4, band = (CONFIG.maxSelected + 2) * rowH + 8, top = titleH + band, bottom = Math.max(m.b, fs * 3.1), h = CONFIG.line.h + top - m.t + bottom - m.b;
+  svg.attr("viewBox", `0 0 ${w} ${h}`);
+  const x = d3.scaleLinear([0, M.hours - 1], [m.l + fs, w - m.r]);
+  const y = d3.scaleLinear([0, 1], [h - bottom, top]);
   lineX = x;
-  svg.append("g").attr("class", "grid").attr("transform", `translate(0,${h - m.b})`)
-    .call(d3.axisBottom(x).ticks(8).tickSize(-(h - m.t - m.b)).tickFormat(""));
-  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`)
-    .call(d3.axisBottom(x).tickValues([0, 3, 6, 9, 12, 15, 18, 21, 23]).tickFormat((d) => (d === 0 ? "midnight" : d === 12 ? "noon" : hourLabel(d))));
-  svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`)
-    .call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(".0%")));
-  svg.append("text").attr("class", "lbl").attr("x", m.l).attr("y", m.t - 6).text("Share of the series' own peak hour");
-  svg.append("text").attr("class", "lbl").attr("x", w - m.r).attr("y", h - 6).attr("text-anchor", "end").text(`Hour of day, ${clockLabel()}`);
+  svg.append("text").attr("class", "lbl").attr("x", 4).attr("y", fs * 1.05).style("font-size", `${fs}px`).text("Share of the series' own peak hour");
+  const leg = svg.append("g").attr("transform", `translate(${m.l}, ${titleH + 2})`);
+  rows.forEach(([label, cls, color], i) => {
+    const yy = i * rowH + rowH / 2;
+    leg.append("line").attr("class", cls).attr("x1", 0).attr("x2", 28).attr("y1", yy).attr("y2", yy).style("stroke", color);
+    leg.append("text").attr("class", "lbl").attr("x", 36).attr("y", yy).attr("dominant-baseline", "middle").style("font-size", `${fs}px`)
+      .attr("fill", color).attr("font-weight", color ? 700 : null).text(label);
+  });
+  svg.append("g").attr("class", "grid").attr("transform", `translate(0,${h - bottom})`)
+    .call(d3.axisBottom(x).ticks(8).tickSize(-(h - bottom - top)).tickFormat(""));
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - bottom})`)
+    .call(d3.axisBottom(x).tickValues(isNarrow(svg) ? [0, 6, 12, 18] : [0, 3, 6, 9, 12, 15, 18, 21]).tickFormat((d) => (d === 0 ? "midnight" : d === 12 ? "noon" : hourLabel(d))))
+    .call((g) => g.selectAll("text").style("font-size", `${fs}px`).attr("text-anchor", (d) => (d === 0 ? "start" : "middle")));
+  svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l + fs},0)`)
+    .call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(".0%")))
+    .call((g) => g.selectAll("text").style("font-size", `${fs}px`));
+  svg.append("text").attr("class", "lbl").attr("x", w - m.r).attr("y", h - 4).attr("text-anchor", "end").style("font-size", `${fs}px`).text(`Hour of day, ${clockLabel()}`);
   const line = d3.line().x((_, i) => x(i)).y((v) => y(v)).curve(d3.curveMonotoneX);
   const ref = refCurves();
   svg.append("path").datum(ref.land).attr("class", "ref land-ref").attr("d", line);
   svg.append("path").datum(ref.ocean).attr("class", "ref ocean").attr("d", line);
   state.sel.forEach((c, k) => {
-    svg.append("path").datum(normalise(curve(c))).attr("class", "pick").attr("stroke", CONFIG.selColors[k]).attr("d", line);
+    svg.append("path").datum(normalise(curve(c))).attr("class", "pick").style("stroke", CONFIG.selColors[k]).attr("d", line);
   });
-  svg.append("line").attr("class", "hour-mark").attr("y1", m.t).attr("y2", h - m.b).attr("x1", x(state.hour)).attr("x2", x(state.hour));
-  // Legend as text rows under the title.
-  const rows = [["All land cells (solid grey)", null], ["All ocean cells (dashed grey)", null]].concat(state.sel.map((c, k) => [cellLabel(c), CONFIG.selColors[k]]));
-  // Backing panel so the legend stays readable where a curve runs under it.
-  svg.append("rect").attr("class", "legend-bg").attr("x", w - m.r - 232).attr("y", m.t + 1).attr("width", 236).attr("height", rows.length * 14 + 6);
-  svg.append("g").selectAll("text").data(rows).join("text").attr("class", "lbl")
-    .attr("x", w - m.r).attr("y", (_, i) => m.t + 12 + i * 14).attr("text-anchor", "end")
-    .attr("fill", (d) => d[1] || null).attr("font-weight", (d) => (d[1] ? 700 : null)).text((d) => d[0]);
+  svg.append("line").attr("class", "hour-mark").attr("y1", top).attr("y2", h - bottom).attr("x1", x(state.hour)).attr("x2", x(state.hour));
   const peak = (a) => hourLabel(d3.maxIndex(a));
   // an empty cell would otherwise report a peak at 12 AM (maxIndex of all zeros)
-  const pick = state.sel.map((c) => { const a = curve(c); return d3.sum(a) ? `${cellLabel(c)} peaks at ${peak(a)}` : `${cellLabel(c)}: no flashes in the sample`; }).join("; ");
+  const pick = state.sel.map((c) => { const a = curve(c); return d3.sum(a) ? `${cellLabel(c)} peaks at ${peak(a)}` : `${cellLabel(c)}: ${CONFIG.noneText}`; }).join("; ");
   $("#line-caption").textContent = `${CONFIG.seasonLabels[state.season]}: land peaks at ${peak(ref.land)} and ocean at ${peak(ref.ocean)} (${clockLabel()}). ${pick}. Each curve is divided by its own busiest hour, so shapes compare even where GLM detects fewer daytime flashes.`;
 }

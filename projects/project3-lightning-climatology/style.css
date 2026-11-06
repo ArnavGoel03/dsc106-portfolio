@@ -24,6 +24,8 @@ legend { float: left; margin-right: 12px; padding: 0; font-weight: 600; }
 .jump.on { border-color: var(--accent); color: var(--accent); }
 .controls label { display: flex; gap: 8px; align-items: center; }
 output { font-weight: 700; font-variant-numeric: tabular-nums; }
+#hour-out { display: inline-block; min-width: 19ch; }  /* widest label, "12 AM local solar time"; stops Play shifting the row */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 input[type=range] { width: 220px; accent-color: var(--accent); }
 button { font: inherit; border: 1px solid var(--rule); background: var(--bg); border-radius: var(--radius); padding: 4px 14px; cursor: pointer; }
 button:hover { border-color: var(--muted); }
@@ -33,10 +35,15 @@ figure { margin: 0; background: var(--panel); border: 1px solid var(--rule); bor
 svg { width: 100%; height: auto; display: block; }
 figcaption { color: var(--muted); font-size: 0.85rem; padding: 2px 4px 4px; }
 #tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--panel); font-size: 0.85rem; padding: 6px 9px; border-radius: 6px; z-index: 5; max-width: 260px; }
+#writeup { margin-top: 12px; background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); padding: 6px 18px 10px; max-width: 110ch; }
+#writeup h2 { font-size: 1.15rem; margin: 12px 0 4px; } #writeup h3 { font-size: 1rem; margin: 10px 0 2px; }
+#writeup p, #writeup li { margin: 0 0 8px; }
 footer { color: var(--muted); font-size: 0.75rem; margin-top: 6px; max-width: 150ch; }
 .cell { stroke: none; cursor: pointer; pointer-events: all; } /* fill="none" cells must still take hover and click */
 .cell:hover { stroke: var(--ink); stroke-width: 1.4; }
-.cell.sel { stroke: var(--ink); stroke-width: 2.4; }
+.cell.sel { stroke-width: 2.4; }  /* colour comes from app.js, matching the pick's curve */
+.cursor { fill: none; stroke: var(--ink); stroke-width: 2; stroke-dasharray: 3 2; pointer-events: none; }
+#map:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .ocean-bg { fill: var(--map-bg); }
 .land { fill: none; stroke: hsl(220 15% 20%); stroke-width: 0.6; pointer-events: none; }
 .axis text { fill: var(--ink); font-size: 12px; }
@@ -54,4 +61,11 @@ footer { color: var(--muted); font-size: 0.75rem; margin-top: 6px; max-width: 15
 #years { margin-top: 10px; }
 .lbl { font-size: 12px; fill: var(--muted); }
 @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
-@media (max-width: 600px) { fieldset { flex-direction: column; align-items: flex-start; width: 100%; } legend { float: none; } }
+@media (max-width: 600px) {
+  body { padding: 10px 14px 8px; }
+  fieldset { flex-direction: column; align-items: flex-start; width: 100%; } legend { float: none; }
+  .controls label { min-height: 40px; }  /* touch targets */
+  input[type=radio] { width: 20px; height: 20px; }
+  .hour-ctl { flex-wrap: wrap; width: 100%; } input[type=range] { width: 100%; height: 32px; }
+  button { min-height: 40px; }
+}
