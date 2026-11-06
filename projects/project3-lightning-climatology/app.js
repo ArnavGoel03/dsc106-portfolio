@@ -365,7 +365,12 @@ function drawYears() {
   const years = Object.keys(M.year_curves);
   const all = years.flatMap((y) => M.year_curves[y].land.concat(M.year_curves[y].ocean));
   const fs = fontFor(svg, w, 12), mt = fs * 2.6 + 6, ml = Math.max(m.l, fs * 3);  // two title lines; room for "10%"
-  const x = d3.scaleLinear([0, M.hours - 1], [ml + fs, w - Math.max(m.r, fs * 3.2)]);  // room for "Ocean" at any size
+  // Right margin from the measured width of the end labels: font widths differ by platform (Linux renders wider
+  // than macOS), so a fixed multiple of the font size clipped "Ocean" in CI.
+  const probe = svg.append("text").attr("class", "lbl").style("font-size", `${fs}px`).text("Ocean");
+  const labelW = Math.max(probe.node().getComputedTextLength(), fs * 3.2);
+  probe.remove();
+  const x = d3.scaleLinear([0, M.hours - 1], [ml + fs, w - Math.max(m.r, labelW + 10)]);  // room for "Ocean" at any size
   const y = d3.scaleLinear([0, d3.max(all)], [h - m.b, mt]).nice();
   svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`)
     .call(d3.axisBottom(x).tickValues(isNarrow(svg) ? [0, 12, 23] : [0, 6, 12, 18, 23]).tickFormat((d) => (d === 0 ? "midnight" : d === 12 ? "noon" : hourLabel(d))))
