@@ -20,6 +20,11 @@ DAY_START, DAY_END = 1, 366 if calendar.isleap(YEAR) else 365
 SEASONS = {"DJF": (12, 1, 2), "MAM": (3, 4, 5), "JJA": (6, 7, 8), "SON": (9, 10, 11)}  # months per season; DJF = Dec, Jan and Feb of the same calendar year
 DEFAULT_SEASON = "JJA"  # the page opens on summer, the same window as the 92-day version
 FILE_STRIDE = 15  # GLM writes one 20 s file every 20 s (180 per hour); keep every 15th = one file per 5 min, a 1-in-15 sample
+FETCH_WORKERS = 48  # reuse one connection per download worker, matching the existing parallel fetch
+DOWNLOAD_ATTEMPTS = 3  # retry transient download failures, then reject the partial day
+CONNECT_TIMEOUT_SECONDS = 5  # avoid waiting a minute for an unavailable endpoint
+READ_TIMEOUT_SECONDS = 10  # a stalled small GLM file should fail promptly
+SDK_ATTEMPTS = 2  # bound SDK retries inside each of the three download attempts
 # Grid over the GLM field of view, 1 degree cells. Edges beyond about 54 deg latitude or far from nadir (75.2 W) see little.
 LAT0, LAT1 = -55, 55
 LON0, LON1 = -135, -15
@@ -27,6 +32,9 @@ CELL_DEG = 1
 NLAT = (LAT1 - LAT0) // CELL_DEG
 NLON = (LON1 - LON0) // CELL_DEG
 HOURS = 24
+KM2_PER_DEG2_EQUATOR = 111.2 ** 2  # same spherical degree-area approximation used by the existing EDA
+COUNTS_FILENAME = "glm_counts_sums.bin"  # new URL prevents cached rounded-mean bytes being read as sums
+COUNTS_CLOCKS = ("utc", "local")  # binary axis order shared by full and per-season exports
 
 GRID_NPZ = Path(os.environ.get("GLM_GRID", DATA / f"glm_grid_{YEAR}.npz"))  # one year's counts per month; the climatology mean lives in CLIMO_NPZ
 CLIMO_NPZ = DATA / "glm_climatology.npz"  # mean over YEARS, written by merge_grids.py, read by eda.py and export_web.py

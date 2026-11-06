@@ -2,9 +2,7 @@
 // Single source of truth for tunable values in the prototype.
 const CONFIG = {
   dataUrl: "web/data/glm.json",
-  countsUrl: "web/data/glm_counts.bin",     // uint16 LE [season][clock][cell][hour], see scripts/export_web.py
-  countsGzUrl: "web/data/glm_counts.bin.gz", // same bytes gzipped (about 1 MB instead of 5); inflated in the browser
-  seasonLabels: { DJF: "Winter (DJF)", MAM: "Spring (MAM)", JJA: "Summer (JJA)", SON: "Autumn (SON)", YEAR: "Whole year" },
+  seasonLabels: { DJF: "DJF", MAM: "MAM", JJA: "JJA", SON: "SON", YEAR: "Whole year" },
   landUrl: "vendor/land-110m.json",
   teamUrl: "team.json",
   writeupUrl: "writeup.md",  // the team's own write-up; the section stays hidden until this file exists
@@ -26,7 +24,7 @@ const CONFIG = {
   narrowPx: 520,      // below this chart width the hour axes show fewer ticks
   colorFloor: 0.08,   // start of the YlOrRd ramp, so the faintest non-zero cells still read against the ocean grey
   noneText: "fewer than 1 flash per year in the sample",  // counts are six-year means rounded to whole flashes
-  loadText: { gz: "Loading the lightning counts (about 1 MB)...", raw: "Loading the lightning counts (about 5 MB)..." },
+  loadingText: "Loading the lightning counts...",
   stallMs: 12000,     // no new bytes for this long = a stalled connection: abort and start the download again
   fetchTries: 3,      // attempts per file before giving up and showing failText
   failText: "The lightning data did not load. Reload the page to try again.",
@@ -43,7 +41,10 @@ function fontFor(svgSel, viewW, base) {
   return Math.max(base, (CONFIG.legendPx * viewW) / px);
 }
 const isNarrow = (svgSel) => (svgSel.node().getBoundingClientRect().width || Infinity) < CONFIG.narrowPx;
-const gridCache = new Map();  // "season|clock" -> Uint32Array of nlat*nlon*24 counts
+const gridCache = new Map();  // "season|clock" -> Float64Array of mean flashes per cell/hour
+const pairData = new Map();  // season|clock -> exact six-year integer counts
+const pairRequests = new Map();  // share an in-flight foreground/background download
+let viewSerial = 0;
 const $ = (s) => document.querySelector(s);
 const hourLabel = (h) => `${((h + 11) % 12) + 1} ${h < 12 ? "AM" : "PM"}`;
 const clockLabel = () => (state.clock === "local" ? "local solar time" : "UTC");
@@ -54,12 +55,17 @@ function grid(season, clock) {
   const key = season + "|" + clock;
   if (gridCache.has(key)) return gridCache.get(key);
   const n = M.nlat * M.nlon * M.hours, ci = M.clocks.indexOf(clock);
-  const out = new Uint32Array(n);
+  const out = new Float64Array(n);
   const seasons = season === "YEAR" ? M.seasons : [season];
   for (const s of seasons) {
     const base = (M.seasons.indexOf(s) * M.clocks.length + ci) * n;
-    for (let k = 0; k < n; k++) out[k] += RAW[base + k];
+    const part = pairData.get(s + "|" + clock);
+    if (!part && !RAW) throw new Error(`counts are not loaded for ${s}/${clock}`);
+    for (let k = 0; k < n; k++) out[k] += part ? part[k] : RAW[base + k];
   }
+  // Divide after adding seasons, preserving fractions and every source cell's annual peak hour.
+  const divisor = M.counts_divisor || 1;
+  for (let k = 0; k < n; k++) out[k] /= divisor;
   gridCache.set(key, out);
   return out;
 }
@@ -91,7 +97,8 @@ async function fetchBytes(url, label) {
         if (done) break;
         parts.push(value); got += value.length;
         clearTimeout(timer); timer = setTimeout(() => ctl.abort(), CONFIG.stallMs);
-        if (total) $("#subtitle").textContent = `${label} ${Math.min(99, Math.round((100 * got) / total))}%`;
+        const progressLabel = typeof label === "function" ? label() : label;
+        if (total && progressLabel) $("#subtitle").textContent = `${progressLabel} ${Math.min(99, Math.round((100 * got) / total))}%`;
       }
       clearTimeout(timer);
       return new Blob(parts);
@@ -102,15 +109,65 @@ async function fetchBytes(url, label) {
   }
   throw lastErr;
 }
-async function loadCounts() {
-  if (typeof DecompressionStream === "function") {
+async function loadCounts(payload, label) {
+  const checked = (buf) => {
+    if (buf.byteLength !== payload.bytes) throw new Error(`counts file is ${buf.byteLength} bytes, expected ${payload.bytes}`);
+    return new Uint16Array(buf);
+  };
+  if (typeof DecompressionStream === "function" && payload.gzip) {
     try {
-      const gz = await fetchBytes(CONFIG.countsGzUrl, CONFIG.loadText.gz);
-      return await new Response(gz.stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+      const gz = await fetchBytes(payload.gzip, label);
+      return checked(await new Response(gz.stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer());
     } catch (e) { /* fall through to the raw file */ }
   }
-  $("#subtitle").textContent = CONFIG.loadText.raw;
-  return (await fetchBytes(CONFIG.countsUrl, CONFIG.loadText.raw)).arrayBuffer();
+  return checked(await (await fetchBytes(payload.file, label)).arrayBuffer());
+}
+async function loadJSON(url) {
+  return JSON.parse(await (await fetchBytes(url, null)).text());
+}
+function loadPair(season, clock, label = null) {
+  const key = season + "|" + clock;
+  if (pairData.has(key)) return Promise.resolve();
+  if (pairRequests.has(key)) return pairRequests.get(key);
+  const payload = M.counts_parts[season][clock];
+  const expected = M.nlat * M.nlon * M.hours * Uint16Array.BYTES_PER_ELEMENT;
+  if (payload.bytes !== expected) return Promise.reject(new Error(`invalid part size for ${key}`));
+  const request = loadCounts(payload, label).then((counts) => { pairData.set(key, counts); }).finally(() => { pairRequests.delete(key); });
+  pairRequests.set(key, request);
+  return request;
+}
+function ensureView(season, clock, label = null) {
+  if (!M.counts_parts) return Promise.resolve();  // older metadata remains compatible with the full-file format
+  return Promise.all((season === "YEAR" ? M.seasons : [season]).map((s) => loadPair(s, clock, label)));
+}
+async function prefetchRest() {
+  for (const season of M.seasons) for (const clock of M.clocks) {
+    // Background failure leaves the current view usable; selecting that view retries through loadPair().
+    try { await loadPair(season, clock); } catch (e) { /* retry on demand */ }
+  }
+}
+function syncViewControls() {
+  document.querySelectorAll("input[name=season]").forEach((r) => { r.checked = r.value === state.season; });
+  document.querySelectorAll("input[name=clock]").forEach((r) => { r.checked = r.value === state.clock; });
+}
+async function setView(season, clock) {
+  const serial = ++viewSerial;
+  stopPlay(); hideTip();
+  $("#subtitle").textContent = `${CONFIG.loadingText} ${CONFIG.seasonLabels[season]}, ${clock === "local" ? "local solar time" : "UTC"}`;
+  const dependentControls = document.querySelectorAll(".timebar input, .timebar button, #jumps button");
+  dependentControls.forEach((e) => { e.disabled = true; });
+  try {
+    await ensureView(season, clock, () => serial === viewSerial ? CONFIG.loadingText : null);
+    if (serial !== viewSerial) return false;
+    state.season = season; state.clock = clock;
+    syncViewControls(); setColorScale(); setSubtitle(); render(); drawLine();
+    return true;
+  } catch (e) {
+    if (serial === viewSerial) { syncViewControls(); $("#subtitle").textContent = CONFIG.failText; }
+    return false;
+  } finally {
+    if (serial === viewSerial) dependentControls.forEach((e) => { e.disabled = false; });
+  }
 }
 // Write-up: plain text with "## " headings, "- " list items and blank-line paragraphs, rendered as text nodes only
 // (no innerHTML), so nothing in the file can inject markup. Loaded on its own so a missing file never blocks the chart.
@@ -136,20 +193,31 @@ function renderWriteup(md) {
   }
   root.hidden = !root.childElementCount;
 }
-fetch(CONFIG.writeupUrl).then((r) => (r.ok ? r.text() : "")).then(renderWriteup).catch(() => {});
-$("#subtitle").textContent = CONFIG.loadText[typeof DecompressionStream === "function" ? "gz" : "raw"];
+(async () => renderWriteup(await (await fetchBytes(CONFIG.writeupUrl, null)).text()))().catch(() => {
+  // The static link remains usable when the inline copy cannot be fetched.
+  $("#writeup-link").hidden = false;
+});
+$("#subtitle").textContent = CONFIG.loadingText;
 // Controls do nothing until the counts arrive, so they stay disabled until init() (and stay so if loading fails).
 const setControls = (on) => document.querySelectorAll(".controls input, .controls button").forEach((e) => { e.disabled = !on; });
 setControls(false);
-Promise.all([d3.json(CONFIG.dataUrl), d3.json(CONFIG.landUrl), d3.json(CONFIG.teamUrl), loadCounts()]).then(([data, land, team, buf]) => {
+Promise.all([loadJSON(CONFIG.dataUrl), loadJSON(CONFIG.landUrl), loadJSON(CONFIG.teamUrl)]).then(async ([data, land, team]) => {
   D = data; M = data.meta; landMask = data.land;
-  // 4 seasons x 2 clocks x cells x 24 hours of uint16; a 404 page or a truncated download would otherwise mis-index silently
-  const expected = M.seasons.length * 2 * M.nlat * M.nlon * M.hours * 2;
-  if (buf.byteLength !== expected) throw new Error(`counts file is ${buf.byteLength} bytes, expected ${expected}`);
-  RAW = new Uint16Array(buf);
   state.season = M.default_season;
-  rowDensityFactor = d3.range(M.nlat).map((i) => 1e4 / (KM2_PER_DEG2_EQUATOR * M.cell * M.cell * Math.cos(((M.lat0 + (i + 0.5) * M.cell) * Math.PI) / 180)));
+  const monthName = (month) => new Intl.DateTimeFormat("en", { month: "short", timeZone: "UTC" }).format(new Date(Date.UTC(2000, month - 1, 1)));
+  for (const season of M.seasons) {
+    const months = M.season_months[season];
+    CONFIG.seasonLabels[season] = `${monthName(months[0])}-${monthName(months[months.length - 1])} (${season})`;
+  }
+  if (M.counts_parts) await ensureView(state.season, state.clock, CONFIG.loadingText);
+  else {
+    const bytes = M.seasons.length * M.clocks.length * M.nlat * M.nlon * M.hours * Uint16Array.BYTES_PER_ELEMENT;
+    RAW = await loadCounts({ file: M.counts_file, gzip: M.counts_gzip, bytes }, CONFIG.loadingText);
+  }
+  rowDensityFactor = d3.range(M.nlat).map((i) => 1e4 / ((M.km2_per_deg2_equator || KM2_PER_DEG2_EQUATOR) * M.cell * M.cell * Math.cos(((M.lat0 + (i + 0.5) * M.cell) * Math.PI) / 180)));
   init(land, team);
+  // Two frames allow the initial map to paint before background traffic starts.
+  if (M.counts_parts) requestAnimationFrame(() => requestAnimationFrame(() => { void prefetchRest(); }));
 }).catch((err) => {
   console.error(err);
   $("#subtitle").textContent = CONFIG.failText;
@@ -199,25 +267,23 @@ function init(landTopo, team) {
   hourIn.value = state.hour;
   hourIn.addEventListener("input", () => { state.hour = +hourIn.value; render(); });
   $("#play").addEventListener("click", togglePlay);
-  document.querySelectorAll("input[name=clock]").forEach((r) => r.addEventListener("change", () => {
-    state.clock = r.value; hideTip(); render(); drawLine();
-  }));
+  document.querySelectorAll("input[name=clock]").forEach((r) => r.addEventListener("change", () => { void setView($("input[name=season]:checked").value, r.value); }));
   const sr = $("#season-radios");
   [...M.seasons, "YEAR"].forEach((sn) => {
     const l = document.createElement("label");
     l.innerHTML = `<input type="radio" name="season" value="${sn}" ${sn === state.season ? "checked" : ""}/> ${CONFIG.seasonLabels[sn]}`;
-    l.querySelector("input").addEventListener("change", () => { state.season = sn; hideTip(); setColorScale(); setSubtitle(); render(); drawLine(); });
+    l.querySelector("input").addEventListener("change", () => { void setView(sn, $("input[name=clock]:checked").value); });
     sr.appendChild(l);
   });
   const jumps = $("#jumps");
   CONFIG.jumps.forEach((p) => {
     const b = document.createElement("button");
     b.type = "button"; b.className = "jump"; b.textContent = p.label; b.dataset.id = p.id;
-    b.addEventListener("click", () => {
+    b.addEventListener("click", async () => {
       stopPlay();
+      if (state.clock !== "local" && !(await setView(state.season, "local"))) return;
       const c = cellOf(p.lat, p.lon);
       select(c);
-      if (state.clock !== "local") { state.clock = "local"; $("input[name=clock][value=local]").checked = true; }
       const a = curve(c);
       if (d3.sum(a)) { state.hour = d3.maxIndex(a); hourIn.value = state.hour; }
       hideTip(); render(); drawLine();
@@ -281,8 +347,8 @@ function init(landTopo, team) {
   // season switch stay comparable (winter looks dimmer because it is).
   // Two domains: one shared by the four seasons (so switching season is comparable) and one for the whole-year
   // view, whose cells hold about four times the flashes; the legend is redrawn whenever the domain changes.
-  const maxOf = (names) => { let m = 1; for (const sn of names) { const a = grid(sn, "local"); for (let c = 0; c < cells.length; c++) for (let h = 0; h < M.hours; h++) { const v = density(c, a[c * M.hours + h]); if (v > m) m = v; } } return m; };
-  DOMAINS = { season: maxOf(M.seasons), YEAR: maxOf(["YEAR"]) };
+  const maxOf = (names) => { let m = 1; for (const sn of names) for (const clock of M.clocks) { const a = grid(sn, clock); for (let c = 0; c < cells.length; c++) for (let h = 0; h < M.hours; h++) { const v = density(c, a[c * M.hours + h]); if (v > m) m = v; } } return m; };
+  DOMAINS = M.density_domains || { season: maxOf(M.seasons), YEAR: maxOf(["YEAR"]) };
   setColorScale();
 
   select(cellOf(CONFIG.jumps[0].lat, CONFIG.jumps[0].lon));
@@ -306,7 +372,7 @@ function drawYears() {
     .call((g) => g.selectAll("text").style("font-size", `${fs}px`));
   // Two lines so the title fits the chart width at any screen size.
   const title = svg.append("text").attr("class", "lbl").attr("x", 4).attr("y", fs * 1.05).style("font-size", `${fs}px`);
-  title.append("tspan").text("Share of the year's flashes in each local solar hour,");
+  title.append("tspan").text("Land and ocean, each as a share of its own total,");
   title.append("tspan").attr("x", 4).attr("dy", "1.2em").text("one line per year (whole year, local solar time)");
   const line = d3.line().x((_, i) => x(i)).y((v) => y(v)).curve(d3.curveMonotoneX);
   years.forEach((yr) => {
@@ -462,5 +528,5 @@ function drawLine() {
   const peak = (a) => hourLabel(d3.maxIndex(a));
   // an empty cell would otherwise report a peak at 12 AM (maxIndex of all zeros)
   const pick = state.sel.map((c) => { const a = curve(c); return d3.sum(a) ? `${cellLabel(c)} peaks at ${peak(a)}` : `${cellLabel(c)}: ${CONFIG.noneText}`; }).join("; ");
-  $("#line-caption").textContent = `${CONFIG.seasonLabels[state.season]}: land peaks at ${peak(ref.land)} and ocean at ${peak(ref.ocean)} (${clockLabel()}). ${pick}. Each curve is divided by its own busiest hour, so shapes compare even where GLM detects fewer daytime flashes.`;
+  $("#line-caption").textContent = `${CONFIG.seasonLabels[state.season]}: land peaks at ${peak(ref.land)} and ocean at ${peak(ref.ocean)} (${clockLabel()}). ${pick}. Each curve is divided by its own busiest hour.`;
 }

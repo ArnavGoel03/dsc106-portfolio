@@ -11,9 +11,9 @@ Only flashes with flash_quality_flag == 0 (good) are counted.
   energy_hist int64 [40]         log10(flash_energy J) histogram, bins -15.5..-11.5 by 0.1
   area_hist int64 [40]           log10(flash_area m2) histogram, bins 7..11 by 0.1
 """
-import io, json, sys, time
+import json, sys, time
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 import boto3
 import netCDF4
@@ -23,7 +23,11 @@ from botocore.config import Config
 
 import config as C
 
-s3 = boto3.client("s3", region_name="us-east-1", config=Config(signature_version=UNSIGNED, max_pool_connections=32))
+s3 = boto3.client("s3", region_name="us-east-1", config=Config(
+    signature_version=UNSIGNED, max_pool_connections=C.FETCH_WORKERS,
+    connect_timeout=C.CONNECT_TIMEOUT_SECONDS, read_timeout=C.READ_TIMEOUT_SECONDS,
+    retries={"total_max_attempts": C.SDK_ATTEMPTS, "mode": "standard"},
+))
 E_EDGES = np.arange(-15.5, -11.49, 0.1)
 A_EDGES = np.arange(7.0, 11.01, 0.1)
 
@@ -39,11 +43,15 @@ def list_hour(doy, hour):
 
 def download(key):
     """Bytes of one 20 s file, or None after three failed attempts. Runs in threads; parsing does not (HDF5 is not thread safe)."""
-    for attempt in range(3):
+    for attempt in range(C.DOWNLOAD_ATTEMPTS):
         try:
-            return key, s3.get_object(Bucket=C.BUCKET, Key=key)["Body"].read()
-        except Exception as e:  # noqa: BLE001  (network hiccup: retry, then skip the file)
-            if attempt == 2:
+            body = s3.get_object(Bucket=C.BUCKET, Key=key)["Body"]
+            try:
+                return key, body.read()
+            finally:
+                body.close()
+        except Exception as e:  # network hiccup: retry, then let bin_day reject the partial day
+            if attempt == C.DOWNLOAD_ATTEMPTS - 1:
                 print("skip", key, e, file=sys.stderr)
                 return key, None
             time.sleep(1 + attempt)
@@ -64,17 +72,21 @@ def parse(key, body):
     return lat, lon, utc_h, energy, area
 
 
-def bin_day(doy, workers=48):
+def bin_day(doy, workers=C.FETCH_WORKERS):
     utc = np.zeros((C.NLAT, C.NLON, C.HOURS), np.int32)
     loc = np.zeros_like(utc)
     e_hist = np.zeros(len(E_EDGES) - 1, np.int64)
     a_hist = np.zeros(len(A_EDGES) - 1, np.int64)
     with ThreadPoolExecutor(workers) as ex:
         keys = [k for ks in ex.map(lambda h: list_hour(doy, h), range(24)) for k in ks]
+        parsed_files = 0
+        failed_keys = []
         for key, body in ex.map(download, keys):
             if body is None:
+                failed_keys.append(key)
                 continue
             lat, lon, utc_h, energy, area = parse(key, body)
+            parsed_files += 1  # a valid zero-flash file still contributes successful coverage
             if lat.size == 0:
                 continue
             i = np.floor((lat - C.LAT0) / C.CELL_DEG).astype(int)
@@ -88,7 +100,10 @@ def bin_day(doy, workers=48):
             with np.errstate(divide="ignore"):
                 e_hist += np.histogram(np.log10(energy[ok][energy[ok] > 0]), E_EDGES)[0]
                 a_hist += np.histogram(np.log10(area[ok][area[ok] > 0]), A_EDGES)[0]
-    return utc, loc, len(keys), e_hist, a_hist
+    # main() persists only completed days, so a failed download cannot poison its accumulator or resume log.
+    if failed_keys:
+        raise RuntimeError(f"day {doy}: {len(failed_keys)} GLM downloads failed; rerun this day: {failed_keys}")
+    return utc, loc, parsed_files, e_hist, a_hist
 
 
 def main():

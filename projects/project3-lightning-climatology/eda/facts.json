@@ -1,7 +1,7 @@
 {
  "days_sampled": 2192,
  "files": 628930,
- "flashes": 22516755,
+ "flashes": 22516755.166666668,
  "sample_stride": 15,
  "artifact_cells_removed": 1,
  "years": [

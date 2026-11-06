@@ -1,9 +1,10 @@
-"""data/glm_grid.npz (per month) -> web/data/glm.json (meta + land mask) and web/data/glm_counts.bin for the D3 page.
+"""Six-year climatology -> metadata and exact summed-count binaries for the D3 page.
 
-glm_counts.bin: little-endian uint16, layout [season][clock][cell][hour] with seasons in config.SEASONS order
+glm_counts_sums.bin: little-endian uint16, layout [season][clock][cell][hour] with seasons in config.SEASONS order
 (DJF, MAM, JJA, SON), clocks (utc, local), cell = i * NLON + j (i from LAT0 northward, j from LON0 eastward), 24 hours.
-A season's cell-hour never reaches 65,535 in a 1-in-15 sample (summer max is about 4,000); the exporter asserts it.
-The page sums seasons for the whole-year view, so no year grid is stored."""
+Counts are six-year sums; divide by metadata.counts_divisor for the mean per year.
+One part per season and clock allows the initial view to load independently."""
+import gzip
 import json
 import numpy as np
 from matplotlib.path import Path as MPath
@@ -95,33 +96,52 @@ def main():
     days_done = int((g["files"] > 0).sum())
     days_by_season = {name: int(sum(g["files"][k] > 0 for k in range(len(g["files"])) if month_of_index(k) in months)) for name, months in C.SEASONS.items()}
     seasons = season_grids(g)
-    stack = np.stack([np.stack([seasons[s]["utc"], seasons[s]["local"]]) for s in C.SEASONS])  # [season, clock, lat, lon, hour]
-    stack = np.rint(stack)  # mean flashes per year in the sample, rounded to whole flashes for the uint16 file
-    assert stack.max() < 65535, f"cell-hour count {stack.max()} overflows uint16"
+    stack = np.stack([np.stack([seasons[s][clock] for clock in C.COUNTS_CLOCKS]) for s in C.SEASONS])
+    divisor = len(C.YEARS)
+    stack *= divisor  # keep exact integer sums rather than rounding each season's mean
+    assert np.allclose(stack, np.rint(stack), rtol=0, atol=1e-7), "six-year sums must be integral"
+    stack = np.rint(stack)
+    assert stack.min() >= 0 and stack.max() <= np.iinfo(np.uint16).max, "six-year cell-hour sums overflow uint16"
+    stack = stack.astype("<u2")
+    assert np.array_equal(stack[:, 0].sum(-1), stack[:, 1].sum(-1)), "UTC and local cell totals must agree"
     (C.WEB / "data").mkdir(parents=True, exist_ok=True)
-    raw = stack.astype("<u2").tobytes()
-    (C.WEB / "data" / "glm_counts.bin").write_bytes(raw)
-    import gzip
-    (C.WEB / "data" / "glm_counts.bin.gz").write_bytes(gzip.compress(raw, 9))  # the page fetches this and inflates it; .bin is the fallback
+    raw = stack.tobytes()
+    (C.WEB / "data" / C.COUNTS_FILENAME).write_bytes(raw)
+    (C.WEB / "data" / (C.COUNTS_FILENAME + ".gz")).write_bytes(gzip.compress(raw, 9, mtime=0))
+    parts = {}
+    for k, season in enumerate(C.SEASONS):
+        parts[season] = {}
+        for ci, clock in enumerate(C.COUNTS_CLOCKS):
+            filename = f"{C.COUNTS_FILENAME.removesuffix('.bin')}_{season.lower()}_{clock}.bin"
+            part = stack[k, ci].tobytes()
+            (C.WEB / "data" / filename).write_bytes(part)
+            (C.WEB / "data" / (filename + ".gz")).write_bytes(gzip.compress(part, 9, mtime=0))
+            parts[season][clock] = {"file": "web/data/" + filename, "gzip": "web/data/" + filename + ".gz", "bytes": len(part)}
+    lat = C.LAT0 + (np.arange(C.NLAT) + 0.5) * C.CELL_DEG
+    area = C.KM2_PER_DEG2_EQUATOR * C.CELL_DEG ** 2 * np.cos(np.deg2rad(lat))
+    density = stack.astype(float) / divisor * (1e4 / area)[None, None, :, None, None]
+    density_domains = {"season": float(density.max()), "YEAR": float(density.sum(0).max())}
     meta = {
         "title": C.TEAM["title"],
         "source": "GOES-16 GLM L2 LCFA flashes, NOAA Open Data on AWS (s3://noaa-goes16/GLM-L2-LCFA/)",
-        "years": C.YEARS, "period": f"{C.YEARS[0]} to {C.YEARS[-1]}, six complete years", "days_sampled": days_done, "days_by_season": days_by_season,
+        "years": C.YEARS, "period": f"{C.YEARS[0]} to {C.YEARS[-1]}", "days_sampled": days_done, "days_by_season": days_by_season,
         "counts_are": "mean flashes per year in the sample (six-year average)",
         "year_flashes": {str(y): int(f) for y, f in zip(g["years"].tolist(), g["year_flashes"].tolist())},
         "year_curves": year_curves(),
-        "sample": f"one 20 s file every {C.FILE_STRIDE * 20 // 60} minutes (1 in {C.FILE_STRIDE})",
-        "files": int(g["files"].sum()), "flashes": int(stack[:, 0].sum()),  # from the rounded stack, so the page's sums match the meta exactly
-        "flashes_by_season": {s: int(stack[k, 0].sum()) for k, s in enumerate(C.SEASONS)},
+        "sample": f"1 in {C.FILE_STRIDE} available 20 s files",
+        "files": int(g["files"].sum()), "flashes": float(stack[:, 0].sum(dtype=np.uint64) / divisor),
+        "flashes_by_season": {s: float(stack[k, 0].sum(dtype=np.uint64) / divisor) for k, s in enumerate(C.SEASONS)},
         "seasons": list(C.SEASONS), "season_months": {s: list(m) for s, m in C.SEASONS.items()}, "default_season": C.DEFAULT_SEASON,
-        "clocks": ["utc", "local"], "counts_file": "web/data/glm_counts.bin", "counts_gzip": "web/data/glm_counts.bin.gz", "counts_dtype": "uint16 little-endian",
+        "clocks": list(C.COUNTS_CLOCKS), "counts_file": "web/data/" + C.COUNTS_FILENAME, "counts_gzip": "web/data/" + C.COUNTS_FILENAME + ".gz", "counts_dtype": "uint16 little-endian",
+        "counts_divisor": divisor, "counts_parts": parts, "density_domains": density_domains,
+        "km2_per_deg2_equator": C.KM2_PER_DEG2_EQUATOR,
         "lat0": C.LAT0, "lon0": C.LON0, "cell": C.CELL_DEG, "nlat": C.NLAT, "nlon": C.NLON, "hours": C.HOURS,
         "local_time": "local solar hour = UTC hour + longitude / 15",
         "artifact_cells_removed": removed,
     }
     p = C.WEB / "data" / "glm.json"
     p.write_text(json.dumps({"meta": meta, "land": land_mask().tolist()}, separators=(",", ":")))
-    b = (C.WEB / "data" / "glm_counts.bin.gz").stat().st_size / 1e6
+    b = (C.WEB / "data" / (C.COUNTS_FILENAME + ".gz")).stat().st_size / 1e6
     print(p, f"{p.stat().st_size / 1e6:.2f} MB json, {b:.2f} MB bin.gz, days {days_done}, flashes {meta['flashes']}, by season {meta['flashes_by_season']}")
 
 

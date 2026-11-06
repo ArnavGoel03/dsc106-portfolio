@@ -82,3 +82,12 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
 - Verified locally in chrome-headless-shell before the push: 0 console errors; scenario radios, year slider, Play, model dropdown, hatch toggle, cell tooltip and click-for-lines all work at 1440 and 390 px. Phone width still renders about 470 px wide (scenario fieldset); not fixed yet.
 - Published only page files plus data pipeline scripts. Kept local and unpublished: narration, team.json, README/REDTEAM, EDA, shots, video (they name the old team).
 - Official group changed 2026-11-02 to Yash + Chau Nguyen (TA Ben Pham, Group 19). Still owed: write-up (rationale, transformations, work split, people-hours), Gradescope URL by Wed 11/11 11:59 PM PT (owner said do not submit yet).
+
+## Project 3 final: selected six-year Lightning version, 2026-11-06
+
+- The final selection supersedes the CMIP6 prototype above: https://arnavgoel03.github.io/dsc106-portfolio/projects/project3-lightning-climatology/.
+- The shipping session records Gradescope submission 445482031, Group 19 (Yash + Chau), on 2026-11-06. This audit did not submit or resubmit and has not independently checked the receipt inbox.
+- Thorough audit and local repairs are in `docs/P3-FINAL-REDTEAM-2026-11-06.md`; detailed publication handoff is `docs/P3-FINAL-CLAUDE-HANDOFF-2026-11-06.md`.
+- Verified locally: 72 browser checks, 10 offline data tests, JavaScript/Python syntax, clean dependency install, diff checks and inspected renders at 360/390/1024/1440. Exact six-year counts preserve source peak hours and sparse cells; default compressed counts bytes fall from 1,105,373 to 225,876.
+- Publication is pending arnavgoel-53's review/push and live verification. The existing deployed submission still serves the preceding version until that push.
+- Historic successful-download coverage cannot be reconstructed from aggregate artifacts. The final write-up discloses this limit; no NOAA refetch or coverage weighting was performed.

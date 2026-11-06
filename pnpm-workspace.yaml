@@ -1,0 +1,9 @@
+overrides:
+  # elocuent uses globSync; the compatible current release removes its deprecated glob 10 dependency warning.
+  glob: 14.0.4
+minimumReleaseAgeExclude:
+  - playwright-core@1.65.0
+  - playwright@1.65.0
+  - '@isaacs/nonrecursive-glob-match@1.1.0'
+  - glob@14.0.4
+  - minimatch@11.0.5

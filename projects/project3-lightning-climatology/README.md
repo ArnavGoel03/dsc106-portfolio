@@ -7,6 +7,8 @@ switch stays, and a new chart under the hour chart draws land and ocean curves o
 - Fetch: the `glm-climatology-fetch` GitHub Actions workflow, one job per (year, month), 72 jobs; download the
   artifacts to `data/parts/` and run `scripts/merge_grids.py` (per-year grids in `data/years/`, mean in
   `data/glm_climatology.npz`). `GLM_YEAR=<year>` selects the year for a local `fetch_glm.py` run.
-- Exports: `web/data/glm_counts.bin` (uint16 mean counts per year, [season][clock][cell][hour]) and `web/data/glm.json`
-  (meta, land mask, per-year land and ocean curves).
+- Exports: `web/data/glm_counts_sums.bin` contains exact uint16 six-year sums, [season][clock][cell][hour]; divide by
+  `meta.counts_divisor` for mean flashes per year. Eight `glm_counts_sums_<season>_<clock>.bin` parts let the page
+  render JJA/local first, then load other views. Every binary has a gzip copy and a checked raw fallback.
+  `web/data/glm.json` holds the part URLs, byte lengths, colour domains, land mask and annual curves.
 - Eight EDA graphs: the seven from the one-year version on the six-year mean, plus `g8_six_years.png`.

@@ -22,7 +22,7 @@ lat = LAT0 + (np.arange(NLAT) + 0.5) * CELL_DEG
 lon = LON0 + (np.arange(NLON) + 0.5) * CELL_DEG
 HOURS12 = ["midnight", "3 AM", "6 AM", "9 AM", "noon", "3 PM", "6 PM", "9 PM"]
 land_gj = json.loads((DATA / "land.geojson").read_text())
-F = {"days_sampled": days, "files": int(G["files"].sum()), "flashes": int(round(utc.sum())), "sample_stride": FILE_STRIDE, "artifact_cells_removed": removed,
+F = {"days_sampled": days, "files": int(G["files"].sum()), "flashes": float(G["year_flashes"].sum() / len(YEARS)), "sample_stride": FILE_STRIDE, "artifact_cells_removed": removed,
      "years": YEARS, "year_flashes": {str(y): int(f) for y, f in zip(G["years"].tolist(), G["year_flashes"].tolist())}}
 
 
@@ -56,10 +56,10 @@ def hour_label(h):
 
 # g1: total flash density map (per 10,000 km2: a 1 degree cell shrinks with cos latitude)
 tot = utc.sum(2)
-cell_km2 = (111.2 * CELL_DEG) ** 2 * np.cos(np.deg2rad(lat))[:, None]
+cell_km2 = KM2_PER_DEG2_EQUATOR * CELL_DEG ** 2 * np.cos(np.deg2rad(lat))[:, None]
 dens = tot / cell_km2 * 1e4
 f = fig("Where lightning happens: flash density, six-year average",
-        f"GOES-16 GLM, {YEARS[0]} to {YEARS[-1]}, {days} days sampled at one 20 s file per 5 min, {F['flashes']:,} flashes per year. Flashes per 10,000 km2 per 1 degree cell per year, square-root colour scale.")
+        f"GOES-16 GLM, {YEARS[0]} to {YEARS[-1]}, {days} days sampled at one in {FILE_STRIDE} available files, {F['flashes']:,.0f} flashes per year. Flashes per 10,000 km2 per 1 degree cell per year, square-root colour scale.")
 ax = f.add_axes([0.07, 0.08, 0.86, 0.78])
 im = ax.pcolormesh(lon - 0.5, lat - 0.5, np.where(tot > 0, dens, np.nan), cmap="YlOrRd", norm=PowerNorm(0.5), shading="auto")
 coast(ax); f.colorbar(im, ax=ax, shrink=0.7, label="Flashes per 10,000 km2 in the sample")

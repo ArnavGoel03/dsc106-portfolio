@@ -1,0 +1,39 @@
+{
+  "checks": 72,
+  "passed": 72,
+  "failures": [],
+  "resources": [
+    {
+      "url": "http://127.0.0.1:8769/projects/project3-lightning-climatology/web/data/glm_counts_sums_jja_local.bin.gz",
+      "bytes": 225876
+    },
+    {
+      "url": "http://127.0.0.1:8769/projects/project3-lightning-climatology/web/data/glm_counts_sums_djf_utc.bin.gz",
+      "bytes": 201388
+    },
+    {
+      "url": "http://127.0.0.1:8769/projects/project3-lightning-climatology/web/data/glm_counts_sums_djf_local.bin.gz",
+      "bytes": 201502
+    },
+    {
+      "url": "http://127.0.0.1:8769/projects/project3-lightning-climatology/web/data/glm_counts_sums_mam_utc.bin.gz",
+      "bytes": 230078
+    },
+    {
+      "url": "http://127.0.0.1:8769/projects/project3-lightning-climatology/web/data/glm_counts_sums_mam_local.bin.gz",
+      "bytes": 230122
+    },
+    {
+      "url": "http://127.0.0.1:8769/projects/project3-lightning-climatology/web/data/glm_counts_sums_jja_utc.bin.gz",
+      "bytes": 225783
+    },
+    {
+      "url": "http://127.0.0.1:8769/projects/project3-lightning-climatology/web/data/glm_counts_sums_son_utc.bin.gz",
+      "bytes": 222411
+    },
+    {
+      "url": "http://127.0.0.1:8769/projects/project3-lightning-climatology/web/data/glm_counts_sums_son_local.bin.gz",
+      "bytes": 222383
+    }
+  ]
+}
