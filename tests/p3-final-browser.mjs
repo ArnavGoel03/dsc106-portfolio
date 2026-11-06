@@ -10,6 +10,14 @@ export async function auditP3Final(browser, baseURL, { adversarial = true, rende
     ? Array.from({ length: renderFixture.hours }, (_, hour) => ['DJF', 'MAM', 'JJA', 'SON'].reduce((total, s) => total + cell.curves[s + '|' + clock][hour], 0))
     : cell.curves[season + '|' + clock];
   const curveMatches = (actual, expected) => actual.length === expected.length && actual.every((value, hour) => Math.abs(value - expected[hour]) <= renderFixture.curveTolerance);
+  // D3 rounds path coordinates to three decimals; allow one rounding step on either reconstructed path.
+  const pathTolerance = 0.002;
+  const pathMatches = (actual, expected) => {
+    if (!actual || !expected) return false;
+    const numbers = /[-+]?(?:\d*\.?\d+)(?:e[-+]?\d+)?/gi;
+    const a = actual.match(numbers).map(Number), b = expected.match(numbers).map(Number);
+    return actual.replace(numbers, '') === expected.replace(numbers, '') && a.length === b.length && a.every((value, i) => Math.abs(value - b[i]) <= pathTolerance);
+  };
   const readRender = (p, season, clock, hour) => p.evaluate(({ fixture, season, clock, hour, curves }) => {
     const domain = fixture.density_domains[season === 'YEAR' ? 'YEAR' : 'season'];
     const color = d3.scaleSequentialSqrt([0, domain], t => d3.interpolateYlOrRd(fixture.colorFloor + (1 - fixture.colorFloor) * t));
@@ -18,13 +26,24 @@ export async function auditP3Final(browser, baseURL, { adversarial = true, rende
       const count = curves[i][hour];
       return { cell: cell.cell, actual: node?.getAttribute('fill'), expected: count > 0 ? color(count * cell.densityFactor) : 'none' };
     });
-    const curve = [...(document.querySelector('#line path.pick')?.__data__ || [])];
-    return { fills, curve };
+    const selected = document.querySelector('#line path.pick');
+    const curve = [...(selected?.__data__ || [])];
+    const axes = [...document.querySelectorAll('#line g.axis')];
+    const ticks = axes.map(axis => [...axis.querySelectorAll('.tick')]);
+    const offset = devicePixelRatio > 1 ? 0 : 0.5; // D3's axis pixel-centering offset is absent from line coordinates.
+    const scale = (axisTicks, coordinate) => d3.scaleLinear(
+      [axisTicks[0].__data__, axisTicks[axisTicks.length - 1].__data__],
+      [axisTicks[0], axisTicks[axisTicks.length - 1]].map(tick => tick.transform.baseVal.consolidate().matrix[coordinate] - offset),
+    );
+    const x = scale(ticks[0], 'e'), y = scale(ticks[1], 'f'), peak = Math.max(...curves[0]) || 1;
+    const expectedPath = d3.line().x((_, h) => x(h)).y(value => y(value / peak)).curve(d3.curveMonotoneX)(curves[0]);
+    return { fills, curve, curvePath: selected?.getAttribute('d'), expectedPath };
   }, { fixture: renderFixture, season, clock, hour, curves: renderFixture.cells.map(cell => expectedCurve(cell, season, clock)) });
   const assertRender = (result, season, clock) => {
     for (const fill of result.fills) assert.equal(fill.actual, fill.expected);
     const curve = expectedCurve(renderFixture.cells[0], season, clock), peak = Math.max(...curve) || 1;
     assert(curveMatches(result.curve, curve.map(value => value / peak)), `selected Florida curve differs from the independent ${season}/${clock} counts`);
+    assert(pathMatches(result.curvePath, result.expectedPath), `visible Florida path differs from the independent ${season}/${clock} counts`);
   };
   const checks = [], errors = [], resources = [];
   const check = (name, fn) => {
@@ -65,15 +84,14 @@ export async function auditP3Final(browser, baseURL, { adversarial = true, rende
       // Simulate a renderer that retained its previous season's map and curve while updating the labels.
       await page.evaluate(({ previous }) => {
         for (const fill of previous.fills) [...document.querySelectorAll('#map .cell')].find(e => e.__data__ === fill.cell).setAttribute('fill', fill.actual);
-        document.querySelector('#line path.pick').__data__ = previous.curve;
+        document.querySelector('#line path.pick').setAttribute('d', previous.curvePath);
       }, { previous });
       const frozen = await readRender(page, 'DJF', 'local', 0);
       check('render detector rejects a frozen map with current labels', () => assert(frozen.fills.some(fill => fill.actual !== fill.expected)));
-      const expected = expectedCurve(renderFixture.cells[0], 'DJF', 'local'), peak = Math.max(...expected);
-      check('render detector rejects a frozen selected curve', () => assert(!curveMatches(frozen.curve, expected.map(value => value / peak))));
+      check('render detector rejects a frozen selected curve', () => assert(!pathMatches(frozen.curvePath, frozen.expectedPath)));
       await page.evaluate(({ current }) => {
         for (const fill of current.fills) [...document.querySelectorAll('#map .cell')].find(e => e.__data__ === fill.cell).setAttribute('fill', fill.actual);
-        document.querySelector('#line path.pick').__data__ = current.curve;
+        document.querySelector('#line path.pick').setAttribute('d', current.curvePath);
       }, { current });
     }
 

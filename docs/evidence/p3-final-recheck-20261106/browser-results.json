@@ -35,5 +35,14 @@
       "url": "http://127.0.0.1:8769/projects/project3-lightning-climatology/web/data/glm_counts_sums_son_local.bin.gz",
       "bytes": 222383
     }
-  ]
+  ],
+  "offlineDataTests": 17,
+  "verifiedFileSha256": {
+    "projects/project3-lightning-climatology/app.js": "d5314c934820e0a61b9a48b17048785905b2ecda91e125b730c4cd2d2da392af",
+    "projects/project3-lightning-climatology/writeup.md": "5d31e98fa20d92627e17e390df0988209565edf430db5c1ae3e24203f2e4c241",
+    "projects/project3-lightning-climatology/scripts/fetch_glm.py": "35eaa3107eb1489e251af97c8ca955d54138ed54a9bec8111a8c3a768682ef94",
+    "projects/project3-lightning-climatology/tests/test_p3_final_data.py": "49d3dc848d5e270561bf7b5af723b5900f7897213e323902851f57e8f5ce4f78",
+    "tests/p3-final-browser.mjs": "27622990b3f766820cc2494dcff67970c5f990ee8e3296b625bf405f0a6d20ed",
+    "tests/p3-final-render-fixture.json": "38f79df9f0096a01815e5e2c5bc669250dae7f55d32f8fee5907d308be92da79"
+  }
 }
