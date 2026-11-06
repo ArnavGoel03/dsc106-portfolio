@@ -71,6 +71,8 @@ function grid(season, clock) {
 }
 const counts = () => grid(state.season, state.clock);
 const seasonFlashes = () => (state.season === "YEAR" ? M.flashes : M.flashes_by_season[state.season]);
+// Counts are six-year means, so they carry fractions: whole numbers from 100 up, one decimal below that.
+const fmtCount = (v) => (v >= 100 ? Math.round(v) : Math.round(v * 10) / 10).toLocaleString();
 const fmtDeg = (v, p, n) => Math.abs(v).toFixed(1) + "°" + (v < 0 ? n : p);
 // A 1 degree cell is about 12,364 km2 at the equator and shrinks with cos(latitude), so the map colours flash
 // density (flashes per 10,000 km2) rather than raw counts; the tooltip shows both.
@@ -253,7 +255,7 @@ function cellLabel(c) {
 }
 
 function setSubtitle() {
-  $("#subtitle").textContent = `${M.source}. ${M.period}, ${M.days_sampled} days sampled at ${M.sample}, averaged to one typical year: ${M.flashes.toLocaleString()} flashes per year in the sample on a ${M.cell} degree grid. Showing ${CONFIG.seasonLabels[state.season]}: ${seasonFlashes().toLocaleString()} flashes per year in the sample. Drag the hour, press Play, switch season, and click up to two cells to compare their daily rhythm.`;
+  $("#subtitle").textContent = `${M.source}. ${M.period}, ${M.days_sampled} days sampled at ${M.sample}, averaged to one typical year: ${fmtCount(M.flashes)} flashes per year in the sample on a ${M.cell} degree grid. Showing ${CONFIG.seasonLabels[state.season]}: ${fmtCount(seasonFlashes())} flashes per year in the sample. Drag the hour, press Play, switch season, and click up to two cells to compare their daily rhythm.`;
 }
 
 function init(landTopo, team) {
@@ -428,7 +430,7 @@ function render() {
     b.classList.toggle("on", state.sel.includes(cellOf(p.lat, p.lon)));
   });
   const total = d3.sum(d3.range(M.nlat * M.nlon), (c) => a[c * M.hours + h]);
-  $("#map-caption").textContent = `${CONFIG.seasonLabels[state.season]}, flash density at ${hourLabel(h)} ${clockLabel()}: ${total.toLocaleString()} flashes in this hour across the field of view. Colour is flashes per 10,000 km2 in the sample (cells shrink toward the poles, so counts are divided by cell area), on a square-root scale shared by every hour.`;
+  $("#map-caption").textContent = `${CONFIG.seasonLabels[state.season]}, flash density at ${hourLabel(h)} ${clockLabel()}: ${fmtCount(total)} flashes in this hour across the field of view. Colour is flashes per 10,000 km2 in the sample (cells shrink toward the poles, so counts are divided by cell area), on a square-root scale shared by every hour.`;
   d3.select("#line .hour-mark").attr("x1", lineX(h)).attr("x2", lineX(h));
 }
 
@@ -473,7 +475,7 @@ function refreshTip() {
   tip.hidden = false;
   tip.replaceChildren();
   tip.appendChild(document.createElement("b")).textContent = cellLabel(c);
-  [`${hourLabel(state.hour)} ${clockLabel()}: ${v.toLocaleString()} flashes (${density(c, v).toFixed(1)} per 10,000 km2)`, share]
+  [`${hourLabel(state.hour)} ${clockLabel()}: ${fmtCount(v)} flashes (${density(c, v).toFixed(1)} per 10,000 km2)`, share]
     .forEach((t) => { tip.appendChild(document.createElement("br")); tip.appendChild(document.createTextNode(t)); });
   // keep it on screen: flip left of / above the anchor when it would run off the right or bottom edge
   const pad = 14, tw = tip.offsetWidth, th = tip.offsetHeight;
