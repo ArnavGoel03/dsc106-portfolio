@@ -27,6 +27,8 @@ const CONFIG = {
   colorFloor: 0.08,   // start of the YlOrRd ramp, so the faintest non-zero cells still read against the ocean grey
   noneText: "fewer than 1 flash per year in the sample",  // counts are six-year means rounded to whole flashes
   loadText: { gz: "Loading the lightning counts (about 1 MB)...", raw: "Loading the lightning counts (about 5 MB)..." },
+  stallMs: 12000,     // no new bytes for this long = a stalled connection: abort and start the download again
+  fetchTries: 3,      // attempts per file before giving up and showing failText
   failText: "The lightning data did not load. Reload the page to try again.",
   selColors: ["var(--sel-a)", "var(--sel-b)"],
 };
@@ -72,17 +74,43 @@ const density = (c, v) => v * rowDensityFactor[Math.floor(c / M.nlon)];
 
 // Counts: fetch the gzipped file and inflate it with DecompressionStream; fall back to the raw file where that API
 // is missing. Either way the subtitle says what is loading, because the file is the slowest part of first paint.
+// Download one file, reporting progress in the subtitle. A connection that stops sending bytes for CONFIG.stallMs is
+// aborted and retried (up to CONFIG.fetchTries times), because a stalled transfer otherwise leaves a blank page forever.
+async function fetchBytes(url, label) {
+  let lastErr;
+  for (let attempt = 1; attempt <= CONFIG.fetchTries; attempt++) {
+    const ctl = new AbortController();
+    let timer = setTimeout(() => ctl.abort(), CONFIG.stallMs);
+    try {
+      const r = await fetch(url, { signal: ctl.signal, cache: attempt > 1 ? "reload" : "default" });
+      if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
+      const total = +r.headers.get("content-length") || 0, reader = r.body.getReader(), parts = [];
+      let got = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        parts.push(value); got += value.length;
+        clearTimeout(timer); timer = setTimeout(() => ctl.abort(), CONFIG.stallMs);
+        if (total) $("#subtitle").textContent = `${label} ${Math.min(99, Math.round((100 * got) / total))}%`;
+      }
+      clearTimeout(timer);
+      return new Blob(parts);
+    } catch (e) {
+      clearTimeout(timer); lastErr = e;
+      if (e.message && e.message.includes("HTTP 404")) break;  // missing file: retrying will not help
+    }
+  }
+  throw lastErr;
+}
 async function loadCounts() {
   if (typeof DecompressionStream === "function") {
     try {
-      const r = await fetch(CONFIG.countsGzUrl);
-      if (r.ok) return await new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+      const gz = await fetchBytes(CONFIG.countsGzUrl, CONFIG.loadText.gz);
+      return await new Response(gz.stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
     } catch (e) { /* fall through to the raw file */ }
   }
   $("#subtitle").textContent = CONFIG.loadText.raw;
-  const r = await fetch(CONFIG.countsUrl);
-  if (!r.ok) throw new Error(`counts file: HTTP ${r.status}`);
-  return r.arrayBuffer();
+  return (await fetchBytes(CONFIG.countsUrl, CONFIG.loadText.raw)).arrayBuffer();
 }
 // Write-up: plain text with "## " headings, "- " list items and blank-line paragraphs, rendered as text nodes only
 // (no innerHTML), so nothing in the file can inject markup. Loaded on its own so a missing file never blocks the chart.
@@ -100,7 +128,7 @@ function renderWriteup(md) {
       }
       list = null;
       const m = line.match(/^(#{1,3}) (.*)$/);
-      const el = document.createElement(m ? `h${m[1].length + 1}` : "p");
+      const el = document.createElement(m ? `h${m[1].length}` : "p");
       el.textContent = m ? m[2] : line;
       root.appendChild(el);
     }
