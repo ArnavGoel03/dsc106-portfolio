@@ -11,7 +11,7 @@ Only flashes with flash_quality_flag == 0 (good) are counted.
   energy_hist int64 [40]         log10(flash_energy J) histogram, bins -15.5..-11.5 by 0.1
   area_hist int64 [40]           log10(flash_area m2) histogram, bins 7..11 by 0.1
 """
-import json, sys, time
+import json, os, sys, tempfile, time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
@@ -106,6 +106,56 @@ def bin_day(doy, workers=C.FETCH_WORKERS):
     return utc, loc, parsed_files, e_hist, a_hist
 
 
+def save_grid(acc):
+    """Commit counts and day markers together; a partial write never replaces the previous snapshot."""
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=C.GRID_NPZ.parent, prefix=C.GRID_NPZ.name + ".", suffix=".tmp", delete=False) as target:
+            temporary = target.name
+            np.savez_compressed(target, **acc)
+            target.flush()
+            os.fsync(target.fileno())
+        os.replace(temporary, C.GRID_NPZ)
+    finally:
+        if temporary is not None and os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def restore_completed_days(acc, previous):
+    """Migrate legacy grids from durable daily counts; the JSON report cannot override the grid."""
+    n = C.DAY_END - C.DAY_START + 1
+    if acc["files"].shape != (n,) or acc["daily"].shape != (n,):
+        raise RuntimeError("saved grid does not match the configured day range")
+    if int(acc["daily"].sum()) != int(acc["utc"].sum()) or int(acc["utc"].sum()) != int(acc["local"].sum()):
+        raise RuntimeError("saved grid and daily totals disagree; restore a consistent snapshot before resuming")
+    completed = (acc["files"] > 0) | (acc["daily"] > 0)
+    if "completed_days" in acc:
+        if acc["completed_days"].shape != (n,):
+            raise RuntimeError("saved completion markers do not match the configured day range")
+        # Existing monthly merges retain only one part's extra fields; durable daily counts cover the other parts.
+        return acc["completed_days"].astype(bool) | completed
+    # Legacy zero-file days have no array evidence. Accept their report only when it agrees with durable counts.
+    for key, entry in previous.items():
+        if not key.isdigit() or not C.DAY_START <= int(key) <= C.DAY_END or not isinstance(entry, dict):
+            continue
+        k = int(key) - C.DAY_START
+        if entry.get("files") != int(acc["files"][k]) or entry.get("flashes") != int(acc["daily"][k]):
+            raise RuntimeError(f"legacy progress for day {key} disagrees with the saved grid")
+        completed[k] = True
+    return completed
+
+
+def progress_report(acc, previous):
+    """The report is recoverable entirely from the authoritative committed snapshot."""
+    report = {}
+    for k in np.flatnonzero(acc["completed_days"]):
+        key = str(k + C.DAY_START)
+        old = previous.get(key, {})
+        report[key] = {"flashes": int(acc["daily"][k]), "files": int(acc["files"][k]),
+                       "seconds": old.get("seconds", 0) if isinstance(old, dict) else 0}
+    return report
+
+
 def main():
     C.DATA.mkdir(exist_ok=True)
     # Interleaved order (every third day first) so an interrupted run still covers the whole season evenly.
@@ -113,27 +163,44 @@ def main():
     days = all_days[0::3] + all_days[1::3] + all_days[2::3]
     if len(sys.argv) > 1:  # smoke test: python fetch_glm.py 170
         days = [int(a) for a in sys.argv[1:]]
-    prog = json.loads(C.PROGRESS.read_text()) if C.PROGRESS.exists() else {}
     acc = dict(np.load(C.GRID_NPZ)) if C.GRID_NPZ.exists() else None
+    try:
+        prog = json.loads(C.PROGRESS.read_text()) if C.PROGRESS.exists() else {}
+        if not isinstance(prog, dict):
+            raise ValueError("progress report is not an object")
+    except (OSError, ValueError):
+        if acc is None:
+            raise RuntimeError("progress report is unreadable and no saved grid is available")
+        prog = {}
     if acc is None:
+        if prog:
+            raise RuntimeError("progress report exists without its source grid; restore the grid before resuming")
         acc = {"utc": np.zeros((12, C.NLAT, C.NLON, C.HOURS), np.int32), "local": np.zeros((12, C.NLAT, C.NLON, C.HOURS), np.int32),
                "daily": np.zeros(len(range(C.DAY_START, C.DAY_END + 1)), np.int32), "files": np.zeros_like(np.zeros(len(range(C.DAY_START, C.DAY_END + 1)), np.int32)),
                "energy_hist": np.zeros(len(E_EDGES) - 1, np.int64), "area_hist": np.zeros(len(A_EDGES) - 1, np.int64),
                "energy_edges": E_EDGES, "area_edges": A_EDGES}
+    acc["completed_days"] = restore_completed_days(acc, prog)
+    prog = progress_report(acc, prog)
     for doy in days:
-        if str(doy) in prog:
+        k = doy - C.DAY_START
+        if not 0 <= k < len(acc["completed_days"]):
+            raise ValueError(f"day {doy} is outside the configured day range")
+        if acc["completed_days"][k]:
             continue
         t0 = time.time()
         utc, loc, nfiles, eh, ah = bin_day(doy)
-        k = doy - C.DAY_START
         month = (datetime(C.YEAR, 1, 1) + timedelta(days=doy - 1)).month - 1
         acc["utc"][month] += utc; acc["local"][month] += loc; acc["energy_hist"] += eh; acc["area_hist"] += ah
         acc["daily"][k] = utc.sum(); acc["files"][k] = nfiles
-        np.savez_compressed(C.GRID_NPZ, **acc)
+        acc["completed_days"][k] = True
+        save_grid(acc)
         prog[str(doy)] = {"flashes": int(utc.sum()), "files": nfiles, "seconds": round(time.time() - t0, 1)}
         C.PROGRESS.write_text(json.dumps(prog, indent=1))
         date = (datetime(C.YEAR, 1, 1) + timedelta(days=doy - 1)).date()
         print(f"{date} doy {doy}: {nfiles} files, {utc.sum():,} flashes, {time.time() - t0:.0f} s", flush=True)
+    # A resume may have no new days, but still repairs a lost or truncated report and persists legacy markers.
+    save_grid(acc)
+    C.PROGRESS.write_text(json.dumps(prog, indent=1))
     print("total flashes", int(acc["utc"].sum()), "days done", len(prog))
 
 

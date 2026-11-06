@@ -396,7 +396,7 @@ function drawYears() {
   svg.append("text").attr("class", "lbl ocean-year-lbl").attr("x", x(M.hours - 1) + 4).attr("y", yo).style("font-size", `${fs}px`).attr("dominant-baseline", "middle").text("Ocean");
   const peaks = (k) => years.map((yr) => M.year_curves[yr][k + "_peak"]);
   const span = (a) => { const lo = d3.min(a), hi = d3.max(a); return lo === hi ? hourLabel(lo) : `between ${hourLabel(lo)} and ${hourLabel(hi)}`; };
-  $("#years-caption").textContent = `${years[0]} to ${years[years.length - 1]}, one line per year for land (solid) and ocean (dashed). Land peaked at ${span(peaks("land"))} in all ${years.length} years; the ocean curve is almost flat overnight, so its exact peak hour wanders ${span(peaks("ocean"))}. Whole year, local solar time. Land and ocean keep the same shape of day every year; only the totals change.`;
+  $("#years-caption").textContent = `${years[0]} to ${years[years.length - 1]}, one line per year for land (solid) and ocean (dashed). Land peaked at ${span(peaks("land"))} in all ${years.length} years; the ocean curve is almost flat overnight, so its exact peak hour wanders ${span(peaks("ocean"))}. Whole year, local solar time.`;
 }
 
 function setColorScale() {
@@ -417,7 +417,9 @@ function select(c) {
 
 function render() {
   const a = counts(), h = state.hour;
-  $("#hour-out").textContent = `${hourLabel(h)} ${clockLabel()}`;
+  const hourText = `${hourLabel(h)} ${clockLabel()}`;
+  $("#hour-out").textContent = hourText;
+  $("#hour").setAttribute("aria-valuetext", hourText);
   cellsSel
     .attr("fill", (c) => { const v = a[c * M.hours + h]; return v > 0 ? colorScale(density(c, v)) : "none"; })
     // style(), not attr(): a presentation attribute loses to the .cell:hover rule, and the two picks must keep the

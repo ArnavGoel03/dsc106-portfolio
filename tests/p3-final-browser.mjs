@@ -4,7 +4,28 @@ assert.equal = (actual, expected) => assert(Object.is(actual, expected), `expect
 assert.deepEqual = (actual, expected) => assert(JSON.stringify(actual) === JSON.stringify(expected), `expected ${JSON.stringify(expected)}, received ${JSON.stringify(actual)}`);
 
 // Accept the browser as an adapter so the same checks run in the CLI, CI and the configured headless MCP browser.
-export async function auditP3Final(browser, baseURL, { adversarial = true } = {}) {
+export async function auditP3Final(browser, baseURL, { adversarial = true, renderFixture, calibrate = true } = {}) {
+  assert(renderFixture && renderFixture.hours === 24 && renderFixture.cells.length === 2, 'the independent render fixture is required');
+  const expectedCurve = (cell, season, clock) => season === 'YEAR'
+    ? Array.from({ length: renderFixture.hours }, (_, hour) => ['DJF', 'MAM', 'JJA', 'SON'].reduce((total, s) => total + cell.curves[s + '|' + clock][hour], 0))
+    : cell.curves[season + '|' + clock];
+  const curveMatches = (actual, expected) => actual.length === expected.length && actual.every((value, hour) => Math.abs(value - expected[hour]) <= renderFixture.curveTolerance);
+  const readRender = (p, season, clock, hour) => p.evaluate(({ fixture, season, clock, hour, curves }) => {
+    const domain = fixture.density_domains[season === 'YEAR' ? 'YEAR' : 'season'];
+    const color = d3.scaleSequentialSqrt([0, domain], t => d3.interpolateYlOrRd(fixture.colorFloor + (1 - fixture.colorFloor) * t));
+    const fills = fixture.cells.map((cell, i) => {
+      const node = [...document.querySelectorAll('#map .cell')].find(e => e.__data__ === cell.cell);
+      const count = curves[i][hour];
+      return { cell: cell.cell, actual: node?.getAttribute('fill'), expected: count > 0 ? color(count * cell.densityFactor) : 'none' };
+    });
+    const curve = [...(document.querySelector('#line path.pick')?.__data__ || [])];
+    return { fills, curve };
+  }, { fixture: renderFixture, season, clock, hour, curves: renderFixture.cells.map(cell => expectedCurve(cell, season, clock)) });
+  const assertRender = (result, season, clock) => {
+    for (const fill of result.fills) assert.equal(fill.actual, fill.expected);
+    const curve = expectedCurve(renderFixture.cells[0], season, clock), peak = Math.max(...curve) || 1;
+    assert(curveMatches(result.curve, curve.map(value => value / peak)), `selected Florida curve differs from the independent ${season}/${clock} counts`);
+  };
   const checks = [], errors = [], resources = [];
   const check = (name, fn) => {
     try { fn(); checks.push({ name, ok: true }); }
@@ -35,6 +56,27 @@ export async function auditP3Final(browser, baseURL, { adversarial = true } = {}
     const headings = await page.locator('#writeup h3').allTextContents();
     check('required write-up sections are visible', () => assert.deepEqual(headings, ['Why we asked this question', 'Data and how we transformed it', 'Design rationale', 'Development process']));
 
+    if (calibrate) {
+      const previous = await readRender(page, 'JJA', 'local', 16);
+      await page.locator('input[name=season][value=DJF]').check();
+      await page.waitForFunction(() => document.querySelector('#line-caption').textContent.startsWith('Dec-Feb') && !document.querySelector('#hour').disabled);
+      await page.locator('#hour').fill('0');
+      const current = await readRender(page, 'DJF', 'local', 0);
+      // Simulate a renderer that retained its previous season's map and curve while updating the labels.
+      await page.evaluate(({ previous }) => {
+        for (const fill of previous.fills) [...document.querySelectorAll('#map .cell')].find(e => e.__data__ === fill.cell).setAttribute('fill', fill.actual);
+        document.querySelector('#line path.pick').__data__ = previous.curve;
+      }, { previous });
+      const frozen = await readRender(page, 'DJF', 'local', 0);
+      check('render detector rejects a frozen map with current labels', () => assert(frozen.fills.some(fill => fill.actual !== fill.expected)));
+      const expected = expectedCurve(renderFixture.cells[0], 'DJF', 'local'), peak = Math.max(...expected);
+      check('render detector rejects a frozen selected curve', () => assert(!curveMatches(frozen.curve, expected.map(value => value / peak))));
+      await page.evaluate(({ current }) => {
+        for (const fill of current.fills) [...document.querySelectorAll('#map .cell')].find(e => e.__data__ === fill.cell).setAttribute('fill', fill.actual);
+        document.querySelector('#line path.pick').__data__ = current.curve;
+      }, { current });
+    }
+
     for (const season of ['DJF', 'MAM', 'JJA', 'SON', 'YEAR']) {
       await page.locator(`input[name=season][value=${season}]`).check();
       for (const clock of ['local', 'utc']) {
@@ -45,9 +87,11 @@ export async function auditP3Final(browser, baseURL, { adversarial = true } = {}
           const result = await page.evaluate(() => ({
             badNumber: [...document.querySelectorAll('svg [d], svg [x], svg [y]')].some(e => [...e.attributes].some(a => /NaN|Infinity/.test(a.value))),
             hour: document.querySelector('#hour-out').textContent,
+            ariaHour: document.querySelector('#hour').getAttribute('aria-valuetext'),
             caption: document.querySelector('#map-caption').textContent,
           }));
-          check(`hour ${season}/${clock}/${hour}`, () => { assert(!result.badNumber); assert(result.caption.includes(result.hour)); });
+          const rendered = await readRender(page, season, clock, hour);
+          check(`hour ${season}/${clock}/${hour}`, () => { assert(!result.badNumber); assert(result.caption.includes(result.hour)); assert.equal(result.ariaHour, result.hour); assertRender(rendered, season, clock); });
         }
       }
     }
@@ -69,12 +113,34 @@ export async function auditP3Final(browser, baseURL, { adversarial = true } = {}
     await page.keyboard.press('Escape');
     const hidden = await page.locator('#tip').isHidden();
     check('Escape dismisses details', () => assert(hidden));
+    if (calibrate) {
+      await page.locator('#play').click();
+      const old = await page.locator('#hour').inputValue();
+      await page.waitForFunction(old => document.querySelector('#hour').value !== old, old, { timeout: 2000 });
+      await page.evaluate(() => {
+        window.__p3FakePause = event => { event.stopImmediatePropagation(); document.querySelector('#play').textContent = 'Play'; };
+        document.querySelector('#play').addEventListener('click', window.__p3FakePause, true);
+      });
+      await page.locator('#play').click();
+      const fakePausedHour = await page.locator('#hour').inputValue();
+      await page.waitForTimeout(renderFixture.pauseWaitMs); // exceed the real 350 ms interval, so text-only Pause cannot pass
+      const stillPlayingHour = await page.locator('#hour').inputValue();
+      check('pause detector rejects a text-only fake pause', () => assert(stillPlayingHour !== fakePausedHour));
+      await page.evaluate(() => {
+        document.querySelector('#play').removeEventListener('click', window.__p3FakePause, true);
+        delete window.__p3FakePause;
+      });
+      await page.locator('#play').click();
+    }
     await page.locator('#play').click();
     const old = await page.locator('#hour').inputValue();
     await page.waitForFunction(old => document.querySelector('#hour').value !== old, old, { timeout: 2000 });
     await page.locator('#play').click();
     const paused = await page.locator('#play').innerText();
-    check('Play advances the hour and Pause stops it', () => assert.equal(paused, 'Play'));
+    const pausedHour = await page.locator('#hour').inputValue();
+    await page.waitForTimeout(renderFixture.pauseWaitMs); // verify the actual timer stops, not only the button text
+    const laterHour = await page.locator('#hour').inputValue();
+    check('Play advances the hour and Pause stops it', () => { assert.equal(paused, 'Play'); assert.equal(laterHour, pausedHour); });
 
     for (const width of [320, 360, 390, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });

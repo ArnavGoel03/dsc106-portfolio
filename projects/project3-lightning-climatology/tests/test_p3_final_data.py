@@ -1,13 +1,16 @@
 """Offline regressions for exact sampled counts and failed-download coverage."""
 import ast
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import redirect_stderr
-from datetime import datetime
+from contextlib import redirect_stderr, redirect_stdout
+from datetime import datetime, timedelta
 import gzip
 from io import StringIO
 import json
+import os
 from pathlib import Path
 import sys
+import tempfile
+import time
 from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock
@@ -80,6 +83,131 @@ class ExportedCountsTests(unittest.TestCase):
         density = self.means * (1e4 / area)[None, None, :, None, None]
         self.assertAlmostEqual(self.meta["density_domains"]["season"], float(density.max()))
         self.assertAlmostEqual(self.meta["density_domains"]["YEAR"], float(density.sum(0).max()))
+
+
+class ResumeTests(unittest.TestCase):
+    def namespace(self, directory):
+        directory = Path(directory)
+        settings = SimpleNamespace(DATA=directory, DAY_START=1, DAY_END=1, YEAR=2024, NLAT=1, NLON=1,
+                                   HOURS=24, FETCH_WORKERS=1, GRID_NPZ=directory / "grid.npz", PROGRESS=directory / "progress.json")
+        grid = np.zeros((1, 1, 24), np.int32)
+        grid[0, 0, 0] = 1
+        return {"C": settings, "np": np, "json": json, "os": os, "tempfile": tempfile, "Path": Path,
+                "sys": SimpleNamespace(argv=["fixture", "1"]), "time": time, "datetime": datetime,
+                "timedelta": timedelta, "E_EDGES": np.array([0, 1]), "A_EDGES": np.array([0, 1]),
+                "bin_day": Mock(return_value=(grid, grid.copy(), 1, np.zeros(1, int), np.zeros(1, int)))}
+
+    def main_function(self, namespace):
+        names = {n.name for n in ast.parse((ROOT / "scripts" / "fetch_glm.py").read_text()).body if isinstance(n, ast.FunctionDef)}
+        for name in ("save_grid", "restore_completed_days", "progress_report"):
+            if name in names:
+                fetch_function(name, namespace)
+        return fetch_function("main", namespace)
+
+    def test_crash_after_grid_commit_does_not_repeat_day(self):
+        with tempfile.TemporaryDirectory(prefix="dsc106-resume-test-") as directory:
+            ns = self.namespace(directory)
+            path = ns["C"].PROGRESS
+
+            class FailingReport:
+                exists = path.exists
+                read_text = path.read_text
+
+                def write_text(self, text):
+                    raise OSError("injected crash after grid commit")
+
+            ns["C"].PROGRESS = FailingReport()
+            main = self.main_function(ns)
+            with self.assertRaisesRegex(OSError, "injected crash"):
+                main()
+            ns["C"].PROGRESS = path
+            with redirect_stdout(StringIO()):
+                main()
+            saved = np.load(ns["C"].GRID_NPZ)
+            self.assertEqual(int(saved["utc"].sum()), 1)
+            self.assertEqual(int(saved["daily"].sum()), 1)
+            self.assertEqual(ns["bin_day"].call_count, 1)
+            self.assertEqual(json.loads(path.read_text())["1"]["files"], 1)
+
+    def legacy_snapshot(self, ns):
+        with np.load(ns["C"].GRID_NPZ) as saved:
+            legacy = dict(saved)
+        legacy.pop("completed_days")
+        np.savez_compressed(ns["C"].GRID_NPZ, **legacy)
+
+    def test_legacy_grid_without_report_is_not_recounted(self):
+        with tempfile.TemporaryDirectory(prefix="dsc106-legacy-test-") as directory:
+            ns = self.namespace(directory)
+            main = self.main_function(ns)
+            with redirect_stdout(StringIO()):
+                main()
+                self.legacy_snapshot(ns)
+                ns["C"].PROGRESS.unlink()
+                main()
+            self.assertEqual(ns["bin_day"].call_count, 1)
+            with np.load(ns["C"].GRID_NPZ) as saved:
+                self.assertEqual(int(saved["utc"].sum()), 1)
+                self.assertTrue(bool(saved["completed_days"][0]))
+
+    def test_zero_file_day_marker_survives_missing_report(self):
+        with tempfile.TemporaryDirectory(prefix="dsc106-empty-day-test-") as directory:
+            ns = self.namespace(directory)
+            empty = np.zeros((1, 1, 24), np.int32)
+            ns["bin_day"].return_value = (empty, empty.copy(), 0, np.zeros(1, int), np.zeros(1, int))
+            main = self.main_function(ns)
+            with redirect_stdout(StringIO()):
+                main()
+                ns["C"].PROGRESS.unlink()
+                main()
+            self.assertEqual(ns["bin_day"].call_count, 1)
+            self.assertEqual(json.loads(ns["C"].PROGRESS.read_text())["1"]["files"], 0)
+
+    def test_corrupt_report_is_rebuilt_without_recounting(self):
+        with tempfile.TemporaryDirectory(prefix="dsc106-report-test-") as directory:
+            ns = self.namespace(directory)
+            main = self.main_function(ns)
+            with redirect_stdout(StringIO()):
+                main()
+                ns["C"].PROGRESS.write_text('{"1":')
+                main()
+            self.assertEqual(ns["bin_day"].call_count, 1)
+            self.assertEqual(json.loads(ns["C"].PROGRESS.read_text())["1"]["flashes"], 1)
+
+    def test_inconsistent_legacy_report_fails_closed(self):
+        with tempfile.TemporaryDirectory(prefix="dsc106-legacy-conflict-test-") as directory:
+            ns = self.namespace(directory)
+            main = self.main_function(ns)
+            with redirect_stdout(StringIO()):
+                main()
+            self.legacy_snapshot(ns)
+            ns["C"].PROGRESS.write_text(json.dumps({"1": {"files": 1, "flashes": 2}}))
+            with self.assertRaisesRegex(RuntimeError, "legacy progress.*disagrees"):
+                main()
+            self.assertEqual(ns["bin_day"].call_count, 1)
+
+    def test_report_without_source_grid_fails_closed(self):
+        with tempfile.TemporaryDirectory(prefix="dsc106-missing-grid-test-") as directory:
+            ns = self.namespace(directory)
+            ns["C"].PROGRESS.write_text(json.dumps({"1": {"files": 1, "flashes": 1}}))
+            with self.assertRaisesRegex(RuntimeError, "without its source grid"):
+                self.main_function(ns)()
+            ns["bin_day"].assert_not_called()
+
+    def test_failed_atomic_replace_preserves_previous_snapshot(self):
+        with tempfile.TemporaryDirectory(prefix="dsc106-atomic-grid-test-") as directory:
+            ns = self.namespace(directory)
+            with redirect_stdout(StringIO()):
+                self.main_function(ns)()
+            before = ns["C"].GRID_NPZ.read_bytes()
+            with np.load(ns["C"].GRID_NPZ) as saved:
+                candidate = dict(saved)
+            candidate["utc"] *= 2
+            ns["os"] = SimpleNamespace(fsync=os.fsync, path=os.path, unlink=os.unlink,
+                                       replace=Mock(side_effect=OSError("injected replace failure")))
+            with self.assertRaisesRegex(OSError, "injected replace failure"):
+                ns["save_grid"](candidate)
+            self.assertEqual(ns["C"].GRID_NPZ.read_bytes(), before)
+            self.assertEqual(list(Path(directory).glob("*.tmp")), [])
 
 
 class DownloadCoverageTests(unittest.TestCase):
