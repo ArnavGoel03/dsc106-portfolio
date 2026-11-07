@@ -2,6 +2,7 @@
 :root {
   --color-accent: oklch(65% 50% 0);
   --border-gray: oklch(80% 3% 200);
+  --tooltip-viewport-inset: 8px; /* Keep the floating commit details inside the screen. */
   accent-color: var(--color-accent);
   /* Declare both schemes so text, links and form controls follow the OS theme
      instead of rendering black-on-dark under Chrome's forced dark mode */
@@ -387,6 +388,14 @@ dl.stats {
 }
 
 /* The language breakdown lists pairs row by row instead */
+#stats dl.stats > div,
+#language-breakdown > div {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
+  min-width: 0;
+}
+
 #language-breakdown {
   grid-template-columns: repeat(auto-fit, minmax(8em, 1fr));
 
@@ -427,6 +436,10 @@ dl.info[hidden]:not(:hover, :focus-within) {
 
 .tooltip {
   position: fixed;
+  box-sizing: border-box;
+  max-width: calc(100vw - 2 * var(--tooltip-viewport-inset));
+  max-height: calc(100vh - 2 * var(--tooltip-viewport-inset));
+  overflow: auto;
   top: 1em;
   left: 1em;
   padding: 0.75em;

@@ -34,3 +34,7 @@ jobs:
         run: |
           pnpm run check:p3
           pnpm run test:p3
+      - name: Check the Lab 6 source and deployed Meta page
+        run: |
+          pnpm run check:lab6
+          pnpm run test:lab6

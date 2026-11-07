@@ -1,5 +1,8 @@
 {
   "scripts": {
+    "refresh:meta": "node scripts/refresh-meta-data.mjs",
+    "check:lab6": "node --check meta/main.js && node --check tests/lab6-browser.mjs && node --check scripts/refresh-meta-data.mjs",
+    "test:lab6": "node tests/run-lab6-browser.mjs",
     "check:p3": "node --check projects/project3-lightning-climatology/app.js",
     "test:p3": "node tests/run-p3-final-browser.mjs"
   },

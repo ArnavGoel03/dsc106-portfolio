@@ -44,20 +44,21 @@ function processCommits(data) {
 // Lab 6, Step 1.3: summary stats
 function renderCommitInfo(data, commits) {
   const dl = d3.select('#stats').append('dl').attr('class', 'stats');
+  const addStat = (label, value) => {
+    const group = dl.append('div');
+    group.append('dt').html(label);
+    group.append('dd').text(value);
+  };
 
-  dl.append('dt').html('Total <abbr title="Lines of code">LOC</abbr>');
-  dl.append('dd').text(data.length);
+  addStat('Total <abbr title="Lines of code">LOC</abbr>', data.length);
 
-  dl.append('dt').text('Total commits');
-  dl.append('dd').text(commits.length);
+  addStat('Total commits', commits.length);
 
   // Distinct values: number of files
-  dl.append('dt').text('Number of files');
-  dl.append('dd').text(d3.group(data, (d) => d.file).size);
+  addStat('Number of files', d3.group(data, (d) => d.file).size);
 
   // Aggregate over the whole dataset: maximum depth
-  dl.append('dt').text('Maximum depth');
-  dl.append('dd').text(d3.max(data, (d) => d.depth));
+  addStat('Maximum depth', d3.max(data, (d) => d.depth));
 
   // Grouped aggregate: average file length in lines
   const fileLengths = d3.rollups(
@@ -65,8 +66,7 @@ function renderCommitInfo(data, commits) {
     (v) => d3.max(v, (d) => d.line),
     (d) => d.file,
   );
-  dl.append('dt').text('Average file length');
-  dl.append('dd').text(d3.format('.1f')(d3.mean(fileLengths, (d) => d[1])));
+  addStat('Average file length', d3.format('.1f')(d3.mean(fileLengths, (d) => d[1])));
 
   // Min/max value: time of day with the most work
   const workByPeriod = d3.rollups(
@@ -74,8 +74,7 @@ function renderCommitInfo(data, commits) {
     (v) => v.length,
     (d) => d.datetime.toLocaleString('en', { dayPeriod: 'short' }),
   );
-  dl.append('dt').text('Most work done');
-  dl.append('dd').text(d3.greatest(workByPeriod, (d) => d[1])?.[0]);
+  addStat('Most work done', d3.greatest(workByPeriod, (d) => d[1])?.[0]);
 }
 
 // Lab 6, Step 3: tooltip
@@ -107,8 +106,15 @@ function updateTooltipVisibility(isVisible) {
 
 function updateTooltipPosition(event) {
   const tooltip = document.getElementById('commit-tooltip');
-  tooltip.style.left = `${event.clientX}px`;
-  tooltip.style.top = `${event.clientY}px`;
+  const inset = Number.parseFloat(
+    getComputedStyle(tooltip).getPropertyValue('--tooltip-viewport-inset'),
+  );
+  // Measure at the origin so an edge position does not squeeze the tooltip.
+  tooltip.style.left = '0px';
+  tooltip.style.top = '0px';
+  const { width, height } = tooltip.getBoundingClientRect();
+  tooltip.style.left = `${Math.max(inset, Math.min(event.clientX, innerWidth - width - inset))}px`;
+  tooltip.style.top = `${Math.max(inset, Math.min(event.clientY, innerHeight - height - inset))}px`;
 }
 
 // Lab 6, Step 5.4: scales are shared with the brush handlers
@@ -165,8 +171,10 @@ function renderLanguageBreakdown(selection) {
     const proportion = count / lines.length;
     const formatted = d3.format('.1~%')(proportion);
     container.innerHTML += `
+        <div>
             <dt>${language}</dt>
             <dd>${count} lines (${formatted})</dd>
+        </div>
         `;
   }
 }
