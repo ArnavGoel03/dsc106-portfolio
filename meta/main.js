@@ -9,6 +9,8 @@ async function loadData() {
     length: Number(row.length),
     date: new Date(row.date + 'T00:00' + row.timezone),
     datetime: new Date(row.datetime),
+    // Author wall clock (parsed without the offset), so every viewer sees commits at the hour they were made
+    wallClock: new Date(row.date + 'T' + row.time),
   }));
   return data;
 }
@@ -19,7 +21,7 @@ function processCommits(data) {
     .groups(data, (d) => d.commit)
     .map(([commit, lines]) => {
       let first = lines[0];
-      let { author, date, time, timezone, datetime } = first;
+      let { author, date, time, timezone, datetime, wallClock } = first;
       let ret = {
         id: commit,
         url: 'https://github.com/ArnavGoel03/dsc106-portfolio/commit/' + commit,
@@ -28,7 +30,8 @@ function processCommits(data) {
         time,
         timezone,
         datetime,
-        hourFrac: datetime.getHours() + datetime.getMinutes() / 60,
+        wallClock,
+        hourFrac: wallClock.getHours() + wallClock.getMinutes() / 60,
         totalLines: lines.length,
       };
       Object.defineProperty(ret, 'lines', {
@@ -72,7 +75,7 @@ function renderCommitInfo(data, commits) {
   const workByPeriod = d3.rollups(
     data,
     (v) => v.length,
-    (d) => d.datetime.toLocaleString('en', { dayPeriod: 'short' }),
+    (d) => d.wallClock.toLocaleString('en', { dayPeriod: 'short' }),
   );
   addStat('Most work done', d3.greatest(workByPeriod, (d) => d[1])?.[0]);
 }
@@ -89,10 +92,10 @@ function renderTooltipContent(commit) {
 
   link.href = commit.url;
   link.textContent = commit.id;
-  date.textContent = commit.datetime?.toLocaleString('en', {
+  date.textContent = commit.wallClock?.toLocaleString('en', {
     dateStyle: 'full',
   });
-  time.textContent = commit.datetime?.toLocaleTimeString('en', {
+  time.textContent = commit.wallClock?.toLocaleTimeString('en', {
     timeStyle: 'short',
   });
   author.textContent = commit.author;
@@ -113,8 +116,15 @@ function updateTooltipPosition(event) {
   tooltip.style.left = '0px';
   tooltip.style.top = '0px';
   const { width, height } = tooltip.getBoundingClientRect();
-  tooltip.style.left = `${Math.max(inset, Math.min(event.clientX, innerWidth - width - inset))}px`;
-  tooltip.style.top = `${Math.max(inset, Math.min(event.clientY, innerHeight - height - inset))}px`;
+  // Flip to the other side of the cursor near an edge instead of clamping, so the
+  // tooltip never lands under the pointer (that would fire mouseleave and hide it).
+  const place = (pointer, size, limit) => {
+    const after = pointer + inset;
+    const start = after + size <= limit - inset ? after : pointer - inset - size;
+    return Math.max(inset, start);
+  };
+  tooltip.style.left = `${place(event.clientX, width, innerWidth)}px`;
+  tooltip.style.top = `${place(event.clientY, height, innerHeight)}px`;
 }
 
 // Lab 6, Step 5.4: scales are shared with the brush handlers
@@ -128,7 +138,7 @@ function isCommitSelected(selection, commit) {
   }
   const [x0, x1] = selection.map((d) => d[0]);
   const [y0, y1] = selection.map((d) => d[1]);
-  const x = xScale(commit.datetime);
+  const x = xScale(commit.wallClock);
   const y = yScale(commit.hourFrac);
   return x >= x0 && x <= x1 && y >= y0 && y <= y1;
 }
@@ -140,9 +150,8 @@ function renderSelectionCount(selection) {
     : [];
 
   const countElement = document.querySelector('#selection-count');
-  countElement.textContent = `${
-    selectedCommits.length || 'No'
-  } commits selected`;
+  const n = selectedCommits.length;
+  countElement.textContent = `${n || 'No'} ${n === 1 ? 'commit' : 'commits'} selected`;
 
   return selectedCommits;
 }
@@ -217,7 +226,7 @@ function renderScatterPlot(data, commits) {
 
   xScale = d3
     .scaleTime()
-    .domain(d3.extent(commits, (d) => d.datetime))
+    .domain(d3.extent(commits, (d) => d.wallClock))
     .range([usableArea.left, usableArea.right])
     .nice();
   yScale = d3
@@ -256,7 +265,7 @@ function renderScatterPlot(data, commits) {
     .selectAll('circle')
     .data(sortedCommits)
     .join('circle')
-    .attr('cx', (d) => xScale(d.datetime))
+    .attr('cx', (d) => xScale(d.wallClock))
     .attr('cy', (d) => yScale(d.hourFrac))
     .attr('r', (d) => rScale(d.totalLines))
     .style('fill-opacity', 0.7)

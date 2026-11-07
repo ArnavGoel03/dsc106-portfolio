@@ -25,7 +25,7 @@ const OUTPUT = outputDirectory;
       for (const line of lines) files.set(line.file, Math.max(files.get(line.file) || 0, line.line));
       const period = new Map();
       for (const line of lines) {
-        const key = line.datetime.toLocaleString('en', { dayPeriod: 'short' });
+        const key = line.wallClock.toLocaleString('en', { dayPeriod: 'short' });
         period.set(key, (period.get(key) || 0) + 1);
       }
       return {
@@ -72,14 +72,14 @@ const OUTPUT = outputDirectory;
     const allBox=[[5,5],[995,595]];
     await drag(allBox);
     const full=await selectedState(allBox);
-    check('Brushing selects all dots and updates count',full.expected===initial.count && full.actual===full.expected && full.text===`${full.expected} commits selected`,full);
+    check('Brushing selects all dots and updates count',full.expected===initial.count && full.actual===full.expected && full.text===`${full.expected} ${full.expected === 1 ? "commit" : "commits"} selected`,full);
     check('Language breakdown counts match selected commit lines',full.languageCounts.every(([k,n])=>full.languageActual.some(([key,value])=>key===k && value.startsWith(`${n} lines (`))),full);
     if (OUTPUT) await page.screenshot({path:OUTPUT+'/selected.png',fullPage:true});
     const halfBox=[[5,5],[500,595]];
     const clear=await point(997,598); await page.mouse.click(clear.x,clear.y);
     await drag(halfBox);
     const half=await selectedState(halfBox);
-    check('Partial brushing highlights exactly matching dots',half.expected>0 && half.expected<initial.count && half.actual===half.expected && half.text===`${half.expected} commits selected`,half);
+    check('Partial brushing highlights exactly matching dots',half.expected>0 && half.expected<initial.count && half.actual===half.expected && half.text===`${half.expected} ${half.expected === 1 ? "commit" : "commits"} selected`,half);
     const clear2=await point(997,598); await page.mouse.click(clear2.x,clear2.y);
     check('Clearing brush resets count, highlight and language list',await page.evaluate(()=> document.querySelectorAll('#chart circle.selected').length===0 && document.querySelector('#selection-count').textContent==='No commits selected' && document.querySelector('#language-breakdown').children.length===0));
     const circles=page.locator('#chart .dots circle');
@@ -108,6 +108,7 @@ const OUTPUT = outputDirectory;
       return dots.reduce((best, dot, index) => Number(dot.getAttribute('cy')) > Number(dots[best].getAttribute('cy')) ? index : best, 0);
     });
     await page.locator('#chart circle').nth(bottomIndex).hover({force:true});
+    await page.waitForTimeout(600); // let the 500ms visibility transition finish before reading it
     const edgeTooltip = await page.evaluate(() => {
       const tooltip = document.querySelector('#commit-tooltip');
       const r = tooltip.getBoundingClientRect();
