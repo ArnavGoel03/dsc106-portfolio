@@ -242,7 +242,8 @@ function renderScatterPlot(data, commits) {
   gridlines.call(d3.axisLeft(yScale).tickFormat('').tickSize(-usableArea.width));
 
   // Step 2.2: axes
-  const xAxis = d3.axisBottom(xScale);
+  // Weekly ticks: d3's default 2-day ticks restart at each month, so Oct 31 and November collided
+  const xAxis = d3.axisBottom(xScale).ticks(d3.timeWeek).tickFormat(d3.timeFormat('%b %d'));
   const yAxis = d3
     .axisLeft(yScale)
     .tickFormat((d) => String(d % 24).padStart(2, '0') + ':00');
