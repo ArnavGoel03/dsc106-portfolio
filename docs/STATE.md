@@ -57,7 +57,7 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   lib/projects.json (url field, screenshot images/projects/bikewatching.jpg) and renderProjects links titles that have an
   http(s) url. Verified: 7 logic tests against an independent Python count of the real data, 27 browser checks passing
   on the live site, live files byte-identical to HEAD, Projects page shows 13 cards with the link and no console errors.
-  Video script: ~/Documents/Coursework/DSC106/DSC106-Lab7-Video-Script.md. Due Fri Nov 13 11:59 PM PT.
+  Video script kept with the private course notes, not in this repo. Due Fri Nov 13 11:59 PM PT.
 
 ## Other coursework asked for in the same session
 - ~~DSC 102 second assignment: BLOCKED on the course website URL.~~ Cleared 2026-10-15: it is PA1 (site
