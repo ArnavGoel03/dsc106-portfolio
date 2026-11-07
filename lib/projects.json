@@ -1,5 +1,12 @@
 [
   {
+    "title": "Bikewatching",
+    "year": 2026,
+    "image": "images/projects/bikewatching.jpg",
+    "url": "https://arnavgoel03.github.io/bikewatching/",
+    "description": "Mapbox GL + D3 map of ~260,000 Bluebikes rides (March 2024) across 453 Boston and Cambridge stations. Circle area encodes traffic, colour encodes departures vs arrivals, and a time-of-day slider re-filters instantly using per-minute buckets."
+  },
+  {
     "title": "Watch Together",
     "year": 2025,
     "image": "images/projects/watch-together.jpg",

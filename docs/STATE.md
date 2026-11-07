@@ -51,6 +51,14 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   https://claude.ai/artifact/5DqNs9BG7BgxvXMTCPzj3r and submit on Gradescope by Fri Oct 30 11:59 PM PDT.
   Course-wide dates and slip days: ~/Documents/Coursework/FALL-2026-COURSES.md (private, not in this repo).
 
+- Lab 7 (Mapbox geospatial, Bikewatching): built 2026-11-07 in its own repo, https://github.com/ArnavGoel03/bikewatching,
+  live at https://arnavgoel03.github.io/bikewatching/ (deploys by GitHub Actions, which injects the Mapbox token from the
+  MAPBOX_TOKEN repo secret; the token is never committed). Steps 0 to 6 there; Step 7 here: Bikewatching card in
+  lib/projects.json (url field, screenshot images/projects/bikewatching.jpg) and renderProjects links titles that have an
+  http(s) url. Verified: 7 logic tests against an independent Python count of the real data, 27 browser checks passing
+  on the live site, live files byte-identical to HEAD, Projects page shows 13 cards with the link and no console errors.
+  Video script: ~/Documents/Coursework/DSC106/DSC106-Lab7-Video-Script.md. Due Fri Nov 13 11:59 PM PT.
+
 ## Other coursework asked for in the same session
 - ~~DSC 102 second assignment: BLOCKED on the course website URL.~~ Cleared 2026-10-15: it is PA1 (site
   https://aismithlab.com/DSC102FA26/assignments/), verified 80/80 against the TA answers on the real data and

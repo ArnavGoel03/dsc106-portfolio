@@ -171,6 +171,14 @@ form {
     h2 {
       margin: 0;
     }
+
+    /* Lab 7, Step 7: linked titles keep the heading colour; the accent underline marks them */
+    :is(h2, h3) a {
+      color: inherit;
+      text-decoration-color: var(--color-accent);
+      text-decoration-thickness: 0.1em;
+      text-underline-offset: 0.15em;
+    }
   }
 }
 

@@ -134,8 +134,13 @@ export function renderProjects(projects, containerElement, headingLevel = 'h2') 
     // Image paths in the JSON are relative to the site root, so they work from any page
     const image = project.image?.startsWith('http') ? project.image : BASE_PATH + (project.image ?? '');
     const title = escapeHTML(project.title ?? '');
+    // Lab 7, Step 7: link the title when the project has a url. Only http(s)
+    // links are used, so a bad entry can never become a javascript: link.
+    const heading = /^https?:\/\//.test(project.url ?? '')
+      ? `<a href="${escapeHTML(project.url)}" target="_blank" rel="noopener">${title}</a>`
+      : title;
     article.innerHTML = `
-      <${level}>${title}</${level}>
+      <${level}>${heading}</${level}>
       <img src="${escapeHTML(image)}" alt="${title}">
       <div>
         <p>${escapeHTML(project.description ?? '')}</p>
