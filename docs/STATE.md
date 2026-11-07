@@ -36,9 +36,14 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
 - Lab 6 (D3 quantitative viz): code done 2026-10-31, spec https://dsc106.com/labs/lab06/. meta/index.html + meta/main.js
   (summary stats, commit scatterplot, tooltip, sqrt dot size, brushing with count and language breakdown), Meta nav link,
   meta/loc.csv from elocuent (re-run `npx elocuent -d . -o meta/loc.csv --spaces 2` after new commits). Live files
-  fetched from Pages; not yet render-checked in a browser by the agent (sandbox blocked Chrome).
+  fetched from Pages. 2026-11-07 requirements/rubric audit: every required webpage feature is present; stale CSV refreshed
+  to 4,333 lines / 33 tracked web files / 52 represented commits, summary/language stats wrap on phones and tooltips
+  stay inside the viewport. All 20 browser checks pass on corrected assets, with desktop/phone/dark renders inspected.
+  Checks are calibrated on the old defects and wired into the existing post-Pages live workflow. Full checklist and
+  validation scope: `docs/LAB6-AUDIT-2026-11-07.md`.
   OWNER ACTION: record the 1 minute mp4 (script: Coursework/DSC106/DSC106-Lab6-Video-Script.md), submit repo + site + video
-  on Gradescope. Due Fri Nov 6 11:59 PM PDT.
+  on Gradescope. Due Fri Nov 6 11:59 PM PDT. Owner's 2026-11-07 screenshot shows Q1 repo + Meta-page links saved,
+  but Q2 says "No files uploaded". This audit did not submit or resubmit.
 - Lab 5 (D3 pie chart): code done and live 2026-10-25, commit c38f1e4. All steps plus the Step 5.4 extra-credit fix
   (search and pie selection combine both ways via update() in projects/projects.js). Verified headless (12 cards, 2 wedges,
   search+wedge both orders, stale selection cleared) and live file cmp. OWNER ACTION: record the 1 minute video from
