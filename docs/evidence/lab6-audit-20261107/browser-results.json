@@ -1,0 +1,378 @@
+{
+  "sourceCommit": "7bb149c3ec2bb28f5bf81cbc1bc9a9b435672c2c",
+  "url": "https://arnavgoel03.github.io/dsc106-portfolio/meta/",
+  "checkedAt": "2026-11-07T07:10:17.170Z",
+  "checks": [
+    {
+      "name": "Live Meta page loads",
+      "pass": true,
+      "evidence": 200
+    },
+    {
+      "name": "Heading and current Meta navigation",
+      "pass": true,
+      "evidence": "Meta"
+    },
+    {
+      "name": "Total LOC, commits and four extra summary statistics match underlying rows",
+      "pass": true,
+      "evidence": {
+        "labels": [
+          "Total LOC",
+          "Total commits",
+          "Number of files",
+          "Maximum depth",
+          "Average file length",
+          "Most work done"
+        ],
+        "actual": [
+          "4333",
+          "52",
+          "33",
+          "16",
+          "131.3",
+          "in the morning"
+        ],
+        "expected": [
+          "4333",
+          "52",
+          "33",
+          "16",
+          "131.3",
+          "in the morning"
+        ]
+      }
+    },
+    {
+      "name": "One finite dot per commit",
+      "pass": true,
+      "evidence": 52
+    },
+    {
+      "name": "Axes and horizontal gridlines render",
+      "pass": true,
+      "evidence": {
+        "gridlines": 13,
+        "axisText": [
+          "Wed 07",
+          "Fri 09",
+          "Oct 11",
+          "Tue 13",
+          "Thu 15",
+          "Sat 17",
+          "Mon 19",
+          "Wed 21",
+          "Fri 23",
+          "Oct 25",
+          "Tue 27",
+          "Thu 29",
+          "Sat 31",
+          "November",
+          "Tue 03",
+          "Thu 05",
+          "Sat 07",
+          "Mon 09",
+          "00:00",
+          "02:00",
+          "04:00",
+          "06:00",
+          "08:00",
+          "10:00",
+          "12:00",
+          "14:00",
+          "16:00",
+          "18:00",
+          "20:00",
+          "22:00",
+          "00:00"
+        ]
+      }
+    },
+    {
+      "name": "Dot radii vary and largest commits are drawn first",
+      "pass": true,
+      "evidence": [
+        "30",
+        "28.028013482676226",
+        "26.53396839444858",
+        "26.241547007230807",
+        "25.903224791286053",
+        "25.343614687222697",
+        "25.168870007571595",
+        "24.948680684587398",
+        "22.626434883662863",
+        "20.736878032159968",
+        "20.521907033005057",
+        "16.223573638567803",
+        "15.805007681587206",
+        "15.374644205045705",
+        "15.228389748759056",
+        "15.154714042543725",
+        "14.931425584859417",
+        "14.704620124285846",
+        "13.920886268482633",
+        "12.47106184462802",
+        "10.168440311581694",
+        "9.225757711870735",
+        "9.100634946946634",
+        "8.713796363556401",
+        "7.7308022508319825",
+        "7.579193201222939",
+        "7.265745288589688",
+        "6.936980483539009",
+        "6.590406493579156",
+        "6.222771493925076",
+        "6.029745829978884",
+        "5.178161292638013",
+        "4.939642166390902",
+        "4.687460737038389",
+        "4.41895997469929",
+        "4.130490583818267",
+        "3.8167987735919513",
+        "3.469821083195451",
+        "3.0759837109349917",
+        "2.608819826921469",
+        "2"
+      ]
+    },
+    {
+      "name": "Initial tooltip hidden and selection empty",
+      "pass": true,
+      "evidence": "No commits selected"
+    },
+    {
+      "name": "Brushing selects all dots and updates count",
+      "pass": true,
+      "evidence": {
+        "expected": 52,
+        "actual": 52,
+        "text": "52 commits selected",
+        "languageCounts": [
+          [
+            "js",
+            1817
+          ],
+          [
+            "html",
+            1808
+          ],
+          [
+            "css",
+            708
+          ]
+        ],
+        "languageActual": [
+          [
+            "html",
+            "1808 lines (41.7%)"
+          ],
+          [
+            "css",
+            "708 lines (16.3%)"
+          ],
+          [
+            "js",
+            "1817 lines (41.9%)"
+          ]
+        ],
+        "totalLines": 4333
+      }
+    },
+    {
+      "name": "Language breakdown counts match selected commit lines",
+      "pass": true,
+      "evidence": {
+        "expected": 52,
+        "actual": 52,
+        "text": "52 commits selected",
+        "languageCounts": [
+          [
+            "js",
+            1817
+          ],
+          [
+            "html",
+            1808
+          ],
+          [
+            "css",
+            708
+          ]
+        ],
+        "languageActual": [
+          [
+            "html",
+            "1808 lines (41.7%)"
+          ],
+          [
+            "css",
+            "708 lines (16.3%)"
+          ],
+          [
+            "js",
+            "1817 lines (41.9%)"
+          ]
+        ],
+        "totalLines": 4333
+      }
+    },
+    {
+      "name": "Partial brushing highlights exactly matching dots",
+      "pass": true,
+      "evidence": {
+        "expected": 30,
+        "actual": 30,
+        "text": "30 commits selected",
+        "languageCounts": [
+          [
+            "html",
+            1547
+          ],
+          [
+            "css",
+            181
+          ],
+          [
+            "js",
+            169
+          ]
+        ],
+        "languageActual": [
+          [
+            "html",
+            "1547 lines (81.5%)"
+          ],
+          [
+            "css",
+            "181 lines (9.5%)"
+          ],
+          [
+            "js",
+            "169 lines (8.9%)"
+          ]
+        ],
+        "totalLines": 1897
+      }
+    },
+    {
+      "name": "Clearing brush resets count, highlight and language list",
+      "pass": true
+    },
+    {
+      "name": "Real mouse hover works above brush overlay and displays all five fields",
+      "pass": true,
+      "evidence": {
+        "id": "3a9629c1",
+        "href": "https://github.com/ArnavGoel03/dsc106-portfolio/commit/3a9629c1",
+        "target": "_blank",
+        "values": [
+          "3a9629c1",
+          "Thursday, October 22, 2026",
+          "5:51 AM",
+          "Arnav Goel",
+          "1"
+        ],
+        "rect": {
+          "left": 687,
+          "right": 1019.5,
+          "top": 861,
+          "bottom": 1021
+        }
+      }
+    },
+    {
+      "name": "Tooltip commit link resolves",
+      "pass": true,
+      "evidence": {
+        "href": "https://github.com/ArnavGoel03/dsc106-portfolio/commit/3a9629c1",
+        "status": 200
+      }
+    },
+    {
+      "name": "Hovered tooltip stays inside viewport",
+      "pass": true,
+      "evidence": {
+        "left": 687,
+        "right": 1019.5,
+        "top": 861,
+        "bottom": 1021
+      }
+    },
+    {
+      "name": "Tooltip hides when pointer leaves",
+      "pass": true
+    },
+    {
+      "name": "Bottom-edge tooltip remains fully readable",
+      "pass": true,
+      "evidence": {
+        "visible": true,
+        "left": 1116.484375,
+        "right": 1432,
+        "top": 532,
+        "bottom": 692,
+        "width": 1440,
+        "height": 700
+      }
+    },
+    {
+      "name": "Dark theme applies",
+      "pass": true
+    },
+    {
+      "name": "Phone layout stays within viewport",
+      "pass": true,
+      "evidence": {
+        "viewport": 390,
+        "pageWidth": 390,
+        "stats": [
+          {
+            "label": "Total LOC",
+            "width": 179
+          },
+          {
+            "label": "Total commits",
+            "width": 179
+          },
+          {
+            "label": "Number of files",
+            "width": 179
+          },
+          {
+            "label": "Maximum depth",
+            "width": 179
+          },
+          {
+            "label": "Average file length",
+            "width": 179
+          },
+          {
+            "label": "Most work done",
+            "width": 179
+          }
+        ],
+        "svgWidth": 357.984375
+      }
+    },
+    {
+      "name": "Selected language stats fit on a phone",
+      "pass": true
+    },
+    {
+      "name": "No runtime/console errors",
+      "pass": true,
+      "evidence": []
+    }
+  ],
+  "failures": [],
+  "stats": [
+    "4333",
+    "52",
+    "33",
+    "16",
+    "131.3",
+    "in the morning"
+  ],
+  "pagesBuild": "https://github.com/ArnavGoel03/dsc106-portfolio/actions/runs/42350028211",
+  "liveCI": "https://github.com/ArnavGoel03/dsc106-portfolio/actions/runs/42350080137"
+}

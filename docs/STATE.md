@@ -38,7 +38,8 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   meta/loc.csv from elocuent (re-run `npx elocuent -d . -o meta/loc.csv --spaces 2` after new commits). Live files
   fetched from Pages. 2026-11-07 requirements/rubric audit: every required webpage feature is present; stale CSV refreshed
   to 4,333 lines / 33 tracked web files / 52 represented commits, summary/language stats wrap on phones and tooltips
-  stay inside the viewport. All 20 browser checks pass on corrected assets, with desktop/phone/dark renders inspected.
+  stay inside the viewport. All 20 browser checks pass on the live Meta page (source `7bb149c`), with desktop/phone/dark renders inspected;
+  served JavaScript/CSS/CSV match the checkout. Post-Pages CI run 42350080137 passed both Lab 6 and existing P3 checks.
   Checks are calibrated on the old defects and wired into the existing post-Pages live workflow. Full checklist and
   validation scope: `docs/LAB6-AUDIT-2026-11-07.md`.
   OWNER ACTION: record the 1 minute mp4 (script: Coursework/DSC106/DSC106-Lab6-Video-Script.md), submit repo + site + video
