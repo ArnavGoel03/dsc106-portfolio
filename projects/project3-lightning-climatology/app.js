@@ -513,7 +513,12 @@ function drawLine() {
     .concat(state.sel.map((c, k) => [cellLabel(c), "pick", CONFIG.selColors[k]]));
   const titleH = fs * 1.4, band = (CONFIG.maxSelected + 2) * rowH + 8, top = titleH + band, bottom = Math.max(m.b, fs * 3.1), h = CONFIG.line.h + top - m.t + bottom - m.b;
   svg.attr("viewBox", `0 0 ${w} ${h}`);
-  const x = d3.scaleLinear([0, M.hours - 1], [m.l + fs, w - m.r]);
+  // Left margin from the measured width of the widest y label: font widths differ by platform (Linux renders wider
+  // than macOS), so a fixed margin clipped "100%" on a 320 px screen in CI. 12 = tick mark, its gap, and a little air.
+  const probe = svg.append("g").attr("class", "axis").append("text").style("font-size", `${fs}px`).text(d3.format(".0%")(1));
+  const left = Math.max(m.l + fs, probe.node().getComputedTextLength() + 12);
+  probe.node().parentNode.remove();
+  const x = d3.scaleLinear([0, M.hours - 1], [left, w - m.r]);
   const y = d3.scaleLinear([0, 1], [h - bottom, top]);
   lineX = x;
   svg.append("text").attr("class", "lbl").attr("x", 4).attr("y", fs * 1.05).style("font-size", `${fs}px`).text("Share of the series' own peak hour");
@@ -529,7 +534,7 @@ function drawLine() {
   svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - bottom})`)
     .call(d3.axisBottom(x).tickValues(isNarrow(svg) ? [0, 6, 12, 18] : [0, 3, 6, 9, 12, 15, 18, 21]).tickFormat(tickLabel))
     .call((g) => g.selectAll("text").style("font-size", `${fs}px`).attr("text-anchor", (d) => (d === 0 ? "start" : "middle")));
-  svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l + fs},0)`)
+  svg.append("g").attr("class", "axis").attr("transform", `translate(${left},0)`)
     .call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(".0%")))
     .call((g) => g.selectAll("text").style("font-size", `${fs}px`));
   svg.append("text").attr("class", "lbl").attr("x", w - m.r).attr("y", h - 4).attr("text-anchor", "end").style("font-size", `${fs}px`).text(`Hour of day, ${clockLabel()}`);
