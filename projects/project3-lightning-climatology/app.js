@@ -8,6 +8,7 @@ const CONFIG = {
   writeupUrl: "writeup.md",  // the team's own write-up; the section stays hidden until this file exists
   teamPlaceholder: "[TEAM NAME]",
   hourStart: 16,
+  sliderTicks: [0, 6, 12, 18],  // hours labelled under the slider
   playMs: 350,
   maxSelected: 2,
   // Jump-to presets: a point inside the cell (lat, lon). The hour is not fixed here: a jump moves the slider to that
@@ -47,6 +48,8 @@ const pairRequests = new Map();  // share an in-flight foreground/background dow
 let viewSerial = 0;
 const $ = (s) => document.querySelector(s);
 const hourLabel = (h) => `${((h + 11) % 12) + 1} ${h < 12 ? "AM" : "PM"}`;
+// Hour-axis tick text, shared by both charts and the slider's tick row.
+const tickLabel = (d) => (d === 0 ? "midnight" : d === 12 ? "noon" : hourLabel(d));
 const clockLabel = () => (state.clock === "local" ? "local solar time" : "UTC");
 const idx = (i, j, h) => (i * M.nlon + j) * M.hours + h;
 const cellId = (i, j) => i * M.nlon + j;
@@ -267,6 +270,10 @@ function init(landTopo, team) {
 
   const hourIn = $("#hour");
   hourIn.value = state.hour;
+  for (const d of CONFIG.sliderTicks) {
+    const t = $("#hour-ticks").appendChild(document.createElement("span"));
+    t.textContent = tickLabel(d); t.style.setProperty("--p", d / (M.hours - 1));
+  }
   hourIn.addEventListener("input", () => { state.hour = +hourIn.value; render(); });
   $("#play").addEventListener("click", togglePlay);
   document.querySelectorAll("input[name=clock]").forEach((r) => r.addEventListener("change", () => { void setView($("input[name=season]:checked").value, r.value); }));
@@ -373,7 +380,7 @@ function drawYears() {
   const x = d3.scaleLinear([0, M.hours - 1], [ml + fs, w - Math.max(m.r, labelW + 10)]);  // room for "Ocean" at any size
   const y = d3.scaleLinear([0, d3.max(all)], [h - m.b, mt]).nice();
   svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`)
-    .call(d3.axisBottom(x).tickValues(isNarrow(svg) ? [0, 12, 23] : [0, 6, 12, 18, 23]).tickFormat((d) => (d === 0 ? "midnight" : d === 12 ? "noon" : hourLabel(d))))
+    .call(d3.axisBottom(x).tickValues(isNarrow(svg) ? [0, 12, 23] : [0, 6, 12, 18, 23]).tickFormat(tickLabel))
     .call((g) => g.selectAll("text").style("font-size", `${fs}px`).attr("text-anchor", (d) => (d === 0 ? "start" : d === 23 ? "end" : "middle")));
   svg.append("g").attr("class", "axis").attr("transform", `translate(${ml},0)`).call(d3.axisLeft(y).ticks(4).tickFormat((d) => d + "%"))
     .call((g) => g.selectAll("text").style("font-size", `${fs}px`));
@@ -420,6 +427,7 @@ function render() {
   const hourText = `${hourLabel(h)} ${clockLabel()}`;
   $("#hour-out").textContent = hourText;
   $("#hour").setAttribute("aria-valuetext", hourText);
+  $("#hour").style.setProperty("--p", h / (M.hours - 1));  // drives the filled part of the slider track
   cellsSel
     .attr("fill", (c) => { const v = a[c * M.hours + h]; return v > 0 ? colorScale(density(c, v)) : "none"; })
     // style(), not attr(): a presentation attribute loses to the .cell:hover rule, and the two picks must keep the
@@ -460,12 +468,12 @@ function drawLegend(maxCount) {
 
 function togglePlay() { state.timer ? stopPlay() : startPlay(); }
 function startPlay() {
-  $("#play").textContent = "Pause";
+  $("#play").textContent = "Pause"; $("#play").classList.add("playing");
   state.timer = setInterval(() => { state.hour = (state.hour + 1) % M.hours; $("#hour").value = state.hour; render(); }, CONFIG.playMs);
 }
 function stopPlay() {
   if (state.timer) clearInterval(state.timer);
-  state.timer = null; $("#play").textContent = "Play";
+  state.timer = null; $("#play").textContent = "Play"; $("#play").classList.remove("playing");
 }
 
 // Tooltip. It remembers its cell and anchor point, so Play and the keyboard refresh it in place instead of leaving
@@ -519,7 +527,7 @@ function drawLine() {
   svg.append("g").attr("class", "grid").attr("transform", `translate(0,${h - bottom})`)
     .call(d3.axisBottom(x).ticks(8).tickSize(-(h - bottom - top)).tickFormat(""));
   svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - bottom})`)
-    .call(d3.axisBottom(x).tickValues(isNarrow(svg) ? [0, 6, 12, 18] : [0, 3, 6, 9, 12, 15, 18, 21]).tickFormat((d) => (d === 0 ? "midnight" : d === 12 ? "noon" : hourLabel(d))))
+    .call(d3.axisBottom(x).tickValues(isNarrow(svg) ? [0, 6, 12, 18] : [0, 3, 6, 9, 12, 15, 18, 21]).tickFormat(tickLabel))
     .call((g) => g.selectAll("text").style("font-size", `${fs}px`).attr("text-anchor", (d) => (d === 0 ? "start" : "middle")));
   svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l + fs},0)`)
     .call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(".0%")))

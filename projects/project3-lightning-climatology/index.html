@@ -14,20 +14,23 @@
   </header>
   <!-- the hour row stays pinned while scrolling, so the map can be watched while the slider moves -->
   <section class="timebar controls" aria-label="Hour">
-    <label class="hour-ctl">Hour <output id="hour-out"></output>
+    <label class="hour-ctl"><span class="vh">Hour </span><output id="hour-out"></output>
       <input type="range" id="hour" min="0" max="23" step="1" value="16" />
     </label>
+    <div class="hour-ticks" id="hour-ticks" aria-hidden="true"></div>  <!-- tick labels under the slider, filled by app.js -->
     <button id="play" type="button">Play</button>
   </section>
   <section class="controls" aria-label="Controls">
     <fieldset>
       <legend>Clock</legend>
-      <label><input type="radio" name="clock" value="local" checked /> Local solar time</label>
-      <label><input type="radio" name="clock" value="utc" /> UTC</label>
+      <div class="seg">
+        <label><input type="radio" name="clock" value="local" checked /> Local solar time</label>
+        <label><input type="radio" name="clock" value="utc" /> UTC</label>
+      </div>
     </fieldset>
     <fieldset>
       <legend>Season</legend>
-      <div id="season-radios"></div>
+      <div id="season-radios" class="seg"></div>
     </fieldset>
     <fieldset>
       <legend>Jump to</legend>
