@@ -165,7 +165,7 @@ export async function auditP3Final(browser, baseURL, { adversarial = true, rende
     await page.mouse.click(scrubBox.x + scrubBox.width * (6 / 23), scrubBox.y + scrubBox.height / 2);
     const scrubbed = await page.evaluate(() => ({
       hour: document.querySelector('#hour').value, label: document.querySelector('#hour-out').textContent,
-      dots: document.querySelectorAll('#line .dots circle').length, pins: document.querySelectorAll('#map .pins circle').length,
+      dots: document.querySelectorAll('#line .dots circle').length, pins: document.querySelectorAll('#map .pins circle.ring').length,
       picks: document.querySelectorAll('#line path.pick').length, selected: document.querySelectorAll('#map .cell.sel').length,
     }));
     check('pressing the line chart moves the hour, with one marker per drawn pick and one ring per picked cell', () => {

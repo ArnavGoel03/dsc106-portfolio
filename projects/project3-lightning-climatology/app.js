@@ -27,6 +27,7 @@ const CONFIG = {
   legendPx: 10,       // smallest on-screen size, in CSS px, for SVG legend and axis text on narrow screens
   narrowPx: 520,      // below this chart width the hour axes show fewer ticks
   colorFloor: 0.08,   // start of the YlOrRd ramp, so the faintest non-zero cells still read against the ocean grey
+  howtoText: "Drag the hour or the line chart, press Play, switch season, hover a cell to preview its curve, and click up to two cells to compare their daily rhythm.",
   noneText: "fewer than 1 flash per year in the sample",  // counts are six-year means rounded to whole flashes
   loadingText: "Loading the lightning counts...",
   stallMs: 12000,     // no new bytes for this long = a stalled connection: abort and start the download again
@@ -263,7 +264,8 @@ function cellLabel(c) {
 }
 
 function setSubtitle() {
-  $("#subtitle").textContent = `${M.source}. ${M.period}, ${M.days_sampled} days sampled at ${M.sample}, averaged to one typical year: ${fmtCount(M.flashes)} flashes per year in the sample on a ${M.cell} degree grid. Showing ${CONFIG.seasonLabels[state.season]}: ${fmtCount(seasonFlashes())} flashes per year in the sample. Drag the hour, press Play, switch season, and click up to two cells to compare their daily rhythm.`;
+  $("#subtitle").textContent = `${M.source}. ${M.period}, ${M.days_sampled.toLocaleString()} days sampled at ${M.sample}, averaged to one typical year: ${fmtCount(M.flashes)} flashes per year in the sample on a ${M.cell} degree grid. Showing ${CONFIG.seasonLabels[state.season]}: ${fmtCount(seasonFlashes())} flashes per year in the sample.`;
+  $("#howto").textContent = CONFIG.howtoText; $("#howto").hidden = false;
 }
 
 function init(landTopo, team) {
@@ -445,9 +447,11 @@ function render() {
     const b = cellBox(state.cursor);
     cursorRect.attr("x", b.x).attr("y", b.y).attr("visibility", "visible").raise();
   } else cursorRect.attr("visibility", "hidden");
-  pinG.selectAll("circle").data(state.sel, (c) => c).join("circle").attr("r", CONFIG.pinR)
-    .attr("cx", (c) => { const b = cellBox(c); return b.x + b.w / 2; }).attr("cy", (c) => { const b = cellBox(c); return b.y + b.h / 2; })
-    .style("stroke", (c) => CONFIG.selColors[state.sel.indexOf(c)]);
+  // Two rings per pick, a white one under the coloured one, so the pick stays visible on the darkest cells.
+  pinG.selectAll("circle").data(state.sel.flatMap((c) => [{ c, halo: true }, { c, halo: false }]), (d) => `${d.c}|${d.halo}`).join("circle")
+    .attr("class", (d) => (d.halo ? "halo" : "ring")).attr("r", CONFIG.pinR)
+    .attr("cx", (d) => { const b = cellBox(d.c); return b.x + b.w / 2; }).attr("cy", (d) => { const b = cellBox(d.c); return b.y + b.h / 2; })
+    .style("stroke", (d) => (d.halo ? null : CONFIG.selColors[state.sel.indexOf(d.c)]));
   $("#hour-out").dataset.sky = state.clock !== "local" ? "" : h >= CONFIG.dayHours[0] && h < CONFIG.dayHours[1] ? "day" : "night";
   drawDots();
   if (state.tip) refreshTip();
