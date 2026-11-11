@@ -9,6 +9,9 @@ const CONFIG = {
   teamPlaceholder: "[TEAM NAME]",
   hourStart: 16,
   sliderTicks: [0, 6, 12, 18],  // hours labelled under the slider
+  dayHours: [6, 18],  // local solar hours shown with the sun glyph beside the hour; the rest get the moon
+  pinR: 11,           // ring around a picked cell, in map viewBox units: a single 8 unit cell is hard to find again
+  dotR: 4.5,          // marker where each picked curve crosses the hour on screen
   playMs: 350,
   maxSelected: 2,
   // Jump-to presets: a point inside the cell (lat, lon). The hour is not fixed here: a jump moves the slider to that
@@ -33,8 +36,10 @@ const CONFIG = {
 };
 
 // tip: the cell under the tooltip and where it was opened, so Play and the keyboard can refresh it in place.
-const state = { hour: CONFIG.hourStart, clock: "local", season: "JJA", sel: [], selAge: [], timer: null, cursor: null, tip: null };
-let D, M, path, cellsSel, legendG, legendAt, cursorRect, cellBox, colorScale, landMask, RAW, DOMAINS;
+// hover: the cell whose curve is previewed in the line chart while the pointer or keyboard cursor rests on it.
+const state = { hour: CONFIG.hourStart, clock: "local", season: "JJA", sel: [], selAge: [], timer: null, cursor: null, tip: null, hover: null };
+let D, M, path, cellsSel, legendG, legendAt, cursorRect, cellBox, colorScale, landMask, RAW, DOMAINS, pinG;
+let lineParts = null;  // the line chart's scales and live layers, kept so hover and hour changes update it without a redraw
 // SVG text is sized in viewBox units, so it shrinks with the chart. This returns the font size, in viewBox units,
 // that keeps text at least CONFIG.legendPx CSS px tall (and never below the desktop size `base`).
 function fontFor(svgSel, viewW, base) {
@@ -325,6 +330,7 @@ function init(landTopo, team) {
     // A tap or click picks the cell and opens its tooltip, so touch screens get the details too.
     .on("click", (ev, c) => { stopPlay(); select(c); state.cursor = ev.detail === 0 ? c : null; render(); drawLine(); showTip(ev, c); });
   svg.append("path").datum(topojson.feature(landTopo, landTopo.objects.land)).attr("class", "land").attr("d", path);
+  pinG = svg.append("g").attr("class", "pins");
   cursorRect = svg.append("rect").attr("class", "cursor").attr("width", cw).attr("height", ch).attr("visibility", "hidden");
   cellBox = (c) => ({ x: x0 + (c % M.nlon) * cw, y: y1 - (Math.floor(c / M.nlon) + 1) * ch, w: cw, h: ch });
   // Legend sits over the empty north-east Pacific corner, on its own backing panel.
@@ -439,6 +445,11 @@ function render() {
     const b = cellBox(state.cursor);
     cursorRect.attr("x", b.x).attr("y", b.y).attr("visibility", "visible").raise();
   } else cursorRect.attr("visibility", "hidden");
+  pinG.selectAll("circle").data(state.sel, (c) => c).join("circle").attr("r", CONFIG.pinR)
+    .attr("cx", (c) => { const b = cellBox(c); return b.x + b.w / 2; }).attr("cy", (c) => { const b = cellBox(c); return b.y + b.h / 2; })
+    .style("stroke", (c) => CONFIG.selColors[state.sel.indexOf(c)]);
+  $("#hour-out").dataset.sky = state.clock !== "local" ? "" : h >= CONFIG.dayHours[0] && h < CONFIG.dayHours[1] ? "day" : "night";
+  drawDots();
   if (state.tip) refreshTip();
   document.querySelectorAll(".jump").forEach((b) => {
     const p = CONFIG.jumps.find((j) => j.id === b.dataset.id);
@@ -478,10 +489,10 @@ function stopPlay() {
 
 // Tooltip. It remembers its cell and anchor point, so Play and the keyboard refresh it in place instead of leaving
 // the previous hour on screen.
-function showTip(ev, c) { state.tip = { c, x: ev.clientX, y: ev.clientY }; refreshTip(); }
+function showTip(ev, c) { state.tip = { c, x: ev.clientX, y: ev.clientY }; refreshTip(); setGhost(c); }
 function showTipAtCell(c) {
   const r = cellsSel.filter((d) => d === c).node().getBoundingClientRect();
-  state.tip = { c, x: r.right, y: r.bottom }; refreshTip();
+  state.tip = { c, x: r.right, y: r.bottom }; refreshTip(); setGhost(c);
 }
 function refreshTip() {
   const { c, x, y } = state.tip, a = counts(), v = a[c * M.hours + state.hour], day = d3.sum(curve(c));
@@ -499,7 +510,23 @@ function refreshTip() {
   tip.style.left = Math.max(pad, left) + "px";
   tip.style.top = Math.max(pad, top) + "px";
 }
-function hideTip() { state.tip = null; $("#tip").hidden = true; }
+function hideTip() { state.tip = null; $("#tip").hidden = true; setGhost(null); }
+// Preview: the curve of the cell under the pointer, drawn dashed in the line chart before any click. A picked cell
+// already has its own curve, and an empty cell has none.
+function setGhost(c) {
+  if (!lineParts || (c === state.hover && c != null)) return;
+  state.hover = c;
+  const a = c == null || state.sel.includes(c) ? null : curve(c);
+  lineParts.ghost.attr("d", a && d3.sum(a) ? lineParts.line(normalise(a)) : null);
+}
+// One marker per picked curve at the hour on screen, so the eye can follow the curves while the map plays.
+function drawDots() {
+  if (!lineParts) return;
+  const picks = state.sel.map((c, k) => ({ k, a: curve(c) })).filter((d) => d3.sum(d.a));
+  lineParts.dots.selectAll("circle").data(picks, (d) => d.k).join("circle").attr("r", CONFIG.dotR)
+    .attr("cx", lineParts.x(state.hour)).attr("cy", (d) => lineParts.y(d.a[state.hour] / d3.max(d.a)))
+    .style("fill", (d) => CONFIG.selColors[d.k]);
+}
 
 // Line chart: hour of day on x, each series scaled to its own peak on y. The legend sits in a band above the plot,
 // never over it, because the peaks it would cover are what the chart is for.
@@ -547,6 +574,18 @@ function drawLine() {
     if (d3.sum(a)) svg.append("path").datum(normalise(a)).attr("class", "pick").style("stroke", CONFIG.selColors[k]).attr("d", line);
   });
   svg.append("line").attr("class", "hour-mark").attr("y1", top).attr("y2", h - bottom).attr("x1", x(state.hour)).attr("x2", x(state.hour));
+  lineParts = { x, y, line, ghost: svg.append("path").attr("class", "ghost"), dots: svg.append("g").attr("class", "dots") };
+  state.hover = null;
+  drawDots();
+  // Press or drag anywhere on the plot to move the hour: the chart is a second, larger slider for the map.
+  const scrub = (ev) => {
+    const hr = Math.max(0, Math.min(M.hours - 1, Math.round(x.invert(d3.pointer(ev, svg.node())[0]))));
+    if (hr === state.hour) return;
+    stopPlay(); state.hour = hr; $("#hour").value = hr; render();
+  };
+  svg.append("rect").attr("class", "scrub").attr("x", left).attr("y", top).attr("width", w - m.r - left).attr("height", h - bottom - top)
+    .on("pointerdown", (ev) => { ev.currentTarget.setPointerCapture(ev.pointerId); scrub(ev); })
+    .on("pointermove", (ev) => { if (ev.buttons) scrub(ev); });
   const peak = (a) => hourLabel(d3.maxIndex(a));
   // an empty cell would otherwise report a peak at 12 AM (maxIndex of all zeros)
   const pick = state.sel.map((c) => { const a = curve(c); return d3.sum(a) ? `${cellLabel(c)} peaks at ${peak(a)}` : `${cellLabel(c)}: ${CONFIG.noneText}`; }).join("; ");

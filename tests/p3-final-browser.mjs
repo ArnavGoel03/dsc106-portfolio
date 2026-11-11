@@ -160,6 +160,28 @@ export async function auditP3Final(browser, baseURL, { adversarial = true, rende
     const laterHour = await page.locator('#hour').inputValue();
     check('Play advances the hour and Pause stops it', () => { assert.equal(paused, 'Play'); assert.equal(laterHour, pausedHour); });
 
+    // Linked views: the line chart scrubs the hour, markers follow the picks, and hovering a cell previews its curve.
+    const scrubBox = await page.locator('#line .scrub').boundingBox();
+    await page.mouse.click(scrubBox.x + scrubBox.width * (6 / 23), scrubBox.y + scrubBox.height / 2);
+    const scrubbed = await page.evaluate(() => ({
+      hour: document.querySelector('#hour').value, label: document.querySelector('#hour-out').textContent,
+      dots: document.querySelectorAll('#line .dots circle').length, pins: document.querySelectorAll('#map .pins circle').length,
+      picks: document.querySelectorAll('#line path.pick').length, selected: document.querySelectorAll('#map .cell.sel').length,
+    }));
+    check('pressing the line chart moves the hour, with one marker per drawn pick and one ring per picked cell', () => {
+      assert.equal(scrubbed.hour, '6'); assert(scrubbed.label.startsWith('6 AM')); assert.equal(scrubbed.dots, scrubbed.picks); assert.equal(scrubbed.pins, scrubbed.selected); assert(scrubbed.pins > 0);
+    });
+    const hoverBox = await page.evaluate(cell => { const r = [...document.querySelectorAll('#map .cell')].find(e => e.__data__ === cell && !e.classList.contains('sel')).getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }, renderFixture.cells[1].cell);
+    await page.mouse.move(hoverBox.x, hoverBox.y);
+    const preview = await page.evaluate(cell => {
+      const ghost = document.querySelector('#line path.ghost'), node = [...document.querySelectorAll('#map .cell')].find(e => e.__data__ === cell);
+      node.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));  // pick it: its real curve must match the preview
+      const picked = [...document.querySelectorAll('#line path.pick')].map(e => e.getAttribute('d'));
+      return { ghost: ghost.getAttribute('d'), picked, after: document.querySelector('#line path.ghost').getAttribute('d') };
+    }, renderFixture.cells[1].cell);
+    check('hovering a cell previews exactly the curve a click then draws, and the preview clears', () => { assert(preview.ghost && preview.ghost.length > 20); assert(preview.picked.includes(preview.ghost)); assert(!preview.after); });
+    await page.mouse.move(2, 2);
+
     for (const width of [320, 360, 390, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.waitForTimeout(200); // let the existing resize debounce redraw SVG labels
