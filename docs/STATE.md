@@ -48,7 +48,7 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
 - Lab 5 (D3 pie chart): code done and live 2026-10-25, commit c38f1e4. All steps plus the Step 5.4 extra-credit fix
   (search and pie selection combine both ways via update() in projects/projects.js). Verified headless (12 cards, 2 wedges,
   search+wedge both orders, stale selection cleared) and live file cmp. OWNER ACTION: record the 1 minute video from
-  https://claude.ai/artifact/5DqNs9BG7BgxvXMTCPzj3r and submit on Gradescope by Fri Oct 30 11:59 PM PDT.
+  the script page and submit on Gradescope by Fri Oct 30 11:59 PM PDT.
   Course-wide dates and slip days: ~/Documents/Coursework/FALL-2026-COURSES.md (private, not in this repo).
 
 - Lab 7 (Mapbox geospatial, Bikewatching): built 2026-11-07 in its own repo, https://github.com/ArnavGoel03/bikewatching,
@@ -57,7 +57,7 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   lib/projects.json (url field, screenshot images/projects/bikewatching.jpg) and renderProjects links titles that have an
   http(s) url. Verified: 7 logic tests against an independent Python count of the real data, 27 browser checks passing
   on the live site, live files byte-identical to HEAD, Projects page shows 13 cards with the link and no console errors.
-  Later the same night: 3 Claude red-team rounds plus an independent Codex audit; fixes through bikewatching a75f1bf
+  Later the same night: 3 red-team rounds plus an independent audit; fixes through bikewatching a75f1bf
   (39 live browser checks). Gradescope Q1 links saved (submission 445954462); the video (Q2) is the owner's.
   Video script kept with the private course notes, not in this repo. Due Fri Nov 13 11:59 PM PT.
 
@@ -80,7 +80,7 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   logged out in Chrome and desktop control is not available in this session.
 - Checkpoint PDFs: Team B saved to ~/Downloads/DSC106-P2-Checkpoint-TeamOzbasVanli.pdf. Team A download blocked
   by Chrome's multiple-download guard; read in the viewer instead.
-- DSC 102 Canvas scores: one-time pull + tracker file. BLOCKED on owner allowing canvas.ucsd.edu in the Claude
+- DSC 102 Canvas scores: one-time pull + tracker file. BLOCKED on owner allowing canvas.ucsd.edu in the browser
   extension site permissions.
 - ~~DSC 106 Lab 4: open, due 10/23 11:59 PM PDT.~~ Submitted 2026-10-25 with 1 slip day (see Labs). Lecture 8 check-in draft ready, owner submits.
 
@@ -103,7 +103,7 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
 
 - The final selection supersedes the CMIP6 prototype above: https://arnavgoel03.github.io/dsc106-portfolio/projects/project3-lightning-climatology/.
 - The shipping session records Gradescope submission 445482031, Group 19 (Yash + Chau), on 2026-11-06. This audit did not submit or resubmit and has not independently checked the receipt inbox.
-- Thorough audit and local repairs are in `docs/P3-FINAL-REDTEAM-2026-11-06.md`; detailed publication handoff is `docs/P3-FINAL-CLAUDE-HANDOFF-2026-11-06.md`.
+- Thorough audit and local repairs are in `docs/P3-FINAL-REDTEAM-2026-11-06.md`.
 - Verified locally: 72 browser checks, 10 offline data tests, JavaScript/Python syntax, clean dependency install, diff checks and inspected renders at 360/390/1024/1440. Exact six-year counts preserve source peak hours and sparse cells; default compressed counts bytes fall from 1,105,373 to 225,876.
 - ~~Publication is pending arnavgoel-53's review/push and live verification.~~ 2026-11-06: published. Source commits 9b5d9a0 (audit repairs), 41aeb89 (whole-number counts, failure-only write-up link), 51d832e (Ocean label margin from measured width). Live CI "P3 final live regression" run 42201317304 on 51d832e: 72 of 72 checks passed against the deployed page (https://github.com/ArnavGoel03/dsc106-portfolio/actions/runs/42201317304). Gradescope 445482031 (Yash + Chau) was verified on its submission page on 2026-11-06; Gradescope sends the submitter no receipt email for link answers. The URL is unchanged, so no resubmission was needed.
 - Historic successful-download coverage cannot be reconstructed from aggregate artifacts. The final write-up discloses this limit; no NOAA refetch or coverage weighting was performed.

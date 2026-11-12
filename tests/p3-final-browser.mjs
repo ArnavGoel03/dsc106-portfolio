@@ -171,6 +171,26 @@ export async function auditP3Final(browser, baseURL, { adversarial = true, rende
     check('pressing the line chart moves the hour, with one marker per drawn pick and one ring per picked cell', () => {
       assert.equal(scrubbed.hour, '6'); assert(scrubbed.label.startsWith('6 AM')); assert.equal(scrubbed.dots, scrubbed.picks); assert.equal(scrubbed.pins, scrubbed.selected); assert(scrubbed.pins > 0);
     });
+    // Moving the slider by hand must pause Play, or the next tick pulls the thumb away.
+    await page.locator('#play').click();
+    await page.locator('#hour').focus();
+    await page.keyboard.press('ArrowRight');
+    const handPlay = await page.locator('#play').innerText();
+    const handHour = await page.locator('#hour').inputValue();
+    await page.waitForTimeout(renderFixture.pauseWaitMs);
+    const handLater = await page.locator('#hour').inputValue();
+    check('moving the slider by hand pauses Play', () => { assert.equal(handPlay, 'Play'); assert.equal(handLater, handHour); });
+    // A finger swiping up or down over the line chart scrolls the page and must not move the hour; a sideways drag does.
+    const touchScrub = await page.evaluate(() => {
+      const el = document.querySelector('#line .scrub'), r = el.getBoundingClientRect(), hour = () => document.querySelector('#hour').value;
+      const fire = (type, x, y) => el.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerId: 7, pointerType: 'touch', isPrimary: true, buttons: type === 'pointerup' ? 0 : 1, clientX: x, clientY: y }));
+      const x0 = r.x + r.width * (18 / 23), y0 = r.y + r.height * 0.3, before = hour();
+      fire('pointerdown', x0, y0); fire('pointermove', x0 + 2, y0 + 30); fire('pointermove', x0 + 3, y0 + 70); fire('pointercancel', x0 + 3, y0 + 70);
+      const afterVertical = hour();
+      fire('pointerdown', x0, y0); fire('pointermove', x0 - 20, y0 + 2); fire('pointermove', r.x + r.width * (12 / 23), y0 + 3); fire('pointerup', r.x + r.width * (12 / 23), y0 + 3);
+      return { before, afterVertical, afterHorizontal: hour() };
+    });
+    check('a vertical touch swipe on the line chart leaves the hour alone and a sideways drag moves it', () => { assert.equal(touchScrub.afterVertical, touchScrub.before); assert.equal(touchScrub.afterHorizontal, '12'); });
     const hoverBox = await page.evaluate(cell => { const r = [...document.querySelectorAll('#map .cell')].find(e => e.__data__ === cell && !e.classList.contains('sel')).getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }, renderFixture.cells[1].cell);
     await page.mouse.move(hoverBox.x, hoverBox.y);
     const preview = await page.evaluate(cell => {

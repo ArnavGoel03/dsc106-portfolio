@@ -190,7 +190,8 @@ figcaption { color: var(--muted); font-size: 0.84rem; line-height: 1.5; padding:
 .pins circle { fill: none; stroke-width: 2.5; pointer-events: none; }
 .pins .halo { stroke: var(--panel); stroke-width: 5.5; }
 /* pan-y: a sideways drag scrubs the hour, an up or down swipe still scrolls the page */
-.scrub { fill: transparent; cursor: ew-resize; touch-action: pan-y; }
+.scrub { fill: transparent; cursor: ew-resize; touch-action: pan-y pinch-zoom; }
+#line { user-select: none; -webkit-user-select: none; }  /* a drag on the chart must not select the captions */
 .hour-mark { stroke: var(--ink); stroke-width: 1.2; stroke-dasharray: 3 3; opacity: 0.55; }
 .legend text { font-size: 11px; fill: var(--muted); }
 .legend-bg { fill: var(--panel); opacity: 0.92; }

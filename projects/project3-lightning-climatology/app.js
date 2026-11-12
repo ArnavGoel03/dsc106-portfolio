@@ -14,6 +14,7 @@ const CONFIG = {
   dotR: 4.5,          // marker where each picked curve crosses the hour on screen
   playMs: 350,
   maxSelected: 2,
+  touchScrubPx: 8,   // a finger must travel this far sideways on the line chart before it scrubs (below it, a tap)
   // Jump-to presets: a point inside the cell (lat, lon). The hour is not fixed here: a jump moves the slider to that
   // cell's own busiest local solar hour in the season on screen, so the preset never lands on a dim hour.
   jumps: [
@@ -281,7 +282,8 @@ function init(landTopo, team) {
     const t = $("#hour-ticks").appendChild(document.createElement("span"));
     t.textContent = tickLabel(d); t.style.setProperty("--p", d / (M.hours - 1));
   }
-  hourIn.addEventListener("input", () => { state.hour = +hourIn.value; render(); });
+  // moving the slider by hand pauses Play, otherwise the next tick pulls the thumb away from the pointer
+  hourIn.addEventListener("input", () => { stopPlay(); state.hour = +hourIn.value; render(); });
   $("#play").addEventListener("click", togglePlay);
   document.querySelectorAll("input[name=clock]").forEach((r) => r.addEventListener("change", () => { void setView($("input[name=season]:checked").value, r.value); }));
   const sr = $("#season-radios");
@@ -584,12 +586,34 @@ function drawLine() {
   // Press or drag anywhere on the plot to move the hour: the chart is a second, larger slider for the map.
   const scrub = (ev) => {
     const hr = Math.max(0, Math.min(M.hours - 1, Math.round(x.invert(d3.pointer(ev, svg.node())[0]))));
+    stopPlay();
     if (hr === state.hour) return;
-    stopPlay(); state.hour = hr; $("#hour").value = hr; render();
+    state.hour = hr; $("#hour").value = hr; render();
   };
+  // A finger that lands on the chart may be starting a page scroll, so touch scrubs only once the move is clearly
+  // sideways (or on a plain tap); the mouse scrubs straight away, primary button only.
+  let touchStart = null, touchScrub = false;
   svg.append("rect").attr("class", "scrub").attr("x", left).attr("y", top).attr("width", w - m.r - left).attr("height", h - bottom - top)
-    .on("pointerdown", (ev) => { ev.currentTarget.setPointerCapture(ev.pointerId); scrub(ev); })
-    .on("pointermove", (ev) => { if (ev.buttons) scrub(ev); });
+    .on("pointerdown", (ev) => {
+      if (ev.pointerType === "touch") { touchStart = [ev.clientX, ev.clientY]; touchScrub = false; return; }
+      if (ev.button !== 0) return;
+      ev.preventDefault(); ev.currentTarget.setPointerCapture(ev.pointerId); scrub(ev);
+    })
+    .on("pointermove", (ev) => {
+      if (ev.pointerType === "touch") {
+        if (!touchStart) return;
+        const dx = Math.abs(ev.clientX - touchStart[0]), dy = Math.abs(ev.clientY - touchStart[1]);
+        if (!touchScrub && dx > CONFIG.touchScrubPx && dx > dy) touchScrub = true;
+        if (touchScrub) scrub(ev);
+      } else if (ev.buttons & 1) scrub(ev);
+    })
+    .on("pointerup", (ev) => {
+      if (ev.pointerType !== "touch" || !touchStart) return;
+      const moved = Math.hypot(ev.clientX - touchStart[0], ev.clientY - touchStart[1]);
+      if (!touchScrub && moved < CONFIG.touchScrubPx) scrub(ev);  // a tap
+      touchStart = null;
+    })
+    .on("pointercancel", () => { touchStart = null; });
   const peak = (a) => hourLabel(d3.maxIndex(a));
   // an empty cell would otherwise report a peak at 12 AM (maxIndex of all zeros)
   const pick = state.sel.map((c) => { const a = curve(c); return d3.sum(a) ? `${cellLabel(c)} peaks at ${peak(a)}` : `${cellLabel(c)}: ${CONFIG.noneText}`; }).join("; ");

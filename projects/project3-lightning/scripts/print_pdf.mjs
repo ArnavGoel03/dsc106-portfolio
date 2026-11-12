@@ -1,4 +1,4 @@
-// Print an HTML file to PDF through chrome-headless-shell on :9333 (see ~/.claude/scripts/shot.mjs for how it is started).
+// Print an HTML file to PDF through chrome-headless-shell on :9333.
 // usage: node print_pdf.mjs <in.html> <out.pdf>
 import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";

@@ -15,7 +15,7 @@
   </header>
   <!-- the hour row stays pinned while scrolling, so the map can be watched while the slider moves -->
   <section class="timebar controls" aria-label="Hour">
-    <label class="hour-ctl"><span class="vh">Hour </span><output id="hour-out"></output>
+    <label class="hour-ctl"><span class="vh">Hour </span><output id="hour-out" aria-live="off"></output>
       <input type="range" id="hour" min="0" max="23" step="1" value="16" />
     </label>
     <div class="hour-ticks" id="hour-ticks" aria-hidden="true"></div>  <!-- tick labels under the slider, filled by app.js -->
@@ -56,7 +56,7 @@
   <footer>
     <p id="team"></p>
     <p id="source"></p>
-    <p>The map shows the six-year average (2019 to 2024) of flashes per year in the sample; seasons are calendar quarters, DJF being January, February and December of the same year. GLM counts total lightning flashes (in-cloud plus cloud-to-ground), so this page says flashes, not strikes. GLM detects a smaller share of flashes in daytime and near the edge of its view. The curves are scaled to each cell's own peak and compare shapes, not raw totals. Six years of one satellite at one sampling rate: a climatology of the sample, with GLM's own detection limits built in. Land outline: Natural Earth via world-atlas.</p>
+    <p>The map shows the six-year average (2019 to 2024) of flashes per year in the sample; seasons are three-month groups, DJF being January, February and December of the same year. GLM counts total lightning flashes (in-cloud plus cloud-to-ground), so this page says flashes, not strikes. GLM detects a smaller share of flashes in daytime and near the edge of its view. The curves are scaled to each cell's own peak and compare shapes, not raw totals. Six years of one satellite at one sampling rate: a climatology of the sample, with GLM's own detection limits built in. Land outline: Natural Earth via world-atlas.</p>
   </footer>
   <script src="vendor/d3.min.js"></script>
   <script src="vendor/topojson-client.min.js"></script>

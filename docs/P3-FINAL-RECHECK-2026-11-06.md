@@ -38,4 +38,4 @@ Owner request: recheck the published six-year final for remaining issues and wor
 
 No additional required-rubric blocker was found within this review. Useful optional improvements are individual year labels/tooltips in the annual chart and clickable NOAA product/source references. Asynchronous view-loading announcements could further improve assistive-technology feedback. These are presentation improvements, not unresolved data or interaction defects, and no new user-facing wording or larger feature was added for them.
 
-The detailed second-pass findings, source commit, verification and remaining limits are handed to Claude through coord. The original submission URL and Gradescope record are unchanged.
+The original submission URL and Gradescope record are unchanged.

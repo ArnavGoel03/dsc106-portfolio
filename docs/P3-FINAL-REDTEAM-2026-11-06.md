@@ -12,7 +12,6 @@ Scope: the selected six-year Lightning final at `projects/project3-lightning-cli
 | Responsive render | Complete. Inspected 390 px render; no horizontal overflow or clipped SVG text at 320, 360, 390, 768, 1024 or 1440 px. Visible SVG labels measure at least approximately 10 CSS px after SVG transforms. |
 | Adversarial loading | Complete. Raw fallback, failed/truncated counts, touch details tested; metadata stall and missing write-up reproduced. |
 | Corrected final and regression checks | Complete locally. 72 browser checks and 10 offline data tests pass; source syntax, dependency install and diff checks pass. |
-| Detailed Claude handoff | Complete in `P3-FINAL-CLAUDE-HANDOFF-2026-11-06.md`; local commit hash is sent through coord. |
 | Release and post-deploy verification | Owned by arnavgoel-53 after its review. This audit does not push or resubmit. |
 
 ## Confirmed findings

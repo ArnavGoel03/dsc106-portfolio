@@ -5,3 +5,8 @@
 /shots/frame*.png
 /shots/eda_contact.png
 /shots/clip.mp4
+__pycache__/
+# owner-facing working notes, kept local
+/WRITEUP-OUTLINE.md
+/WRITEUP-DRAFT.md
+/OWNER-CHECKLIST.md
