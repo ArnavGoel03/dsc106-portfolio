@@ -154,7 +154,13 @@ legend {
 #jumps { display: inline-flex; flex-wrap: wrap; gap: 8px; }  /* inline, so the full-width floated legend pushes it to its own line */
 
 /* Charts */
-main { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 14px; margin-top: 14px; align-items: start; }
+/* Wide screens: the map sits directly under the pinned hour bar, with the controls and the charts beside it, so the
+   map is on screen without scrolling. The side column comes first in the markup so the controls keep their tab order. */
+main { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 14px; margin-top: 14px; align-items: start; }
+.map-wrap { grid-column: 1; grid-row: 1; }
+.side { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.side .controls { margin: 0; gap: 12px 24px; }
+.side .seg label { padding: 6px 6px; font-size: 0.82rem; }  /* five season buttons fit one row in the side column */
 figure { margin: 0; padding: 14px 16px 10px; }
 svg { width: 100%; height: auto; display: block; }
 figcaption { color: var(--muted); font-size: 0.84rem; line-height: 1.5; padding: 10px 2px 4px; text-wrap: pretty; }
@@ -196,8 +202,9 @@ figcaption { color: var(--muted); font-size: 0.84rem; line-height: 1.5; padding:
 .legend text { font-size: 11px; fill: var(--muted); }
 .legend-bg { fill: var(--panel); opacity: 0.92; }
 .year-line { fill: none; stroke-width: 1.4; opacity: 0.75; stroke-linecap: round; }
-.land-year { stroke: var(--accent); }
-.ocean-year { stroke: var(--sel-b); stroke-dasharray: 4 3; }
+/* same marks as the land and ocean references in the hour chart: orange and blue stay reserved for the two picks */
+.land-year { stroke: var(--muted); }
+.ocean-year { stroke: var(--muted); stroke-dasharray: 4 3; }
 .lbl { font-size: 12px; fill: var(--muted); }
 
 /* Write-up: one reading column */
@@ -215,7 +222,13 @@ footer { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--rule);
 footer p { margin: 0 0 8px; max-width: 120ch; }
 #team { color: var(--ink); font-weight: 600; font-size: 0.85rem; }
 
-@media (max-width: 1000px) { main { grid-template-columns: minmax(0, 1fr); } }
+/* One column: controls, then the map, then the charts */
+@media (max-width: 1000px) {
+  main { grid-template-columns: minmax(0, 1fr); }
+  .side { display: contents; }
+  .map-wrap, .side { grid-column: auto; grid-row: auto; }
+  .side .controls { order: 0; } .map-wrap { order: 1; } .line-wrap { order: 2; }
+}
 @media (max-width: 600px) {
   body { padding: 18px 14px 14px; }
   /* pinned hour bar: Play and the hour on one row, the scrubber under them, so the bar stays short */

@@ -265,7 +265,7 @@ function cellLabel(c) {
 }
 
 function setSubtitle() {
-  $("#subtitle").textContent = `${M.source}. ${M.period}, ${M.days_sampled.toLocaleString()} days sampled at ${M.sample}, averaged to one typical year: ${fmtCount(M.flashes)} flashes per year in the sample on a ${M.cell} degree grid. Showing ${CONFIG.seasonLabels[state.season]}: ${fmtCount(seasonFlashes())} flashes per year in the sample.`;
+  $("#subtitle").textContent = `${M.source}. ${M.period}, ${M.days_sampled.toLocaleString()} days sampled at ${M.sample}, averaged to one typical year: ${fmtCount(M.flashes)} flashes per year in the sample on a ${M.cell} degree grid. Good-quality flashes only, ${M.artifact_cells_removed} false-event cell${M.artifact_cells_removed === 1 ? "" : "s"} removed, coloured per 10,000 km2. Showing ${CONFIG.seasonLabels[state.season]}: ${fmtCount(seasonFlashes())} flashes per year in the sample.`;
   $("#howto").textContent = CONFIG.howtoText; $("#howto").hidden = false;
 }
 
@@ -332,7 +332,7 @@ function init(landTopo, team) {
     .on("pointermove", (ev, c) => { if (ev.pointerType === "mouse") showTip(ev, c); })
     .on("pointerleave", (ev) => { if (ev.pointerType === "mouse") hideTip(); })
     // A tap or click picks the cell and opens its tooltip, so touch screens get the details too.
-    .on("click", (ev, c) => { stopPlay(); select(c); state.cursor = ev.detail === 0 ? c : null; render(); drawLine(); showTip(ev, c); });
+    .on("click", (ev, c) => { stopPlay(); select(c, true); state.cursor = ev.detail === 0 ? c : null; render(); drawLine(); showTip(ev, c); });
   svg.append("path").datum(topojson.feature(landTopo, landTopo.objects.land)).attr("class", "land").attr("d", path);
   pinG = svg.append("g").attr("class", "pins");
   cursorRect = svg.append("rect").attr("class", "cursor").attr("width", cw).attr("height", ch).attr("visibility", "hidden");
@@ -353,7 +353,7 @@ function init(landTopo, team) {
       const j = Math.min(M.nlon - 1, Math.max(0, (c0 % M.nlon) + step[1]));
       state.cursor = cellId(i, j); render(); showTipAtCell(state.cursor);
     } else if ((ev.key === "Enter" || ev.key === " ") && state.cursor != null) {
-      ev.preventDefault(); stopPlay(); select(state.cursor); render(); drawLine(); showTipAtCell(state.cursor);
+      ev.preventDefault(); stopPlay(); select(state.cursor, true); render(); drawLine(); showTipAtCell(state.cursor);
     } else if (ev.key === "Escape") hideTip();
   }).on("blur", () => { state.cursor = null; render(); hideTip(); });
   // Tapping anywhere outside a map cell closes a tooltip that a tap opened.
@@ -365,7 +365,7 @@ function init(landTopo, team) {
   // Colour: sqrt scale on the per-hour flash density, domain fixed across hours AND seasons so the animation and the
   // season switch stay comparable (winter looks dimmer because it is).
   // Two domains: one shared by the four seasons (so switching season is comparable) and one for the whole-year
-  // view, whose cells hold about four times the flashes; the legend is redrawn whenever the domain changes.
+  // view, whose busiest cell-hour holds about twice the flashes; the legend is redrawn whenever the domain changes.
   const maxOf = (names) => { let m = 1; for (const sn of names) for (const clock of M.clocks) { const a = grid(sn, clock); for (let c = 0; c < cells.length; c++) for (let h = 0; h < M.hours; h++) { const v = density(c, a[c * M.hours + h]); if (v > m) m = v; } } return m; };
   DOMAINS = M.density_domains || { season: maxOf(M.seasons), YEAR: maxOf(["YEAR"]) };
   setColorScale();
@@ -424,9 +424,11 @@ function setColorScale() {
 }
 
 let selClock = 0;
-function select(c) {
+function select(c, toggle = false) {
+  // Clicking a picked cell again removes it (toggle); a jump button only ever adds, so it stays a plain pick.
   // A third click replaces the oldest pick in place, so the other pick keeps its colour.
-  if (state.sel.includes(c)) return;
+  const at = state.sel.indexOf(c);
+  if (at >= 0) { if (toggle) { state.sel.splice(at, 1); state.selAge.splice(at, 1); } return; }
   if (state.sel.length < CONFIG.maxSelected) { state.sel.push(c); state.selAge.push(++selClock); return; }
   const k = d3.minIndex(state.selAge);
   state.sel[k] = c; state.selAge[k] = ++selClock;
@@ -470,7 +472,10 @@ function drawLegend(maxCount) {
   // Drawn at desktop size on its own backing panel, then scaled as a group so it stays readable on a narrow map.
   const k = fontFor(d3.select("#map"), CONFIG.map.w, 11) / 11;
   legendG.attr("transform", `translate(${legendAt[0]}, ${legendAt[1]}) scale(${k})`);
-  const w = 200, hgt = 10, pad = 8, ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(maxCount * t * t));
+  const w = 200, hgt = 10, pad = 8;
+  // Round values near the quarter points of the ramp (and the top, rounded down so it stays inside the domain),
+  // each drawn at its true square-root position instead of at an even spacing with awkward numbers.
+  const ticks = [0].concat([0.25, 0.5, 0.75].map((t) => +(maxCount * t * t).toPrecision(1)), Math.floor(maxCount / 100) * 100);
   legendG.append("rect").attr("class", "legend-bg").attr("width", 292).attr("height", hgt + 44).attr("rx", 4);
   const g = legendG.append("g").attr("transform", `translate(${pad}, ${pad + 14})`);
   g.append("text").attr("y", -4).text(state.season === "YEAR" ? "Flashes per 10,000 km2 (whole year), sqrt scale" : "Flashes per 10,000 km2 (one season), sqrt scale");
@@ -479,7 +484,7 @@ function drawLegend(maxCount) {
   d3.range(0, 1.001, 0.1).forEach((t) => defs.append("stop").attr("offset", t).attr("stop-color", colorScale(maxCount * t * t)));
   g.append("rect").attr("width", w).attr("height", hgt).attr("fill", `url(#${id})`).attr("stroke", "var(--rule)");
   g.selectAll("text.t").data(ticks).join("text").attr("class", "t")
-    .attr("x", (_, i) => (i / (ticks.length - 1)) * w).attr("y", hgt + 12).attr("text-anchor", (_, i) => (i === 0 ? "start" : i === ticks.length - 1 ? "end" : "middle"))
+    .attr("x", (v) => Math.sqrt(v / maxCount) * w).attr("y", hgt + 12).attr("text-anchor", (_, i) => (i === 0 ? "start" : i === ticks.length - 1 ? "end" : "middle"))
     .text((v) => v.toLocaleString());
 }
 
@@ -617,5 +622,5 @@ function drawLine() {
   const peak = (a) => hourLabel(d3.maxIndex(a));
   // an empty cell would otherwise report a peak at 12 AM (maxIndex of all zeros)
   const pick = state.sel.map((c) => { const a = curve(c); return d3.sum(a) ? `${cellLabel(c)} peaks at ${peak(a)}` : `${cellLabel(c)}: ${CONFIG.noneText}`; }).join("; ");
-  $("#line-caption").textContent = `${CONFIG.seasonLabels[state.season]}: land peaks at ${peak(ref.land)} and ocean at ${peak(ref.ocean)} (${clockLabel()}). ${pick}. Each curve is divided by its own busiest hour.`;
+  $("#line-caption").textContent = `${CONFIG.seasonLabels[state.season]}: land peaks at ${peak(ref.land)} and ocean at ${peak(ref.ocean)} (${clockLabel()}). ${pick ? pick + ". " : ""}Each curve is divided by its own busiest hour.`;
 }

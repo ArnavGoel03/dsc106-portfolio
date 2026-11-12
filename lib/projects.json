@@ -1,5 +1,12 @@
 [
   {
+    "title": "When Does Lightning Strike? Day and Night over the Americas",
+    "year": 2026,
+    "image": "images/projects/lightning-climatology.jpg",
+    "url": "https://arnavgoel03.github.io/dsc106-portfolio/projects/project3-lightning-climatology/",
+    "description": "D3 map of six years of GOES-16 GLM lightning flashes (2019 to 2024) on a 1 degree grid. An hour slider and Play show when lightning happens in local solar time, and clicking two cells compares their daily rhythm against all land and all ocean."
+  },
+  {
     "title": "Bikewatching",
     "year": 2026,
     "image": "images/projects/bikewatching.jpg",

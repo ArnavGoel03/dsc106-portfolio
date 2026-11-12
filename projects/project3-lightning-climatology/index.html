@@ -21,33 +21,35 @@
     <div class="hour-ticks" id="hour-ticks" aria-hidden="true"></div>  <!-- tick labels under the slider, filled by app.js -->
     <button id="play" type="button">Play</button>
   </section>
-  <section class="controls" aria-label="Controls">
-    <fieldset>
-      <legend>Clock</legend>
-      <div class="seg">
-        <label><input type="radio" name="clock" value="local" checked /> Local solar time</label>
-        <label><input type="radio" name="clock" value="utc" /> UTC</label>
-      </div>
-    </fieldset>
-    <fieldset>
-      <legend>Season</legend>
-      <div id="season-radios" class="seg"></div>
-    </fieldset>
-    <fieldset>
-      <legend>Jump to</legend>
-      <div id="jumps"></div>
-    </fieldset>
-  </section>
   <main>
+    <div class="side">
+      <section class="controls" aria-label="Controls">
+        <fieldset>
+          <legend>Clock</legend>
+          <div class="seg">
+            <label><input type="radio" name="clock" value="local" checked /> Local solar time</label>
+            <label><input type="radio" name="clock" value="utc" /> UTC</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Season</legend>
+          <div id="season-radios" class="seg"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Jump to</legend>
+          <div id="jumps"></div>
+        </fieldset>
+      </section>
+      <figure class="line-wrap">
+        <svg id="line" role="img" aria-label="Flashes by hour of day for the selected cells, each scaled to its own peak"></svg>
+        <figcaption id="line-caption"></figcaption>
+        <svg id="years" role="img" aria-label="Land and ocean flashes by hour of day, one line per year, 2019 to 2024"></svg>
+        <figcaption id="years-caption"></figcaption>
+      </figure>
+    </div>
     <figure class="map-wrap">
       <svg id="map" role="img" aria-label="Map of lightning flashes per 1 degree cell at the selected hour. Focus it and use the arrow keys to move between cells, Enter to pick a cell."></svg>
       <figcaption id="map-caption"></figcaption>
-    </figure>
-    <figure class="line-wrap">
-      <svg id="line" role="img" aria-label="Flashes by hour of day for the selected cells, each scaled to its own peak"></svg>
-      <figcaption id="line-caption"></figcaption>
-      <svg id="years" role="img" aria-label="Land and ocean flashes by hour of day, one line per year, 2019 to 2024"></svg>
-      <figcaption id="years-caption"></figcaption>
     </figure>
   </main>
   <p id="writeup-link" hidden><a href="writeup.md">Write-up</a></p>  <!-- shown only if the inline write-up fails to load -->
@@ -56,7 +58,7 @@
   <footer>
     <p id="team"></p>
     <p id="source"></p>
-    <p>The map shows the six-year average (2019 to 2024) of flashes per year in the sample; seasons are three-month groups, DJF being January, February and December of the same year. GLM counts total lightning flashes (in-cloud plus cloud-to-ground), so this page says flashes, not strikes. GLM detects a smaller share of flashes in daytime and near the edge of its view. The curves are scaled to each cell's own peak and compare shapes, not raw totals. Six years of one satellite at one sampling rate: a climatology of the sample, with GLM's own detection limits built in. Land outline: Natural Earth via world-atlas.</p>
+    <p>The map shows the six-year average (2019 to 2024) of flashes per year in the sample; seasons are three-month groups, DJF being January, February and December of the same year. GLM counts total lightning flashes (in-cloud plus cloud-to-ground), so this page says flashes, not strikes. GLM detects a smaller share of flashes in daytime and near the edge of its view. The curves in the hour chart are scaled to each series' own peak and compare shapes, not raw totals. Six years of one satellite at one sampling rate: a climatology of the sample, with GLM's own detection limits built in. Land outline: Natural Earth via world-atlas.</p>
   </footer>
   <script src="vendor/d3.min.js"></script>
   <script src="vendor/topojson-client.min.js"></script>

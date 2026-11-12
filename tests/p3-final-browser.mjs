@@ -191,6 +191,18 @@ export async function auditP3Final(browser, baseURL, { adversarial = true, rende
       return { before, afterVertical, afterHorizontal: hour() };
     });
     check('a vertical touch swipe on the line chart leaves the hour alone and a sideways drag moves it', () => { assert.equal(touchScrub.afterVertical, touchScrub.before); assert.equal(touchScrub.afterHorizontal, '12'); });
+    // Clicking a picked cell again removes it; its curve, ring and legend row go with it.
+    const unpick = await page.evaluate(() => {
+      const count = () => ({ sel: document.querySelectorAll('#map .cell.sel').length, picks: document.querySelectorAll('#line path.pick').length, pins: document.querySelectorAll('#map .pins circle.ring').length });
+      const before = count(), node = document.querySelector('#map .cell.sel'), cell = node.__data__;
+      node.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+      const after = count();
+      [...document.querySelectorAll('#map .cell')].find(e => e.__data__ === cell).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+      return { before, after, again: count() };
+    });
+    check('clicking a picked cell removes it and clicking it again brings it back', () => {
+      assert.equal(unpick.after.sel, unpick.before.sel - 1); assert.equal(unpick.after.pins, unpick.after.sel); assert(unpick.after.picks <= unpick.after.sel); assert.equal(unpick.again.sel, unpick.before.sel);
+    });
     const hoverBox = await page.evaluate(cell => { const r = [...document.querySelectorAll('#map .cell')].find(e => e.__data__ === cell && !e.classList.contains('sel')).getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }, renderFixture.cells[1].cell);
     await page.mouse.move(hoverBox.x, hoverBox.y);
     const preview = await page.evaluate(cell => {
