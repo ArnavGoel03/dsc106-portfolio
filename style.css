@@ -511,6 +511,17 @@ dl.info[hidden]:not(:hover, :focus-within) {
   }
 }
 
+/* Lab 8, Step 2.4: language key for the dots, reusing the Lab 5 legend box and swatches (not clickable) */
+#files-legend {
+  margin-block-end: 1em;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+}
+
 /* Lab 8, Step 2.1 + 2.2: file names on the left, one dot per line on the right */
 #files {
   display: grid;

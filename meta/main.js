@@ -358,6 +358,15 @@ let data = await loadData();
 commits = processCommits(data);
 filteredCommits = commits;
 
+// Fix the colour order once, so a language keeps its colour whichever file is biggest at the moment
+colors.domain(d3.sort(new Set(data.map((d) => d.type))));
+d3.select('#files-legend')
+  .selectAll('li')
+  .data(colors.domain())
+  .join('li')
+  .attr('style', (d) => `--color: ${colors(d)}`)
+  .html((d) => `<span class="swatch"></span>${d}`);
+
 const timeScale = d3
   .scaleTime()
   .domain([d3.min(commits, (d) => d.datetime), d3.max(commits, (d) => d.datetime)])
