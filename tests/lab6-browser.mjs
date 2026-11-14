@@ -101,6 +101,8 @@ const OUTPUT = outputDirectory;
     }
     await page.mouse.move(0,0);
     check('Tooltip hides when pointer leaves',await page.evaluate(()=>document.querySelector('#commit-tooltip').hidden));
+    // Let the fade-out finish: a still-fading tooltip can sit over the next dot and catch the pointer
+    await page.waitForTimeout(600);
     await page.setViewportSize(viewports.short);
     await page.locator('#chart svg').scrollIntoViewIfNeeded();
     const bottomIndex = await page.evaluate(() => {
@@ -130,6 +132,35 @@ const OUTPUT = outputDirectory;
     const mobileWidth = await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
     check('Selected language stats fit on a phone', mobileWidth);
     if (OUTPUT) await page.screenshot({path:OUTPUT+'/mobile-selected.png',fullPage:true});
+    // Lab 8: slider filter, one redrawn chart, unit visualization, and the scroll story driving all three
+    await page.setViewportSize(viewports.desktop);
+    await page.evaluate(() => scrollTo(0, 0));
+    const lab8State = () => page.evaluate(() => ({
+      circles: document.querySelectorAll('#chart circle').length,
+      svgs: document.querySelectorAll('#chart svg').length,
+      slider: Number(document.querySelector('#commit-progress').value),
+      time: document.querySelector('#commit-time').textContent,
+      files: document.querySelectorAll('#files > div').length,
+      locs: document.querySelectorAll('#files .loc').length,
+      steps: document.querySelectorAll('#scatter-story .step').length,
+      sortedFiles: [...document.querySelectorAll('#files > div')].map(d => d.__data__.lines.length).every((n, i, a) => i === 0 || a[i - 1] >= n),
+    }));
+    const lab8Full = await lab8State();
+    check('Lab 8: page opens on the full history', lab8Full.slider === 100 && lab8Full.circles === initial.count && lab8Full.svgs === 1, lab8Full);
+    check('Lab 8: one story step per commit, files sorted by size', lab8Full.steps === lab8Full.circles && lab8Full.sortedFiles && lab8Full.locs > 0, lab8Full);
+    await page.locator('#commit-progress').fill('30');
+    await page.waitForTimeout(300);
+    const partial = await lab8State();
+    check('Lab 8: slider filters dots and files without adding a chart', partial.circles > 0 && partial.circles < lab8Full.circles && partial.svgs === 1 && partial.locs < lab8Full.locs && partial.time !== lab8Full.time, partial);
+    await page.evaluate(() => document.querySelectorAll('#scatter-story .step')[5].scrollIntoView({ block: 'center' }));
+    await page.waitForTimeout(600);
+    const story = await lab8State();
+    check('Lab 8: scrolling the story moves chart and slider to that commit', story.circles === 6 && story.svgs === 1 && story.slider < 30, story);
+    if (OUTPUT) await page.screenshot({path:OUTPUT+'/lab8-story.png'});
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.waitForTimeout(600);
+    const back = await lab8State();
+    check('Lab 8: scrolling back above the story restores the full history', back.circles === lab8Full.circles && back.slider === 100, back);
     check('No runtime/console errors',errors.length===0,errors);
     const result={url:URL_BASE+'meta/',checkedAt:new Date().toISOString(),checks,failures:checks.filter(c=>!c.pass),initial,errors};
 
