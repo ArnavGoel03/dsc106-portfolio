@@ -51,6 +51,14 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   the script page and submit on Gradescope by Fri Oct 30 11:59 PM PDT.
   Course-wide dates and slip days: ~/Documents/Coursework/FALL-2026-COURSES.md (private, not in this repo).
 
+- Lab 8 (Animation and Scrollytelling): built 2026-11-14 on the Meta page, spec https://dsc106.com/labs/lab08/. Steps 1 to 3
+  (commit time slider, one keyed and redrawn scatter plot with @starting-style grow, file unit visualization coloured by
+  language with a fixed key, Scrollama story beside a sticky chart that returns to full history above the story); optional
+  Step 4 (second scrolly for files) not built. Tooltip time cell renamed #commit-hour because the slider owns #commit-time.
+  Browser suite (tests/lab6-browser.mjs) has 5 Lab 8 checks, 25/25 on the live page, live files = HEAD 2b346f5.
+  Gradescope Q1 links saved 2026-11-14 (submission 448373018). OWNER ACTION: record and upload the Q2 video from
+  ~/Documents/Coursework/DSC106/DSC106-Lab8-Video-Script.pdf, due Fri Nov 20 11:59 PM PT.
+
 - Lab 7 (Mapbox geospatial, Bikewatching): built 2026-11-07 in its own repo, https://github.com/ArnavGoel03/bikewatching,
   live at https://arnavgoel03.github.io/bikewatching/ (deploys by GitHub Actions, which injects the Mapbox token from the
   MAPBOX_TOKEN repo secret; the token is never committed). Steps 0 to 6 there; Step 7 here: Bikewatching card in
