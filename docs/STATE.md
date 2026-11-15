@@ -109,6 +109,10 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   at layout time and never changes on a brush, scrolling inside and focusable; with no room for the count line the
   plot unpins. Laptop flow, axes at six sizes and the laptop brush summary compared identical to 9c86291. 4fefcbc data:
   76 commits, 5,266 lines. Suite 46/46 live in IST and LA, live files = HEAD.
+  CI: the phone brush check needed two test-only fixes for Linux font metrics (0ec5343, 9888bbf: bring an unpinned
+  plot into view before brushing; hold the height only while pinned). CI green on 9888bbf. Codex final verdict
+  2026-11-16: all three retained issues closed in tested scope, no regressions; the unpin fallback on a too-small
+  phone stays an explicit tradeoff. Owner action left: record and upload the Q2 video.
   Gradescope Q1 links saved 2026-11-14 (submission 448373018). OWNER ACTION: record and upload the Q2 video from
   ~/Documents/Coursework/DSC106/DSC106-Lab8-Video-Script.pdf, due Fri Nov 20 11:59 PM PT.
 
