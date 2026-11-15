@@ -55,7 +55,11 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   (commit time slider, one keyed and redrawn scatter plot with @starting-style grow, file unit visualization coloured by
   language with a fixed key, Scrollama story beside a sticky chart that returns to full history above the story); optional
   Step 4 (second scrolly for files) not built. Tooltip time cell renamed #commit-hour because the slider owns #commit-time.
-  Browser suite (tests/lab6-browser.mjs) has 5 Lab 8 checks, 25/25 on the live page, live files = HEAD 2b346f5.
+  ~~Browser suite has 5 Lab 8 checks, 25/25 on the live page, live files = HEAD 2b346f5.~~ Superseded 2026-11-15:
+  red-team (spec, code, script, Gradescope) fixed a stale tooltip, a blank one-commit x-axis, radii rescaling with the
+  filter, mixed clocks (slider, filter, label and story now use wallClock like the dots) and sticky-box overflow
+  (commit 204fca1). Suite now has 9 Lab 8 checks, 29/29 on the live page in IST and LA (LAB6_TZ), live main.js and
+  style.css = HEAD by shasum; the 4 new checks fail on the old code. Video script retimed to 116 words, stop at 0:54.
   Gradescope Q1 links saved 2026-11-14 (submission 448373018). OWNER ACTION: record and upload the Q2 video from
   ~/Documents/Coursework/DSC106/DSC106-Lab8-Video-Script.pdf, due Fri Nov 20 11:59 PM PT.
 
