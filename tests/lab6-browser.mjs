@@ -382,7 +382,7 @@ const OUTPUT = outputDirectory;
     await page.waitForTimeout(800);
     const tallPhone = await page.evaluate(() => getComputedStyle(document.querySelector('#scatter-plot')).position);
     check('Lab 8 phone with room: the plot stays pinned', tallPhone === 'sticky', tallPhone);
-    // A brush on a phone never changes the pinned plot's height (a growing summary covered the
+    // A brush on a phone never changes a pinned plot's height (an unpinned one scrolls with the page) (a growing summary covered the
     // paragraph driving the chart), and its count and every language stay readable, scrolling inside
     // their box from the keyboard when the box is cut short
     const phoneBrush = {};
@@ -394,6 +394,7 @@ const OUTPUT = outputDirectory;
       for (let k = 0; k < 6; k++) { await page.mouse.move(w / 2, h - 30); await page.mouse.wheel(0, 40); await page.waitForTimeout(60); }
       await page.waitForTimeout(600);
       const plotBefore = await page.evaluate(() => document.querySelector('#scatter-plot').getBoundingClientRect().height);
+      const pinned = await page.evaluate(() => getComputedStyle(document.querySelector('#scatter-plot')).position === 'sticky');
       // A screen too short to pin the plot (taller font metrics, Linux CI) lets it scroll with the page,
       // so bring it into view before brushing
       if (await page.evaluate(() => getComputedStyle(document.querySelector('#scatter-plot')).position !== 'sticky')) {
@@ -430,9 +431,9 @@ const OUTPUT = outputDirectory;
         const last = [...document.querySelectorAll('#language-breakdown dd')].pop()?.getBoundingClientRect();
         return Boolean(last && last.top >= box.top - 1 && last.bottom <= box.bottom + 1);
       });
-      phoneBrush[`${w}x${h}`] = { plotBefore, ...state };
+      phoneBrush[`${w}x${h}`] = { pinned, plotBefore, ...state };
     }
-    check('Lab 8 phone: a brush keeps the plot height, covers no paragraph, and keeps count and languages readable', Object.values(phoneBrush).every(r => r.selected > 0 && Math.abs(r.plotHeight - r.plotBefore) < 1 && !r.covered && r.countVisible && r.lastLanguageVisible && (!r.scrolls || r.focusable)), phoneBrush);
+    check('Lab 8 phone: a brush keeps the plot height, covers no paragraph, and keeps count and languages readable', Object.values(phoneBrush).every(r => r.selected > 0 && (!r.pinned || Math.abs(r.plotHeight - r.plotBefore) < 1) && !r.covered && r.countVisible && r.lastLanguageVisible && (!r.scrolls || r.focusable)), phoneBrush);
     // Resizing without a reload redraws the chart for its new size and keeps the filter (at the top of
     // the page, so the resize cannot scroll a different story step into play)
     await page.evaluate(() => scrollTo(0, 0));
