@@ -659,6 +659,18 @@ dl.info[hidden]:not(:hover, :focus-within) {
     background: canvas;
   }
 
+  /* On a short screen (a phone on its side) the full-width chart would fill it; cap it so the story
+     still shows below. main.js measures the capped scale and sizes the labels for it */
+  #chart svg {
+    max-height: 40vh;
+  }
+
+  /* Shorter steps, so on a short screen a paragraph fits between the pinned plot and the trigger line */
+  #scatter-story .step,
+  #files-story .step {
+    padding-bottom: 1.5em;
+  }
+
   /* Pinned full width, the files would cover the story they follow; keep them above the trigger line */
   #files-plot {
     max-height: 45vh;

@@ -243,14 +243,51 @@ const OUTPUT = outputDirectory;
     });
     phone.collisions = await labelCollisions();
     check('Lab 8 phone: axis labels at least 10px, on screen, not overlapping', phone.labelPx >= 10 && phone.leftmost >= 0 && phone.collisions === 0, phone);
-    await page.evaluate(() => { const s = document.querySelectorAll('#scatter-story .step')[10]; scrollBy(0, s.getBoundingClientRect().top - innerHeight * 0.6); });
+    // Walk the story forward and back; at every step the paragraph driving the chart is in view below it
+    const activeInView = async () => page.evaluate(() => {
+      const steps = [...document.querySelectorAll('#scatter-story .step')];
+      const plotBottom = document.querySelector('#scatter-plot').getBoundingClientRect().bottom;
+      const n = document.querySelectorAll('#chart circle').length;
+      const active = steps[n - 1];
+      const text = active?.querySelector('p').getBoundingClientRect();
+      return { circles: n, textTop: Math.round(text?.top), textBottom: Math.round(text?.bottom), plotBottom: Math.round(plotBottom), inView: Boolean(text && text.top >= plotBottom - 1 && text.top <= innerHeight - 40) };
+    });
+    const phoneWalk = async () => {
+      const seen = [];
+      // Small wheel steps like a trackpad swipe: one 160px jump can carry a short step clean over the
+      // trigger line, which scrollama (like any IntersectionObserver) never sees
+      for (const y of [1, 1, 1, 1, -1, -1, -1]) {
+        for (let k = 0; k < 4; k++) { await page.mouse.wheel(0, y * 40); await page.waitForTimeout(60); }
+        await page.waitForTimeout(400);
+        seen.push(await activeInView());
+      }
+      return seen;
+    };
+    await page.evaluate(() => document.querySelectorAll('#scatter-story .step')[10].scrollIntoView({ block: 'end' }));
     await page.waitForTimeout(800);
-    const phoneStep = await page.evaluate(() => ({
-      circles: document.querySelectorAll('#chart circle').length,
-      stepTop: Math.round(document.querySelectorAll('#scatter-story .step')[10].getBoundingClientRect().top),
-      plotBottom: Math.round(document.querySelector('#scatter-plot').getBoundingClientRect().bottom),
-    }));
-    check('Lab 8 phone: the active paragraph sits below the pinned chart', phoneStep.circles === 11 && phoneStep.stepTop >= phoneStep.plotBottom, phoneStep);
+    const phoneSteps = await phoneWalk();
+    check('Lab 8 phone: the active paragraph stays in view below the pinned chart, forward and back', phoneSteps.every(r => r.inView), phoneSteps);
+    // Resizing without a reload redraws the chart for its new size and keeps the filter (at the top of
+    // the page, so the resize cannot scroll a different story step into play)
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.waitForTimeout(600);
+    // Set without fill(), which would scroll the slider (and the story) into view
+    await page.evaluate(() => { const s = document.querySelector('#commit-progress'); s.value = 30; s.dispatchEvent(new Event('input')); });
+    await page.waitForTimeout(300);
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.waitForTimeout(800);
+    const wide = await page.evaluate(() => ({ svgs: document.querySelectorAll('#chart svg').length, circles: document.querySelectorAll('#chart circle').length, labelPx: +(parseFloat(getComputedStyle(document.querySelector('#chart .x-axis .tick text')).fontSize) * document.querySelector('#chart svg').getScreenCTM().a).toFixed(1) }));
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(800);
+    const narrow = await page.evaluate(() => ({ svgs: document.querySelectorAll('#chart svg').length, circles: document.querySelectorAll('#chart circle').length, labelPx: +(parseFloat(getComputedStyle(document.querySelector('#chart .x-axis .tick text')).fontSize) * document.querySelector('#chart svg').getScreenCTM().a).toFixed(1) }));
+    check('Lab 8: resizing redraws the axes for the new width and keeps the filter', wide.svgs === 1 && narrow.svgs === 1 && wide.labelPx < 11 && narrow.labelPx >= 10 && narrow.labelPx < 11 && wide.circles === narrow.circles, { wide, narrow });
+    // A phone on its side: short and stacked
+    await page.setViewportSize({ width: 640, height: 360 });
+    await page.waitForTimeout(800);
+    await page.evaluate(() => document.querySelectorAll('#scatter-story .step')[20].scrollIntoView({ block: 'end' }));
+    await page.waitForTimeout(800);
+    const landscape = await phoneWalk();
+    check('Lab 8 phone on its side: the active paragraph is in view when it takes over', landscape.some(r => r.inView) && landscape.every(r => r.textBottom > r.plotBottom), landscape);
     check('No runtime/console errors',errors.length===0,errors);
     const result={url:URL_BASE+'meta/',checkedAt:new Date().toISOString(),checks,failures:checks.filter(c=>!c.pass),initial,errors};
 

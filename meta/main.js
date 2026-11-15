@@ -144,9 +144,26 @@ const BASE_TICK_FONT = 16;
 const MIN_TICK_FONT_PX = 10.5;
 let tickFont = BASE_TICK_FONT;
 let maxXTicks = Infinity;
-// Scrollama's trigger line, as a fraction of the viewport height. On a phone the chart pins across the
-// top, so the line moves below it and the active paragraph is always visible
-const STORY_TRIGGER = matchMedia('(max-width: 40em)').matches ? 0.75 : 0.5;
+let renderedScale = 0;
+// Matches the stacked (phone) layout in style.css
+const stackedLayout = matchMedia('(max-width: 40em)');
+// Scrollama's trigger line, as a fraction of the viewport height. Side by side it is the middle of the
+// screen; stacked, the plot pins across the top, so the line sits just below it and the active
+// paragraph is never hidden. A step stays active until the next one reaches the line, so the line
+// sits one step below the plot: the active paragraph then stays in view for as long as it drives the
+// plot. Capped at 95% of the screen, so on a very short screen it is in view when it takes over.
+// Recomputed on resize, since rotating or resizing moves the plot's edge.
+function storyTrigger(plotSelector, storySelector) {
+  if (!stackedLayout.matches) return 0.5;
+  const plotHeight = document.querySelector(plotSelector).getBoundingClientRect().height;
+  // Distance from one step's top to the next, so the paragraph margin between steps is counted
+  const tops = [...document.querySelectorAll(`${storySelector} .step`)].map((step) => step.getBoundingClientRect().top);
+  const stepHeight = d3.max(d3.pairs(tops), ([a, b]) => b - a) ?? 0;
+  return Math.min(0.95, Math.max(0.5, (plotHeight + stepHeight) / innerHeight));
+}
+// Measured once the chart and files are drawn, just before scrollama is set up
+let scatterTrigger = 0.5;
+let filesTrigger = 0.5;
 
 function isCommitSelected(selection, commit) {
   if (!selection) {
@@ -257,10 +274,16 @@ function drawDots(svg, commits) {
 function renderScatterPlot(data, commits) {
   const width = 1000;
   const height = 600;
+  const svg = d3
+    .select('#chart')
+    .append('svg')
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .style('overflow', 'visible');
   // Tick labels are sized in viewBox units, so a narrow (phone) chart shrinks them; grow them back to a
-  // readable size there and widen the margins to fit. A laptop-width chart keeps the base size.
-  const chartPx = document.querySelector('#chart').clientWidth || width;
-  tickFont = Math.max(BASE_TICK_FONT, (MIN_TICK_FONT_PX * width) / chartPx);
+  // readable size there and widen the margins to fit. A laptop-width chart keeps the base size. The
+  // scale is measured on the drawn svg, so a height cap (letterboxing) counts too.
+  renderedScale = svg.node().getScreenCTM()?.a || (document.querySelector('#chart').clientWidth || width) / width;
+  tickFont = Math.max(BASE_TICK_FONT, MIN_TICK_FONT_PX / renderedScale);
   const grow = tickFont - BASE_TICK_FONT;
   // A laptop chart lets its hour labels overhang the left edge into the column gap; a phone chart has
   // only the page gutter there, so the labels get room inside the chart instead
@@ -274,12 +297,7 @@ function renderScatterPlot(data, commits) {
     height: height - margin.top - margin.bottom,
   };
 
-  const svg = d3
-    .select('#chart')
-    .append('svg')
-    .attr('viewBox', `0 0 ${width} ${height}`)
-    .style('overflow', 'visible')
-    .style('--tick-font', `${tickFont}px`);
+  svg.style('--tick-font', `${tickFont}px`);
   // At most one label per this much axis, so bigger labels on a phone get fewer ticks instead of overlapping
   maxXTicks = Math.max(2, Math.floor(usableArea.width / (tickFont * 4.5)));
   const hourStep = [2, 3, 4, 6].find((step) => 24 / step + 1 <= usableArea.height / (tickFont * 1.6)) ?? 6;
@@ -500,12 +518,12 @@ function onStepEnter(response) {
 
 // Scrolling back above the first step returns to the full history the page opened with. Scrollama
 // fires no exit on a fast jump (Home key, scrollbar drag), so a passive scroll listener checks where
-// step one sits against scrollama's trigger line (STORY_TRIGGER).
+// step one sits against scrollama's trigger line (scatterTrigger).
 const firstStep = document.querySelector('#scatter-story .step');
 addEventListener(
   'scroll',
   () => {
-    if (storyActive && firstStep.getBoundingClientRect().top > innerHeight * STORY_TRIGGER) {
+    if (storyActive && firstStep.getBoundingClientRect().top > innerHeight * scatterTrigger) {
       storyActive = false;
       commitProgress = 100;
       slider.value = commitProgress;
@@ -515,12 +533,14 @@ addEventListener(
   { passive: true },
 );
 
+scatterTrigger = storyTrigger('#scatter-plot', '#scatter-story');
+filesTrigger = storyTrigger('#files-plot', '#files-story');
 const scroller = scrollama();
 scroller
   .setup({
     container: '#scrolly-1',
     step: '#scrolly-1 .step',
-    offset: STORY_TRIGGER,
+    offset: scatterTrigger,
   })
   .onStepEnter(onStepEnter);
 
@@ -530,7 +550,7 @@ filesScroller
   .setup({
     container: '#scrolly-2',
     step: '#scrolly-2 .step',
-    offset: STORY_TRIGGER,
+    offset: filesTrigger,
   })
   .onStepEnter((response) => {
     filesAtEnd = false;
@@ -546,10 +566,38 @@ const lastFilesStep = document.querySelector('#files-story .step:last-child');
 addEventListener(
   'scroll',
   () => {
-    if (!filesAtEnd && lastFilesStep.getBoundingClientRect().top < innerHeight * STORY_TRIGGER) {
+    if (!filesAtEnd && lastFilesStep.getBoundingClientRect().top < innerHeight * filesTrigger) {
       filesAtEnd = true;
       updateFileDisplay(commits);
     }
   },
   { passive: true },
 );
+
+// Resizing or rotating moves the pinned plots' edges and changes the chart's on-screen scale (labels
+// would shrink or balloon). The trigger lines move at once: scrollama re-measures its steps on the
+// same resize, and with a stale line (a phone's 95% on a laptop) it would jump the story. The chart
+// redraw, keeping the current filter, is debounced so a drag-resize redraws once at the end.
+const RESIZE_SETTLE_MS = 150;
+let resizeTimer;
+function placeTriggers() {
+  scatterTrigger = storyTrigger('#scatter-plot', '#scatter-story');
+  filesTrigger = storyTrigger('#files-plot', '#files-story');
+  scroller.offset(scatterTrigger);
+  filesScroller.offset(filesTrigger);
+}
+addEventListener('resize', () => {
+  placeTriggers();
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const scale = d3.select('#chart svg').node()?.getScreenCTM()?.a;
+    if (scale && Math.abs(scale - renderedScale) > 0.01) {
+      updateTooltipVisibility(false);
+      d3.select('#chart').selectAll('svg').remove();
+      renderScatterPlot(data, commits);
+      updateScatterPlot(data, filteredCommits);
+      // The redrawn chart can change the pinned plot's height
+      placeTriggers();
+    }
+  }, RESIZE_SETTLE_MS);
+});
