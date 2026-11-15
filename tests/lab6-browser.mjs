@@ -188,6 +188,21 @@ const OUTPUT = outputDirectory;
     await page.waitForTimeout(300);
     const locKept = await page.evaluate(() => document.contains(window.__lab8Loc));
     check('Lab 8: unit dots keep their elements when the filter changes', locKept, locKept);
+    // Step 4: the second story drives the unit visualization on its own
+    await page.evaluate(() => document.querySelectorAll('#files-story .step')[5]?.scrollIntoView({ block: 'center' }));
+    await page.waitForTimeout(600);
+    const filesStory = await page.evaluate(() => {
+      const steps = [...document.querySelectorAll('#files-story .step')];
+      return {
+        steps: steps.length,
+        locs: document.querySelectorAll('#files .loc').length,
+        expected: steps.slice(0, 6).reduce((n, s) => n + s.__data__.lines.length, 0),
+        pinned: Math.round(document.querySelector('#files-plot')?.getBoundingClientRect().top) === 0,
+      };
+    });
+    check('Lab 8 Step 4: the file story moves the unit dots to that commit', filesStory.steps === lab8Full.steps && filesStory.locs === filesStory.expected && filesStory.pinned, filesStory);
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.waitForTimeout(600);
     await page.locator('#commit-progress').fill('100');
     check('No runtime/console errors',errors.length===0,errors);
     const result={url:URL_BASE+'meta/',checkedAt:new Date().toISOString(),checks,failures:checks.filter(c=>!c.pass),initial,errors};

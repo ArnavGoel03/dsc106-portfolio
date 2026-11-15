@@ -579,7 +579,8 @@ dl.info[hidden]:not(:hover, :focus-within) {
 }
 
 /* Lab 8, Step 3.1: story beside a pinned chart */
-#scrolly-1 {
+#scrolly-1,
+#scrolly-2 {
   position: relative;
   display: flex;
   gap: 1rem;
@@ -591,7 +592,8 @@ dl.info[hidden]:not(:hover, :focus-within) {
 
 /* The first step starts below the middle of the screen, so the page opens on the full history
    and the story only takes over once the reader scrolls */
-#scatter-story {
+#scatter-story,
+#files-story {
   position: relative;
   padding-top: 50vh;
 }
@@ -614,22 +616,41 @@ dl.info[hidden]:not(:hover, :focus-within) {
   align-self: flex-start;
 }
 
-#scatter-story .step {
+/* Lab 8, Step 4: the files pin the same way, capped at the viewport so the biggest files (sorted to
+   the top) stay in view while the story scrolls beside them */
+#files-plot {
+  flex: 2;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+#scatter-story .step,
+#files-story .step {
   padding-bottom: 3em;
 }
 
 /* On a phone there is no room side by side: the chart pins to the top and the story scrolls under it */
 @media (max-width: 40em) {
-  #scrolly-1 {
+  #scrolly-1,
+  #scrolly-2 {
     flex-direction: column;
   }
 
-  #scatter-plot {
+  #scatter-plot,
+  #files-plot {
     order: -1;
     z-index: 1;
     height: auto;
     /* Keep the pinned chart above scrollama's mid-screen trigger line so steps fire while visible */
     min-height: 0;
     background: canvas;
+  }
+
+  /* Pinned full width, the files would cover the story they follow; keep them above the trigger line */
+  #files-plot {
+    max-height: 45vh;
   }
 }

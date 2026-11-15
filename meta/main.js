@@ -429,21 +429,18 @@ const fileCount = (commit) => {
   const n = d3.rollups(commit.lines, (D) => D.length, (d) => d.file).length;
   return `${n} ${n === 1 ? 'file' : 'files'}`;
 };
-d3.select('#scatter-story')
-  .selectAll('.step')
-  .data(commits)
-  .join('div')
-  .attr('class', 'step')
-  .html(
-    (d, i) => `
+// Lab 8, Step 4: the same story is written twice, once beside the chart and once beside the files
+const storyStepHtml = (d, i) => `
       <p>On ${d.wallClock.toLocaleString('en', { dateStyle: 'full', timeStyle: 'short' })},
       I made <a href="${d.url}" target="_blank">${
         i > 0 ? 'another glorious commit' : 'my first commit, and it was glorious'
       }</a>.
       I edited ${d.totalLines} lines across ${fileCount(d)}.
       Then I looked over all I had made, and I saw that it was very good.</p>
-    `,
-  );
+    `;
+for (const story of ['#scatter-story', '#files-story']) {
+  d3.select(story).selectAll('.step').data(commits).join('div').attr('class', 'step').html(storyStepHtml);
+}
 
 // Lab 8, Step 3.3: scrolling a step into view moves the chart, the slider and the files to that commit
 function onStepEnter(response) {
@@ -478,3 +475,15 @@ scroller
     step: '#scrolly-1 .step',
   })
   .onStepEnter(onStepEnter);
+
+// Lab 8, Step 4: the second story drives only the unit visualization, so the files race commit by commit
+const filesScroller = scrollama();
+filesScroller
+  .setup({
+    container: '#scrolly-2',
+    step: '#scrolly-2 .step',
+  })
+  .onStepEnter((response) => {
+    const commit = response.element.__data__;
+    updateFileDisplay(commits.filter((d) => d.wallClock <= commit.wallClock));
+  });
