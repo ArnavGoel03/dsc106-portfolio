@@ -250,7 +250,7 @@ const OUTPUT = outputDirectory;
       const n = document.querySelectorAll('#chart circle').length;
       const active = steps[n - 1];
       const text = active?.querySelector('p').getBoundingClientRect();
-      return { circles: n, textTop: Math.round(text?.top), textBottom: Math.round(text?.bottom), plotBottom: Math.round(plotBottom), inView: Boolean(text && text.top >= plotBottom - 1 && text.top <= innerHeight - 40) };
+      return { circles: n, textTop: Math.round(text?.top), textBottom: Math.round(text?.bottom), plotBottom: Math.round(plotBottom), inView: Boolean(text && text.top >= plotBottom - 1 && text.bottom <= innerHeight + 1) };
     });
     const phoneWalk = async () => {
       const seen = [];
@@ -287,7 +287,7 @@ const OUTPUT = outputDirectory;
     await page.evaluate(() => document.querySelectorAll('#scatter-story .step')[20].scrollIntoView({ block: 'end' }));
     await page.waitForTimeout(800);
     const landscape = await phoneWalk();
-    check('Lab 8 phone on its side: the active paragraph is in view when it takes over', landscape.some(r => r.inView) && landscape.every(r => r.textBottom > r.plotBottom), landscape);
+    check('Lab 8 phone on its side: the active paragraph stays fully in view below the pinned chart', landscape.every(r => r.inView), landscape);
     check('No runtime/console errors',errors.length===0,errors);
     const result={url:URL_BASE+'meta/',checkedAt:new Date().toISOString(),checks,failures:checks.filter(c=>!c.pass),initial,errors};
 

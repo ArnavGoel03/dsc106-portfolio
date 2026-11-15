@@ -151,15 +151,19 @@ const stackedLayout = matchMedia('(max-width: 40em)');
 // screen; stacked, the plot pins across the top, so the line sits just below it and the active
 // paragraph is never hidden. A step stays active until the next one reaches the line, so the line
 // sits one step below the plot: the active paragraph then stays in view for as long as it drives the
-// plot. Capped at 95% of the screen, so on a very short screen it is in view when it takes over.
+// plot, and high enough that a paragraph taking over fits on screen below it.
 // Recomputed on resize, since rotating or resizing moves the plot's edge.
 function storyTrigger(plotSelector, storySelector) {
   if (!stackedLayout.matches) return 0.5;
   const plotHeight = document.querySelector(plotSelector).getBoundingClientRect().height;
   // Distance from one step's top to the next, so the paragraph margin between steps is counted
-  const tops = [...document.querySelectorAll(`${storySelector} .step`)].map((step) => step.getBoundingClientRect().top);
+  const steps = [...document.querySelectorAll(`${storySelector} .step`)];
+  const tops = steps.map((step) => step.getBoundingClientRect().top);
   const stepHeight = d3.max(d3.pairs(tops), ([a, b]) => b - a) ?? 0;
-  return Math.min(0.95, Math.max(0.5, (plotHeight + stepHeight) / innerHeight));
+  // ...but never so low that a paragraph taking over runs off the bottom of the screen
+  const textHeight = d3.max(steps, (step) => step.querySelector('p')?.offsetHeight ?? 0) ?? 0;
+  const line = Math.min(plotHeight + stepHeight, innerHeight - textHeight);
+  return Math.min(0.95, Math.max(0.5, line / innerHeight));
 }
 // Measured once the chart and files are drawn, just before scrollama is set up
 let scatterTrigger = 0.5;
@@ -228,6 +232,8 @@ function brushed(event) {
   );
   renderSelectionCount(selection);
   renderLanguageBreakdown(selection);
+  // On a phone the empty "No commits selected" line is hidden to save height (style.css)
+  document.querySelector('#scatter-plot').classList.toggle('has-selection', Boolean(selection));
 }
 
 // Lab 6, Step 5.1 + 5.2

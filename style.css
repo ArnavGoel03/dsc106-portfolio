@@ -665,6 +665,12 @@ dl.info[hidden]:not(:hover, :focus-within) {
     max-height: 40vh;
   }
 
+  /* Every pixel of the pinned plot is a pixel less for the story, so the empty brush summary only shows
+     once something is selected */
+  #scatter-plot:not(.has-selection) :is(#selection-count, #language-breakdown) {
+    display: none;
+  }
+
   /* Shorter steps, so on a short screen a paragraph fits between the pinned plot and the trigger line */
   #scatter-story .step,
   #files-story .step {
@@ -674,5 +680,17 @@ dl.info[hidden]:not(:hover, :focus-within) {
   /* Pinned full width, the files would cover the story they follow; keep them above the trigger line */
   #files-plot {
     max-height: 45vh;
+  }
+}
+
+/* A phone on its side: stacked and short, so the chart gets less of the height and the story more */
+@media (max-width: 40em) and (max-height: 30em) {
+  #chart svg {
+    max-height: 30vh;
+  }
+
+  /* Room below for a paragraph to stay in view both ways: scrolling up, the active one sits lower */
+  #files-plot {
+    max-height: 35vh;
   }
 }
