@@ -665,10 +665,13 @@ dl.info[hidden]:not(:hover, :focus-within) {
     max-height: 40vh;
   }
 
-  /* Every pixel of the pinned plot is a pixel less for the story, so the empty brush summary only shows
-     once something is selected */
-  #scatter-plot:not(.has-selection) :is(#selection-count, #language-breakdown) {
-    display: none;
+  /* main.js gives the brush results a fixed height that leaves room for the story; they scroll inside */
+  #brush-summary {
+    overflow-y: auto;
+
+    > * {
+      margin-block: 0.25em;
+    }
   }
 
   /* Set from main.js when the screen is too short for the pinned plot and a paragraph below it */

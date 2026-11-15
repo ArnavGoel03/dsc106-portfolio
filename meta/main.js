@@ -164,20 +164,41 @@ function storyRoom(plot, storySelector) {
     textHeight: d3.max(steps, (step) => step.querySelector('p')?.offsetHeight ?? 0) ?? 0,
   };
 }
-const storyFits = (plot, storySelector) => {
+
+// On a phone the brush results (count and languages) sit in the pinned plot. They get one fixed
+// height, chosen here and never changed by a brush: a box that grew when something was selected
+// pushed the plot over the paragraph driving it. They get what is left after the plot, a step and a
+// paragraph, up to the room they need, and scroll inside it (focusable, so a keyboard can scroll it).
+// Room for the count line and two rows of languages, all of them at phone widths
+const BRUSH_SUMMARY_RESERVE_EM = 8.5;
+function sizeBrushSummary(plot, storySelector) {
+  const summary = plot.querySelector('#brush-summary');
+  if (!summary) return;
+  summary.style.height = '';
+  summary.removeAttribute('tabindex');
+  if (!stackedLayout.matches) return;
   const { plotHeight, stepHeight, textHeight } = storyRoom(plot, storySelector);
-  return plotHeight + stepHeight + textHeight <= innerHeight;
-};
-// Set once the stories are set up: moves the trigger lines when the pinned plot changes height
-let afterPlotResize = () => {};
+  const spare = innerHeight - (plotHeight - summary.getBoundingClientRect().height) - stepHeight - textHeight;
+  const reserve = BRUSH_SUMMARY_RESERVE_EM * parseFloat(getComputedStyle(summary).fontSize);
+  // No room even for the count line (its real height, margins included, so larger text still fits):
+  // the plot unpins instead (storyTrigger) and the summary keeps its natural size
+  const count = summary.querySelector('#selection-count');
+  const countStyle = getComputedStyle(count);
+  const oneLine = count.getBoundingClientRect().height + parseFloat(countStyle.marginTop) + parseFloat(countStyle.marginBottom);
+  if (spare < oneLine) return;
+  summary.style.height = `${Math.floor(Math.min(spare, reserve))}px`;
+  summary.setAttribute('tabindex', '0');
+}
 
 function storyTrigger(plotSelector, storySelector) {
   const plot = document.querySelector(plotSelector);
   if (!stackedLayout.matches || !innerHeight) {
     plot.classList.remove('unpinned');
+    sizeBrushSummary(plot, storySelector);
     return 0.5;
   }
   plot.classList.remove('unpinned');
+  sizeBrushSummary(plot, storySelector);
   const { plotHeight, stepHeight, textHeight } = storyRoom(plot, storySelector);
   // On a screen too short for the plot, a step and the next paragraph, a pinned plot would cover the
   // paragraph that drives it, so the plot scrolls with the page instead (phones only; never a laptop)
@@ -255,21 +276,8 @@ function brushed(event) {
   );
   renderSelectionCount(selection);
   renderLanguageBreakdown(selection);
-  showSelectionSummary(Boolean(selection));
 }
 
-// On a phone the brush summary shows only once something is selected (style.css), and only if the
-// pinned plot still leaves room for the story below it: grown past that, it covered the paragraph
-// driving the chart. The selected dots stay highlighted either way. A laptop always shows it.
-function showSelectionSummary(selected) {
-  const plot = document.querySelector('#scatter-plot');
-  const before = plot.classList.contains('has-selection');
-  plot.classList.toggle('has-selection', selected);
-  if (selected && stackedLayout.matches && !plot.classList.contains('unpinned') && !storyFits(plot, '#scatter-story')) {
-    plot.classList.remove('has-selection');
-  }
-  if (plot.classList.contains('has-selection') !== before) afterPlotResize();
-}
 
 // Lab 6, Step 5.1 + 5.2
 function createBrushSelector(svg) {
@@ -660,10 +668,6 @@ function rememberStoryPositions() {
   scatterIndex = Math.min(stepOnLine(scatterSteps, scatterTrigger), scatterSteps.length - 1);
   filesIndex = Math.min(stepOnLine(filesSteps, filesTrigger), filesSteps.length - 1);
 }
-afterPlotResize = () => {
-  placeTriggers();
-  rememberStoryPositions();
-};
 addEventListener('resize', () => {
   placeTriggers();
   rememberStoryPositions();

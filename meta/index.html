@@ -30,8 +30,11 @@
       </div>
       <div id="chart"></div>
       <!-- Lab 6, Step 5.5 + 5.6: brushing results -->
-      <p id="selection-count">No commits selected</p>
-      <dl id="language-breakdown" class="stats"></dl>
+      <!-- One box for the brush results, so on a phone it can keep a fixed height and scroll inside -->
+      <div id="brush-summary" aria-labelledby="selection-count">
+        <p id="selection-count">No commits selected</p>
+        <dl id="language-breakdown" class="stats"></dl>
+      </div>
     </div>
   </div>
   <!-- Lab 8, Step 2.1: unit visualization, one dot per line of code -->

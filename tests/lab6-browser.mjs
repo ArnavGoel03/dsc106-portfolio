@@ -382,31 +382,51 @@ const OUTPUT = outputDirectory;
     await page.waitForTimeout(800);
     const tallPhone = await page.evaluate(() => getComputedStyle(document.querySelector('#scatter-plot')).position);
     check('Lab 8 phone with room: the plot stays pinned', tallPhone === 'sticky', tallPhone);
-    // A brush on a short phone must not grow the pinned plot over the paragraph driving it
-    await page.setViewportSize({ width: 390, height: 568 });
-    await page.waitForTimeout(800);
-    await page.evaluate(() => { const st = document.querySelectorAll('#scatter-story .step')[11]; scrollBy(0, st.getBoundingClientRect().top - innerHeight + 4); });
-    await page.waitForTimeout(400);
-    for (let k = 0; k < 6; k++) { await page.mouse.move(195, 540); await page.mouse.wheel(0, 40); await page.waitForTimeout(60); }
-    await page.waitForTimeout(600);
-    const phoneSvg = await page.locator('#chart svg').boundingBox();
-    await page.mouse.move(phoneSvg.x + 2, phoneSvg.y + 2);
-    await page.mouse.down();
-    await page.mouse.move(phoneSvg.x + phoneSvg.width - 2, phoneSvg.y + phoneSvg.height - 2, { steps: 10 });
-    await page.mouse.up();
-    await page.waitForTimeout(600);
-    const brushCover = async () => page.evaluate(() => {
-      const steps = [...document.querySelectorAll('#scatter-story .step')];
-      const plot = document.querySelector('#scatter-plot').getBoundingClientRect();
-      const t = steps[document.querySelectorAll('#chart circle').length - 1]?.querySelector('p').getBoundingClientRect();
-      return { covered: Boolean(t && plot.bottom > t.top + 1 && plot.top < t.bottom - 1), selected: document.querySelectorAll('#chart circle.selected').length };
-    });
-    const afterBrush = await brushCover();
-    await page.mouse.move(195, 540);
-    await page.mouse.wheel(0, 20);
-    await page.waitForTimeout(600);
-    const afterNudge = await brushCover();
-    check('Lab 8 phone: a brush selection never covers the active paragraph', afterBrush.selected > 0 && !afterBrush.covered && !afterNudge.covered, { afterBrush, afterNudge });
+    // A brush on a phone never changes the pinned plot's height (a growing summary covered the
+    // paragraph driving the chart), and its count and every language stay readable, scrolling inside
+    // their box from the keyboard when the box is cut short
+    const phoneBrush = {};
+    for (const [w, h] of [[390, 568], [390, 844]]) {
+      await page.setViewportSize({ width: w, height: h });
+      await page.waitForTimeout(800);
+      await page.evaluate(() => { const st = document.querySelectorAll('#scatter-story .step')[11]; scrollBy(0, st.getBoundingClientRect().top - innerHeight + 4); });
+      await page.waitForTimeout(400);
+      for (let k = 0; k < 6; k++) { await page.mouse.move(w / 2, h - 30); await page.mouse.wheel(0, 40); await page.waitForTimeout(60); }
+      await page.waitForTimeout(600);
+      const plotBefore = await page.evaluate(() => document.querySelector('#scatter-plot').getBoundingClientRect().height);
+      const svgBox = await page.locator('#chart svg').boundingBox();
+      await page.mouse.move(svgBox.x + 2, svgBox.y + 2);
+      await page.mouse.down();
+      await page.mouse.move(svgBox.x + svgBox.width - 2, svgBox.y + svgBox.height - 2, { steps: 10 });
+      await page.mouse.up();
+      await page.waitForTimeout(600);
+      const state = await page.evaluate(() => {
+        const steps = [...document.querySelectorAll('#scatter-story .step')];
+        const plot = document.querySelector('#scatter-plot').getBoundingClientRect();
+        const t = steps[document.querySelectorAll('#chart circle').length - 1]?.querySelector('p').getBoundingClientRect();
+        const summary = document.querySelector('#brush-summary');
+        if (!summary) return { plotHeight: plot.height, covered: Boolean(t && plot.bottom > t.top + 1 && plot.top < t.bottom - 1), selected: 0 };
+        const box = summary.getBoundingClientRect();
+        const count = document.querySelector('#selection-count').getBoundingClientRect();
+        return {
+          plotHeight: plot.height,
+          covered: Boolean(t && plot.bottom > t.top + 1 && plot.top < t.bottom - 1),
+          selected: document.querySelectorAll('#chart circle.selected').length,
+          countVisible: /\d+ commits? selected/.test(document.querySelector('#selection-count').textContent) && count.top >= box.top - 1 && count.bottom <= box.bottom + 1 && box.height > 0,
+          scrolls: summary.scrollHeight > summary.clientHeight + 1,
+          focusable: summary.tabIndex === 0,
+        };
+      });
+      if (state.scrolls) { await page.focus('#brush-summary'); await page.keyboard.press('End'); await page.waitForTimeout(200); }
+      state.lastLanguageVisible = await page.evaluate(() => {
+        const box = document.querySelector('#brush-summary')?.getBoundingClientRect();
+        if (!box) return false;
+        const last = [...document.querySelectorAll('#language-breakdown dd')].pop()?.getBoundingClientRect();
+        return Boolean(last && last.top >= box.top - 1 && last.bottom <= box.bottom + 1);
+      });
+      phoneBrush[`${w}x${h}`] = { plotBefore, ...state };
+    }
+    check('Lab 8 phone: a brush keeps the plot height, covers no paragraph, and keeps count and languages readable', Object.values(phoneBrush).every(r => r.selected > 0 && Math.abs(r.plotHeight - r.plotBefore) < 1 && !r.covered && r.countVisible && r.lastLanguageVisible && (!r.scrolls || r.focusable)), phoneBrush);
     // Resizing without a reload redraws the chart for its new size and keeps the filter (at the top of
     // the page, so the resize cannot scroll a different story step into play)
     await page.evaluate(() => scrollTo(0, 0));
