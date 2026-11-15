@@ -138,6 +138,15 @@ let commits;
 let filteredCommits;
 let brush;
 let rScale;
+// Tick label size: BASE_TICK_FONT viewBox units suits a laptop-width chart (about 10.6 px on screen);
+// below MIN_TICK_FONT_PX on screen the labels grow instead
+const BASE_TICK_FONT = 16;
+const MIN_TICK_FONT_PX = 10.5;
+let tickFont = BASE_TICK_FONT;
+let maxXTicks = Infinity;
+// Scrollama's trigger line, as a fraction of the viewport height. On a phone the chart pins across the
+// top, so the line moves below it and the active paragraph is always visible
+const STORY_TRIGGER = matchMedia('(max-width: 40em)').matches ? 0.75 : 0.5;
 
 function isCommitSelected(selection, commit) {
   if (!selection) {
@@ -248,7 +257,14 @@ function drawDots(svg, commits) {
 function renderScatterPlot(data, commits) {
   const width = 1000;
   const height = 600;
-  const margin = { top: 10, right: 10, bottom: 30, left: 20 };
+  // Tick labels are sized in viewBox units, so a narrow (phone) chart shrinks them; grow them back to a
+  // readable size there and widen the margins to fit. A laptop-width chart keeps the base size.
+  const chartPx = document.querySelector('#chart').clientWidth || width;
+  tickFont = Math.max(BASE_TICK_FONT, (MIN_TICK_FONT_PX * width) / chartPx);
+  const grow = tickFont - BASE_TICK_FONT;
+  // A laptop chart lets its hour labels overhang the left edge into the column gap; a phone chart has
+  // only the page gutter there, so the labels get room inside the chart instead
+  const margin = { top: 10, right: 10, bottom: 30 + grow * 1.4, left: grow > 0 ? tickFont * 3.4 + 10 : 20 };
   const usableArea = {
     top: margin.top,
     right: width - margin.right,
@@ -262,7 +278,12 @@ function renderScatterPlot(data, commits) {
     .select('#chart')
     .append('svg')
     .attr('viewBox', `0 0 ${width} ${height}`)
-    .style('overflow', 'visible');
+    .style('overflow', 'visible')
+    .style('--tick-font', `${tickFont}px`);
+  // At most one label per this much axis, so bigger labels on a phone get fewer ticks instead of overlapping
+  maxXTicks = Math.max(2, Math.floor(usableArea.width / (tickFont * 4.5)));
+  const hourStep = [2, 3, 4, 6].find((step) => 24 / step + 1 <= usableArea.height / (tickFont * 1.6)) ?? 6;
+  const hourTicks = d3.range(0, 25, hourStep);
 
   xScale = d3
     .scaleTime()
@@ -279,19 +300,21 @@ function renderScatterPlot(data, commits) {
     .append('g')
     .attr('class', 'gridlines')
     .attr('transform', `translate(${usableArea.left}, 0)`);
-  gridlines.call(d3.axisLeft(yScale).tickFormat('').tickSize(-usableArea.width));
+  gridlines.call(d3.axisLeft(yScale).tickValues(hourTicks).tickFormat('').tickSize(-usableArea.width));
 
   // Step 2.2: axes
   const xAxis = makeXAxis();
   const yAxis = d3
     .axisLeft(yScale)
+    .tickValues(hourTicks)
     .tickFormat((d) => String(d % 24).padStart(2, '0') + ':00');
   // Lab 8, Step 1.2: classes so the x-axis can be cleared and redrawn
   svg
     .append('g')
     .attr('class', 'x-axis')
     .attr('transform', `translate(0, ${usableArea.bottom})`)
-    .call(xAxis);
+    .call(xAxis)
+    .call(keepEdgeLabelClear);
   svg
     .append('g')
     .attr('class', 'y-axis')
@@ -311,11 +334,29 @@ function renderScatterPlot(data, commits) {
 
 // Weekly ticks: d3's default 2-day ticks restart at each month, so Oct 31 and November collided.
 // A filtered domain shorter than two weeks has at most one Monday in it, so it falls back to days.
+// When there are more ticks than fit (a phone), every nth one is kept, counted from the start rather
+// than d3's every(), which restarts each month and would collide again.
 const WEEKLY_TICKS_MIN_DAYS = 14;
 function makeXAxis() {
   const [start, end] = xScale.domain();
   const interval = d3.timeDay.count(start, end) >= WEEKLY_TICKS_MIN_DAYS ? d3.timeWeek : d3.timeDay;
-  return d3.axisBottom(xScale).ticks(interval).tickFormat(d3.timeFormat('%b %d'));
+  const ticks = interval.range(start, d3.timeMillisecond.offset(end, 1));
+  const step = Math.ceil(ticks.length / maxXTicks);
+  return d3
+    .axisBottom(xScale)
+    .tickValues(ticks.filter((_, i) => i % step === 0))
+    .tickFormat(d3.timeFormat('%b %d'));
+}
+
+// A date tick at the very left edge (the domain starts on whole days) would centre its label on the
+// y-axis and collide with the 00:00 hour label, so that one label starts at the axis instead
+function keepEdgeLabelClear(axisGroup) {
+  const start = +xScale.domain()[0];
+  axisGroup
+    .selectAll('.tick')
+    .filter((d) => +d === start)
+    .select('text')
+    .attr('text-anchor', 'start');
 }
 
 // Lab 8, Step 1.2: redraw the existing chart for the filtered commits instead of appending a new svg
@@ -328,7 +369,7 @@ function updateScatterPlot(data, commits) {
   const xAxis = makeXAxis();
   const xAxisGroup = svg.select('g.x-axis');
   xAxisGroup.selectAll('*').remove();
-  xAxisGroup.call(xAxis);
+  xAxisGroup.call(xAxis).call(keepEdgeLabelClear);
 
   drawDots(svg, commits);
   // The old brush rectangle no longer matches the rescaled dots, so clear it
@@ -360,7 +401,13 @@ function updateFileDisplay(filteredCommits) {
       }),
     );
 
-  filesContainer.select('dt > code').text((d) => d.name);
+  // Break long paths after a slash rather than mid-word
+  filesContainer.select('dt > code').each(function (d) {
+    const parts = d.name.split('/');
+    this.replaceChildren(
+      ...parts.flatMap((part, i) => (i < parts.length - 1 ? [`${part}/`, document.createElement('wbr')] : [part])),
+    );
+  });
   filesContainer.select('dt > small').text((d) => `${d.lines.length} lines`);
   filesContainer
     .select('dd')
@@ -453,12 +500,12 @@ function onStepEnter(response) {
 
 // Scrolling back above the first step returns to the full history the page opened with. Scrollama
 // fires no exit on a fast jump (Home key, scrollbar drag), so a passive scroll listener checks where
-// step one sits against scrollama's trigger line, the middle of the viewport.
+// step one sits against scrollama's trigger line (STORY_TRIGGER).
 const firstStep = document.querySelector('#scatter-story .step');
 addEventListener(
   'scroll',
   () => {
-    if (storyActive && firstStep.getBoundingClientRect().top > innerHeight / 2) {
+    if (storyActive && firstStep.getBoundingClientRect().top > innerHeight * STORY_TRIGGER) {
       storyActive = false;
       commitProgress = 100;
       slider.value = commitProgress;
@@ -473,6 +520,7 @@ scroller
   .setup({
     container: '#scrolly-1',
     step: '#scrolly-1 .step',
+    offset: STORY_TRIGGER,
   })
   .onStepEnter(onStepEnter);
 
@@ -482,6 +530,7 @@ filesScroller
   .setup({
     container: '#scrolly-2',
     step: '#scrolly-2 .step',
+    offset: STORY_TRIGGER,
   })
   .onStepEnter((response) => {
     filesAtEnd = false;
@@ -490,14 +539,14 @@ filesScroller
   });
 
 // Near the bottom of the page the last step cannot always reach scrollama's trigger line, and a fast
-// jump (End key) skips it, so once the last step has passed the middle of the screen the files show
+// jump (End key) skips it, so once the last step has passed the trigger line the files show
 // the full history the story ends on.
 let filesAtEnd = false;
 const lastFilesStep = document.querySelector('#files-story .step:last-child');
 addEventListener(
   'scroll',
   () => {
-    if (!filesAtEnd && lastFilesStep.getBoundingClientRect().top < innerHeight / 2) {
+    if (!filesAtEnd && lastFilesStep.getBoundingClientRect().top < innerHeight * STORY_TRIGGER) {
       filesAtEnd = true;
       updateFileDisplay(commits);
     }

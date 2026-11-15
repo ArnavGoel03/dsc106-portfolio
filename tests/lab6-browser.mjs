@@ -216,6 +216,41 @@ const OUTPUT = outputDirectory;
     await page.evaluate(() => scrollTo(0, 0));
     await page.waitForTimeout(600);
     await page.locator('#commit-progress').fill('100');
+    // Axis labels never collide (the 00:00 hour label and a date at the left edge did, on any screen)
+    const labelCollisions = async () => page.evaluate(() => {
+      const boxes = [...document.querySelectorAll('#chart .tick text')].map(t => t.getBoundingClientRect());
+      let n = 0;
+      for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i], b = boxes[j];
+        if (!(a.left >= b.right || a.right <= b.left || a.top >= b.bottom || a.bottom <= b.top)) n++;
+      }
+      return n;
+    });
+    const collisions = {};
+    for (const v of ['100', '5', '30']) { await page.locator('#commit-progress').fill(v); await page.waitForTimeout(250); collisions[v] = await labelCollisions(); }
+    check('Lab 8: axis labels never overlap at any slider position', Object.values(collisions).every(n => n === 0), collisions);
+    const pathWraps = await page.evaluate(() => [...document.querySelectorAll('#files dt code')].filter(c => c.textContent.includes('/')).every(c => c.querySelector('wbr')));
+    check('Lab 8: long file paths wrap after a slash, not mid-word', pathWraps, pathWraps);
+    // Phone: the chart is drawn for its real width, so labels stay readable and the active paragraph
+    // stays below the pinned chart
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.goto(URL_BASE + 'meta/', { waitUntil: 'networkidle', timeout: 20000 });
+    await page.waitForSelector('#chart circle');
+    const phone = await page.evaluate(() => {
+      const svg = document.querySelector('#chart svg');
+      const text = document.querySelector('#chart .x-axis .tick text');
+      return { labelPx: +(parseFloat(getComputedStyle(text).fontSize) * svg.getScreenCTM().a).toFixed(1), leftmost: Math.min(...[...document.querySelectorAll('#chart .tick text')].map(t => t.getBoundingClientRect().left)) };
+    });
+    phone.collisions = await labelCollisions();
+    check('Lab 8 phone: axis labels at least 10px, on screen, not overlapping', phone.labelPx >= 10 && phone.leftmost >= 0 && phone.collisions === 0, phone);
+    await page.evaluate(() => { const s = document.querySelectorAll('#scatter-story .step')[10]; scrollBy(0, s.getBoundingClientRect().top - innerHeight * 0.6); });
+    await page.waitForTimeout(800);
+    const phoneStep = await page.evaluate(() => ({
+      circles: document.querySelectorAll('#chart circle').length,
+      stepTop: Math.round(document.querySelectorAll('#scatter-story .step')[10].getBoundingClientRect().top),
+      plotBottom: Math.round(document.querySelector('#scatter-plot').getBoundingClientRect().bottom),
+    }));
+    check('Lab 8 phone: the active paragraph sits below the pinned chart', phoneStep.circles === 11 && phoneStep.stepTop >= phoneStep.plotBottom, phoneStep);
     check('No runtime/console errors',errors.length===0,errors);
     const result={url:URL_BASE+'meta/',checkedAt:new Date().toISOString(),checks,failures:checks.filter(c=>!c.pass),initial,errors};
 

@@ -548,7 +548,8 @@ dl.info[hidden]:not(:hover, :focus-within) {
   dt {
     grid-column: 1;
     min-width: 0;
-    overflow-wrap: anywhere;
+    /* Paths break after a slash (main.js adds <wbr>); only a segment too long for the column breaks inside */
+    overflow-wrap: break-word;
     line-height: 1.2;
 
     small {
@@ -600,7 +601,8 @@ dl.info[hidden]:not(:hover, :focus-within) {
 
 /* The chart sits in a narrower column now, so axis labels are sized in viewBox units to stay legible */
 #chart .tick text {
-  font-size: 16px;
+  /* Set from main.js: 16px on a laptop-width chart, larger on a phone so labels stay readable */
+  font-size: var(--tick-font, 16px);
 }
 
 /* The chart gets the wider column so its labels stay readable */
@@ -646,6 +648,9 @@ dl.info[hidden]:not(:hover, :focus-within) {
 
   #scatter-plot,
   #files-plot {
+    /* In a column, flex-start would shrink the width to the content and the chart would be drawn too
+       narrow; stretch keeps it full width */
+    align-self: stretch;
     order: -1;
     z-index: 1;
     height: auto;
