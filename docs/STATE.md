@@ -104,6 +104,11 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   the plot, a step and a paragraph, the plot scrolls with the page instead of covering the story. Harm gate: the
   recording flow at 1280 and 1440 and the axes and dots at six sizes compared identical to the live version before
   each push; every new check fails on the version before its fix. b01a8e2 data: 74 commits, 5,228 lines.
+  Then (Codex review) 02e6daf: on a phone a brush grew the pinned plot by its summary and covered the active paragraph
+  (390x568 and 390x844). The count and language breakdown now share #brush-summary, which on a phone gets one height
+  at layout time and never changes on a brush, scrolling inside and focusable; with no room for the count line the
+  plot unpins. Laptop flow, axes at six sizes and the laptop brush summary compared identical to 9c86291. 4fefcbc data:
+  76 commits, 5,266 lines. Suite 46/46 live in IST and LA, live files = HEAD.
   Gradescope Q1 links saved 2026-11-14 (submission 448373018). OWNER ACTION: record and upload the Q2 video from
   ~/Documents/Coursework/DSC106/DSC106-Lab8-Video-Script.pdf, due Fri Nov 20 11:59 PM PT.
 
