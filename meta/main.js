@@ -154,14 +154,25 @@ const stackedLayout = matchMedia('(max-width: 40em)');
 // plot, and high enough that a paragraph taking over fits on screen below it.
 // Recomputed on resize, since rotating or resizing moves the plot's edge.
 function storyTrigger(plotSelector, storySelector) {
-  if (!stackedLayout.matches || !innerHeight) return 0.5;
-  const plotHeight = document.querySelector(plotSelector).getBoundingClientRect().height;
+  const plot = document.querySelector(plotSelector);
+  if (!stackedLayout.matches || !innerHeight) {
+    plot.classList.remove('unpinned');
+    return 0.5;
+  }
+  plot.classList.remove('unpinned');
+  const plotHeight = plot.getBoundingClientRect().height;
   // Distance from one step's top to the next, so the paragraph margin between steps is counted
   const steps = [...document.querySelectorAll(`${storySelector} .step`)];
   const tops = steps.map((step) => step.getBoundingClientRect().top);
   const stepHeight = d3.max(d3.pairs(tops), ([a, b]) => b - a) ?? 0;
   // ...but never so low that a paragraph taking over runs off the bottom of the screen
   const textHeight = d3.max(steps, (step) => step.querySelector('p')?.offsetHeight ?? 0) ?? 0;
+  // On a screen too short for the plot, a step and the next paragraph, a pinned plot would cover the
+  // paragraph that drives it, so the plot scrolls with the page instead (phones only; never a laptop)
+  if (plotHeight + stepHeight + textHeight > innerHeight) {
+    plot.classList.add('unpinned');
+    return 0.5;
+  }
   const line = Math.min(plotHeight + stepHeight, innerHeight - textHeight);
   return Math.min(0.95, Math.max(0.5, line / innerHeight));
 }

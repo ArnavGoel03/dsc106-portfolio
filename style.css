@@ -671,6 +671,12 @@ dl.info[hidden]:not(:hover, :focus-within) {
     display: none;
   }
 
+  /* Set from main.js when the screen is too short for the pinned plot and a paragraph below it */
+  #scatter-plot.unpinned,
+  #files-plot.unpinned {
+    position: static;
+  }
+
   /* Shorter steps, so on a short screen a paragraph fits between the pinned plot and the trigger line */
   #scatter-story .step,
   #files-story .step {

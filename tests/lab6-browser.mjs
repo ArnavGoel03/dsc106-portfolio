@@ -360,6 +360,28 @@ const OUTPUT = outputDirectory;
     await page.waitForTimeout(800);
     const phoneSteps = await phoneWalk();
     check('Lab 8 phone: the active paragraph stays in view below the pinned chart, forward and back', phoneSteps.every(r => r.inView), phoneSteps);
+    // A screen too short for the pinned plot and a paragraph lets the plot scroll with the page, so it
+    // never covers the paragraph driving it
+    await page.setViewportSize({ width: 320, height: 440 });
+    await page.waitForTimeout(800);
+    await page.evaluate(() => { const st = document.querySelectorAll('#scatter-story .step')[10]; scrollBy(0, st.getBoundingClientRect().top - innerHeight + 4); });
+    await page.waitForTimeout(500);
+    const shortPhone = [];
+    for (const y of [1, 1, 1, 1, -1, -1]) {
+      for (let k = 0; k < 4; k++) { await page.mouse.move(160, 400); await page.mouse.wheel(0, y * 40); await page.waitForTimeout(60); }
+      await page.waitForTimeout(400);
+      shortPhone.push(await page.evaluate(() => {
+        const steps = [...document.querySelectorAll('#scatter-story .step')];
+        const plot = document.querySelector('#scatter-plot').getBoundingClientRect();
+        const t = steps[document.querySelectorAll('#chart circle').length - 1]?.querySelector('p').getBoundingClientRect();
+        return { covered: Boolean(t && plot.bottom > t.top + 1 && plot.top < t.bottom - 1), position: getComputedStyle(document.querySelector('#scatter-plot')).position };
+      }));
+    }
+    check('Lab 8 short phone: the plot never covers the active paragraph', shortPhone.every(r => !r.covered), shortPhone);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(800);
+    const tallPhone = await page.evaluate(() => getComputedStyle(document.querySelector('#scatter-plot')).position);
+    check('Lab 8 phone with room: the plot stays pinned', tallPhone === 'sticky', tallPhone);
     // Resizing without a reload redraws the chart for its new size and keeps the filter (at the top of
     // the page, so the resize cannot scroll a different story step into play)
     await page.evaluate(() => scrollTo(0, 0));
