@@ -79,8 +79,15 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   responsive viewBox or a mobile scrollama offset.~~ Cleared 2026-11-15 in e6e0ce5 (owner: improve everything): labels
   at least 10.5px on screen on narrow charts (laptop rendering compared identical at 1280, 1440, 1512), phone story
   trigger at 75%, phone panels stretch to full width; also fixed a 00:00 vs first-date label collision on every screen
-  in filtered views, and file paths wrap at slashes. 4 new checks fail on bc5567b. 6aacd8b data: 69 commits, 5,087
-  lines, style.css 666 leads app.js 626. Suite 36/36 live in IST and LA, live files = HEAD.
+  in filtered views, and file paths wrap at slashes. 4 new checks fail on bc5567b. ~~6aacd8b data: 69 commits, 5,087
+  lines, style.css 666 leads app.js 626. Suite 36/36 live in IST and LA, live files = HEAD.~~ Then (Codex review)
+  38d39ab and b38fb5f: the chart scale is measured on the drawn svg and the chart redraws on resize keeping the
+  filter (labels went 5.7px or 19.4px after a resize); stacked layout trigger = one step stride below the plot, never
+  so low a paragraph runs off screen, moved at once on resize; empty brush summary hidden on phones; short stacked
+  screens cap the chart at 30vh and files at 35vh. 7 new checks in all, each fails on the commit before its fix.
+  Laptop rendering compared identical to bc5567b on the same data at 1280, 1440, 1512. 64c3b7b data: 71 commits,
+  5,171 lines, style.css 696 leads app.js 626. Suite 38/38 live in IST and LA, live files = HEAD. Script PDF now has
+  the checklist and the full timed table on page 1 (owner rule), detail on page 2; Desktop copy identical.
   Gradescope Q1 links saved 2026-11-14 (submission 448373018). OWNER ACTION: record and upload the Q2 video from
   ~/Documents/Coursework/DSC106/DSC106-Lab8-Video-Script.pdf, due Fri Nov 20 11:59 PM PT.
 
