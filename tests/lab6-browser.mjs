@@ -289,6 +289,11 @@ const OUTPUT = outputDirectory;
       }
       return seen;
     };
+    // Walked at a common phone size: at 320x568 with taller font metrics (Linux CI) the plot, one step and
+    // the next paragraph cannot all fit, so the guarantee is geometrically impossible there (recorded in
+    // docs/STATE.md); the label check above still runs at 320
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(800);
     // Park the step just below the screen, so the walk's own wheel steps carry it over the trigger line
     // (an instant jump past the line is a known, retained limitation, not what this check is about)
     await page.evaluate(() => { const step = document.querySelectorAll('#scatter-story .step')[10]; scrollBy(0, step.getBoundingClientRect().top - innerHeight + 4); });

@@ -96,6 +96,8 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   too, e.g. 1280 to 800 wide; or a phone size or orientation change; or a phone brush whose summary moves the trigger
   line) can replay the current story step and reset a manual slider or brush. A keyboard Home/End or Cmd+arrow jump
   can leave the chart on a step it flew past, on any screen. The recording avoids both: fixed window, no jumps.
+  On a 320x568 phone with taller font metrics (Linux CI) the active paragraph can sit up to ~20px under the pinned
+  chart: the plot, one step and the next paragraph do not fit, so the phone walk check runs at 390x844.
   Gradescope Q1 links saved 2026-11-14 (submission 448373018). OWNER ACTION: record and upload the Q2 video from
   ~/Documents/Coursework/DSC106/DSC106-Lab8-Video-Script.pdf, due Fri Nov 20 11:59 PM PT.
 
