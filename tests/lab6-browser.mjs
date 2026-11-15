@@ -182,6 +182,13 @@ const OUTPUT = outputDirectory;
     check('Lab 8: a dot keeps its radius whatever the filter', rFull === rZero, { rFull, rZero });
     check('Lab 8: slider label and story use the dots\' clock', zero.step.includes(zero.dotClock) && zero.label.endsWith(zero.dotClock), zero);
     await page.locator('#commit-progress').fill('100');
+    await page.waitForTimeout(300);
+    const keptLoc = await page.evaluate(() => { window.__lab8Loc = document.querySelector('#files .loc'); });
+    await page.locator('#commit-progress').fill('99');
+    await page.waitForTimeout(300);
+    const locKept = await page.evaluate(() => document.contains(window.__lab8Loc));
+    check('Lab 8: unit dots keep their elements when the filter changes', locKept, locKept);
+    await page.locator('#commit-progress').fill('100');
     check('No runtime/console errors',errors.length===0,errors);
     const result={url:URL_BASE+'meta/',checkedAt:new Date().toISOString(),checks,failures:checks.filter(c=>!c.pass),initial,errors};
 

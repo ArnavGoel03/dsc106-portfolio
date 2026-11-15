@@ -352,7 +352,7 @@ section article {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #projects-pie-plot path, .legend .legend-item {
+  #projects-pie-plot path, .legend .legend-item, #chart circle {
     transition: none;
   }
 }

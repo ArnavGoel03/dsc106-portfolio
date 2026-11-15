@@ -347,7 +347,9 @@ function updateFileDisplay(filteredCommits) {
 
   const filesContainer = d3
     .select('#files')
-    .selectAll('div')
+    // Only the file rows: selectAll('div') also matched every nested .loc dot, so each update threw
+    // away and rebuilt all of them
+    .selectChildren('div')
     .data(files, (d) => d.name)
     .join((enter) =>
       enter.append('div').call((div) => {
