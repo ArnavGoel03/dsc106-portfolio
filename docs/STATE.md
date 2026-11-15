@@ -61,9 +61,10 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   (commit 204fca1). Suite now has 9 Lab 8 checks, 29/29 on the live page in IST and LA (LAB6_TZ), live main.js and
   style.css = HEAD by shasum; the 4 new checks fail on the old code. ~~Video script retimed to 116 words, stop at 0:54.~~
   Then (Codex cross-review) 1c2b3fe: #files rows use selectChildren, since selectAll('div') matched every .loc and
-  rebuilt ~4,900 dots per update (new check, fails on old code); dots honour prefers-reduced-motion. 18ddb05 refreshed
-  loc.csv: 64 commits, 4,963 lines, 33 files, app.js 626 vs style.css 624. Suite 30/30 live in IST and LA, live main.js,
-  style.css and loc.csv = HEAD. Script reordered to the spec's order (story, slider, unit viz, learned), 111 words,
+  rebuilt ~4,900 dots per update (new check, fails on old code); c23996c reduced-motion rule placed after the dot and
+  brush rules (verified: transition 0s, animation none). 810f308 refreshed loc.csv: 65 commits, 4,974 lines, 33 files,
+  style.css 635 vs app.js 626. Suite 30/30 live in IST and LA, live files = HEAD. Codex audit report:
+  ~/debug-reports/dsc106/lab8-redteam-2026-11-15.md. Script reordered to the spec's order (story, slider, unit viz, learned), 111 words,
   stop at 0:52, says "neck and neck" since one more style edit flips the leader.
   Parked (phone only, not graded, the video is recorded on a laptop): x-axis labels render ~5px at 390px wide because
   the SVG scales its viewBox down; at 320x568 the pinned chart ends 7px below scrollama's midline. A fix needs a
