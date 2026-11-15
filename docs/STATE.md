@@ -92,9 +92,10 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   out of the story text at laptop widths (visible in the video) and keeps a brush across a resize; b8e6967 data 72
   commits, 5,179 lines. Suite 40/40 live in IST and LA, live files = HEAD. Script: no "stats" claim (the stats block
   is off screen), no keyboard jumps or scroll back, names no file sizes; 113 words, two pages, Desktop copy identical.
-  Known and out of scope (phone only, reported by Codex): changing a phone's size or orientation, or brushing on a
-  phone where the summary moves the trigger line, can replay the current story step and reset a manual slider or
-  brush. A keyboard Home/End jump can leave the chart on a step it flew past. Neither affects the laptop recording.
+  Known and out of scope (reported by Codex, retained on purpose): a resize that reflows the pinned plot (on a laptop
+  too, e.g. 1280 to 800 wide; or a phone size or orientation change; or a phone brush whose summary moves the trigger
+  line) can replay the current story step and reset a manual slider or brush. A keyboard Home/End or Cmd+arrow jump
+  can leave the chart on a step it flew past, on any screen. The recording avoids both: fixed window, no jumps.
   Gradescope Q1 links saved 2026-11-14 (submission 448373018). OWNER ACTION: record and upload the Q2 video from
   ~/Documents/Coursework/DSC106/DSC106-Lab8-Video-Script.pdf, due Fri Nov 20 11:59 PM PT.
 
