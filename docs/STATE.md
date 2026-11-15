@@ -59,7 +59,15 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   red-team (spec, code, script, Gradescope) fixed a stale tooltip, a blank one-commit x-axis, radii rescaling with the
   filter, mixed clocks (slider, filter, label and story now use wallClock like the dots) and sticky-box overflow
   (commit 204fca1). Suite now has 9 Lab 8 checks, 29/29 on the live page in IST and LA (LAB6_TZ), live main.js and
-  style.css = HEAD by shasum; the 4 new checks fail on the old code. Video script retimed to 116 words, stop at 0:54.
+  style.css = HEAD by shasum; the 4 new checks fail on the old code. ~~Video script retimed to 116 words, stop at 0:54.~~
+  Then (Codex cross-review) 1c2b3fe: #files rows use selectChildren, since selectAll('div') matched every .loc and
+  rebuilt ~4,900 dots per update (new check, fails on old code); dots honour prefers-reduced-motion. 18ddb05 refreshed
+  loc.csv: 64 commits, 4,963 lines, 33 files, app.js 626 vs style.css 624. Suite 30/30 live in IST and LA, live main.js,
+  style.css and loc.csv = HEAD. Script reordered to the spec's order (story, slider, unit viz, learned), 111 words,
+  stop at 0:52, says "neck and neck" since one more style edit flips the leader.
+  Parked (phone only, not graded, the video is recorded on a laptop): x-axis labels render ~5px at 390px wide because
+  the SVG scales its viewBox down; at 320x568 the pinned chart ends 7px below scrollama's midline. A fix needs a
+  responsive viewBox or a mobile scrollama offset.
   Gradescope Q1 links saved 2026-11-14 (submission 448373018). OWNER ACTION: record and upload the Q2 video from
   ~/Documents/Coursework/DSC106/DSC106-Lab8-Video-Script.pdf, due Fri Nov 20 11:59 PM PT.
 
