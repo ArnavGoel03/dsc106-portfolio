@@ -229,6 +229,32 @@ const OUTPUT = outputDirectory;
     const collisions = {};
     for (const v of ['100', '5', '30']) { await page.locator('#commit-progress').fill(v); await page.waitForTimeout(250); collisions[v] = await labelCollisions(); }
     check('Lab 8: axis labels never overlap at any slider position', Object.values(collisions).every(n => n === 0), collisions);
+    // The chart's hour labels stay inside its column: overhanging, they ran into the story text beside it
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.waitForTimeout(800);
+    const labelGap = await page.evaluate(() => ({
+      labelsLeft: Math.round(Math.min(...[...document.querySelectorAll('#chart .tick text')].map(t => t.getBoundingClientRect().left))),
+      storyRight: Math.round(Math.max(...[...document.querySelectorAll('#scatter-story .step p')].map(p => p.getBoundingClientRect().right))),
+    }));
+    check('Lab 8: chart labels never overlap the story text beside it', labelGap.labelsLeft >= labelGap.storyRight, labelGap);
+    // Resizing keeps a brushed selection (a narrower window shrinks the chart, so it is redrawn)
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.locator('#commit-progress').fill('100');
+    await page.waitForTimeout(400);
+    await page.locator('#chart svg').scrollIntoViewIfNeeded();
+    const box = await page.locator('#chart svg').boundingBox();
+    await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.8, { steps: 8 });
+    await page.mouse.up();
+    await page.waitForTimeout(300);
+    const brushBefore = await page.evaluate(() => document.querySelector('#selection-count').textContent);
+    await page.setViewportSize({ width: 1000, height: 800 });
+    await page.waitForTimeout(800);
+    const brushAfter = await page.evaluate(() => document.querySelector('#selection-count').textContent);
+    check('Lab 8: resizing keeps a brushed selection', /\d+ commits? selected/.test(brushBefore) && brushAfter === brushBefore, { brushBefore, brushAfter });
+    await page.setViewportSize(viewports.desktop);
+    await page.waitForTimeout(800);
     const pathWraps = await page.evaluate(() => [...document.querySelectorAll('#files dt code')].filter(c => c.textContent.includes('/')).every(c => c.querySelector('wbr')));
     check('Lab 8: long file paths wrap after a slash, not mid-word', pathWraps, pathWraps);
     // Phone: the chart is drawn for its real width, so labels stay readable and the active paragraph

@@ -154,7 +154,7 @@ const stackedLayout = matchMedia('(max-width: 40em)');
 // plot, and high enough that a paragraph taking over fits on screen below it.
 // Recomputed on resize, since rotating or resizing moves the plot's edge.
 function storyTrigger(plotSelector, storySelector) {
-  if (!stackedLayout.matches) return 0.5;
+  if (!stackedLayout.matches || !innerHeight) return 0.5;
   const plotHeight = document.querySelector(plotSelector).getBoundingClientRect().height;
   // Distance from one step's top to the next, so the paragraph margin between steps is counted
   const steps = [...document.querySelectorAll(`${storySelector} .step`)];
@@ -291,9 +291,9 @@ function renderScatterPlot(data, commits) {
   renderedScale = svg.node().getScreenCTM()?.a || (document.querySelector('#chart').clientWidth || width) / width;
   tickFont = Math.max(BASE_TICK_FONT, MIN_TICK_FONT_PX / renderedScale);
   const grow = tickFont - BASE_TICK_FONT;
-  // A laptop chart lets its hour labels overhang the left edge into the column gap; a phone chart has
-  // only the page gutter there, so the labels get room inside the chart instead
-  const margin = { top: 10, right: 10, bottom: 30 + grow * 1.4, left: grow > 0 ? tickFont * 3.4 + 10 : 20 };
+  // The hour labels get room inside the chart: overhanging the left edge, they ran into the story
+  // text beside the chart on a laptop and off the page gutter on a phone
+  const margin = { top: 10, right: 10, bottom: 30 + grow * 1.4, left: tickFont * 3.4 + 10 };
   const usableArea = {
     top: margin.top,
     right: width - margin.right,
@@ -586,24 +586,32 @@ addEventListener(
 // redraw, keeping the current filter, is debounced so a drag-resize redraws once at the end.
 const RESIZE_SETTLE_MS = 150;
 let resizeTimer;
+// Setting an offset makes scrollama rebuild its observers, which replays an enter for the step on the
+// line (undoing a manual slider move or a brush), so only a line that actually moved is set
 function placeTriggers() {
-  scatterTrigger = storyTrigger('#scatter-plot', '#scatter-story');
-  filesTrigger = storyTrigger('#files-plot', '#files-story');
-  scroller.offset(scatterTrigger);
-  filesScroller.offset(filesTrigger);
+  const scatterNext = storyTrigger('#scatter-plot', '#scatter-story');
+  const filesNext = storyTrigger('#files-plot', '#files-story');
+  if (Math.abs(scatterNext - scatterTrigger) > 0.005) scroller.offset((scatterTrigger = scatterNext));
+  if (Math.abs(filesNext - filesTrigger) > 0.005) filesScroller.offset((filesTrigger = filesNext));
 }
+let renderedStacked = stackedLayout.matches;
 addEventListener('resize', () => {
   placeTriggers();
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    const scale = d3.select('#chart svg').node()?.getScreenCTM()?.a;
-    if (scale && Math.abs(scale - renderedScale) > 0.01) {
-      updateTooltipVisibility(false);
-      d3.select('#chart').selectAll('svg').remove();
-      renderScatterPlot(data, commits);
-      updateScatterPlot(data, filteredCommits);
-      // The redrawn chart can change the pinned plot's height
-      placeTriggers();
-    }
+    const svg = d3.select('#chart svg');
+    const scale = svg.node()?.getScreenCTM()?.a;
+    if (!scale || (Math.abs(scale - renderedScale) <= 0.01 && stackedLayout.matches === renderedStacked)) return;
+    renderedStacked = stackedLayout.matches;
+    // Keep a brushed selection across the redraw, in data terms (time and hour), not pixels
+    const selectionPx = d3.brushSelection(svg.node());
+    const kept = selectionPx?.map(([x, y]) => [xScale.invert(x), yScale.invert(y)]);
+    updateTooltipVisibility(false);
+    svg.remove();
+    renderScatterPlot(data, commits);
+    updateScatterPlot(data, filteredCommits);
+    if (kept) d3.select('#chart svg').call(brush.move, kept.map(([t, h]) => [xScale(t), yScale(h)]));
+    // The redrawn chart can change the pinned plot's height
+    placeTriggers();
   }, RESIZE_SETTLE_MS);
 });
