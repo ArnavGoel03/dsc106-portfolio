@@ -484,6 +484,23 @@ filesScroller
     step: '#scrolly-2 .step',
   })
   .onStepEnter((response) => {
+    filesAtEnd = false;
     const commit = response.element.__data__;
     updateFileDisplay(commits.filter((d) => d.wallClock <= commit.wallClock));
   });
+
+// Near the bottom of the page the last step cannot always reach scrollama's trigger line, and a fast
+// jump (End key) skips it, so once the last step has passed the middle of the screen the files show
+// the full history the story ends on.
+let filesAtEnd = false;
+const lastFilesStep = document.querySelector('#files-story .step:last-child');
+addEventListener(
+  'scroll',
+  () => {
+    if (!filesAtEnd && lastFilesStep.getBoundingClientRect().top < innerHeight / 2) {
+      filesAtEnd = true;
+      updateFileDisplay(commits);
+    }
+  },
+  { passive: true },
+);

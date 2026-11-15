@@ -201,6 +201,14 @@ const OUTPUT = outputDirectory;
       };
     });
     check('Lab 8 Step 4: the file story moves the unit dots to that commit', filesStory.steps === lab8Full.steps && filesStory.locs === filesStory.expected && filesStory.pinned, filesStory);
+    await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+    await page.waitForTimeout(800);
+    const filesEnd = await page.evaluate(() => {
+      const plot = document.querySelector('#files-plot')?.getBoundingClientRect();
+      const lastRow = document.querySelector('#files > div:last-child')?.getBoundingClientRect();
+      return { locs: document.querySelectorAll('#files .loc').length, lastRowVisible: Boolean(plot && lastRow && lastRow.bottom <= innerHeight && lastRow.top >= 0) };
+    });
+    check('Lab 8 Step 4: the end of the file story shows every line and every file', filesEnd.locs === lab8Full.locs && filesEnd.lastRowVisible, filesEnd);
     await page.evaluate(() => scrollTo(0, 0));
     await page.waitForTimeout(600);
     await page.locator('#commit-progress').fill('100');
