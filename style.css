@@ -352,7 +352,7 @@ section article {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #projects-pie-plot path, .legend .legend-item, #chart circle {
+  #projects-pie-plot path, .legend .legend-item {
     transition: none;
   }
 }
@@ -492,6 +492,17 @@ dl.info[hidden]:not(:hover, :focus-within) {
   stroke-opacity: 0.7;
   stroke-dasharray: 5 3;
   animation: marching-ants 2s linear infinite;
+}
+
+/* After the dot and brush rules above, or their motion wins on equal specificity */
+@media (prefers-reduced-motion: reduce) {
+  #chart circle {
+    transition: none;
+  }
+
+  #chart .selection {
+    animation: none;
+  }
 }
 
 /* Lab 8, Step 1.1: slider label with the time pushed to the right */
