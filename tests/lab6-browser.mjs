@@ -382,6 +382,31 @@ const OUTPUT = outputDirectory;
     await page.waitForTimeout(800);
     const tallPhone = await page.evaluate(() => getComputedStyle(document.querySelector('#scatter-plot')).position);
     check('Lab 8 phone with room: the plot stays pinned', tallPhone === 'sticky', tallPhone);
+    // A brush on a short phone must not grow the pinned plot over the paragraph driving it
+    await page.setViewportSize({ width: 390, height: 568 });
+    await page.waitForTimeout(800);
+    await page.evaluate(() => { const st = document.querySelectorAll('#scatter-story .step')[11]; scrollBy(0, st.getBoundingClientRect().top - innerHeight + 4); });
+    await page.waitForTimeout(400);
+    for (let k = 0; k < 6; k++) { await page.mouse.move(195, 540); await page.mouse.wheel(0, 40); await page.waitForTimeout(60); }
+    await page.waitForTimeout(600);
+    const phoneSvg = await page.locator('#chart svg').boundingBox();
+    await page.mouse.move(phoneSvg.x + 2, phoneSvg.y + 2);
+    await page.mouse.down();
+    await page.mouse.move(phoneSvg.x + phoneSvg.width - 2, phoneSvg.y + phoneSvg.height - 2, { steps: 10 });
+    await page.mouse.up();
+    await page.waitForTimeout(600);
+    const brushCover = async () => page.evaluate(() => {
+      const steps = [...document.querySelectorAll('#scatter-story .step')];
+      const plot = document.querySelector('#scatter-plot').getBoundingClientRect();
+      const t = steps[document.querySelectorAll('#chart circle').length - 1]?.querySelector('p').getBoundingClientRect();
+      return { covered: Boolean(t && plot.bottom > t.top + 1 && plot.top < t.bottom - 1), selected: document.querySelectorAll('#chart circle.selected').length };
+    });
+    const afterBrush = await brushCover();
+    await page.mouse.move(195, 540);
+    await page.mouse.wheel(0, 20);
+    await page.waitForTimeout(600);
+    const afterNudge = await brushCover();
+    check('Lab 8 phone: a brush selection never covers the active paragraph', afterBrush.selected > 0 && !afterBrush.covered && !afterNudge.covered, { afterBrush, afterNudge });
     // Resizing without a reload redraws the chart for its new size and keeps the filter (at the top of
     // the page, so the resize cannot scroll a different story step into play)
     await page.evaluate(() => scrollTo(0, 0));

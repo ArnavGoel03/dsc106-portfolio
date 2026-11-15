@@ -153,6 +153,24 @@ const stackedLayout = matchMedia('(max-width: 40em)');
 // sits one step below the plot: the active paragraph then stays in view for as long as it drives the
 // plot, and high enough that a paragraph taking over fits on screen below it.
 // Recomputed on resize, since rotating or resizing moves the plot's edge.
+// What a pinned plot needs below it: its own height, one step (top to next top, so the paragraph
+// margin between steps counts) and the tallest paragraph
+function storyRoom(plot, storySelector) {
+  const steps = [...document.querySelectorAll(`${storySelector} .step`)];
+  const tops = steps.map((step) => step.getBoundingClientRect().top);
+  return {
+    plotHeight: plot.getBoundingClientRect().height,
+    stepHeight: d3.max(d3.pairs(tops), ([a, b]) => b - a) ?? 0,
+    textHeight: d3.max(steps, (step) => step.querySelector('p')?.offsetHeight ?? 0) ?? 0,
+  };
+}
+const storyFits = (plot, storySelector) => {
+  const { plotHeight, stepHeight, textHeight } = storyRoom(plot, storySelector);
+  return plotHeight + stepHeight + textHeight <= innerHeight;
+};
+// Set once the stories are set up: moves the trigger lines when the pinned plot changes height
+let afterPlotResize = () => {};
+
 function storyTrigger(plotSelector, storySelector) {
   const plot = document.querySelector(plotSelector);
   if (!stackedLayout.matches || !innerHeight) {
@@ -160,13 +178,7 @@ function storyTrigger(plotSelector, storySelector) {
     return 0.5;
   }
   plot.classList.remove('unpinned');
-  const plotHeight = plot.getBoundingClientRect().height;
-  // Distance from one step's top to the next, so the paragraph margin between steps is counted
-  const steps = [...document.querySelectorAll(`${storySelector} .step`)];
-  const tops = steps.map((step) => step.getBoundingClientRect().top);
-  const stepHeight = d3.max(d3.pairs(tops), ([a, b]) => b - a) ?? 0;
-  // ...but never so low that a paragraph taking over runs off the bottom of the screen
-  const textHeight = d3.max(steps, (step) => step.querySelector('p')?.offsetHeight ?? 0) ?? 0;
+  const { plotHeight, stepHeight, textHeight } = storyRoom(plot, storySelector);
   // On a screen too short for the plot, a step and the next paragraph, a pinned plot would cover the
   // paragraph that drives it, so the plot scrolls with the page instead (phones only; never a laptop)
   if (plotHeight + stepHeight + textHeight > innerHeight) {
@@ -243,8 +255,20 @@ function brushed(event) {
   );
   renderSelectionCount(selection);
   renderLanguageBreakdown(selection);
-  // On a phone the empty "No commits selected" line is hidden to save height (style.css)
-  document.querySelector('#scatter-plot').classList.toggle('has-selection', Boolean(selection));
+  showSelectionSummary(Boolean(selection));
+}
+
+// On a phone the brush summary shows only once something is selected (style.css), and only if the
+// pinned plot still leaves room for the story below it: grown past that, it covered the paragraph
+// driving the chart. The selected dots stay highlighted either way. A laptop always shows it.
+function showSelectionSummary(selected) {
+  const plot = document.querySelector('#scatter-plot');
+  const before = plot.classList.contains('has-selection');
+  plot.classList.toggle('has-selection', selected);
+  if (selected && stackedLayout.matches && !plot.classList.contains('unpinned') && !storyFits(plot, '#scatter-story')) {
+    plot.classList.remove('has-selection');
+  }
+  if (plot.classList.contains('has-selection') !== before) afterPlotResize();
 }
 
 // Lab 6, Step 5.1 + 5.2
@@ -636,6 +660,10 @@ function rememberStoryPositions() {
   scatterIndex = Math.min(stepOnLine(scatterSteps, scatterTrigger), scatterSteps.length - 1);
   filesIndex = Math.min(stepOnLine(filesSteps, filesTrigger), filesSteps.length - 1);
 }
+afterPlotResize = () => {
+  placeTriggers();
+  rememberStoryPositions();
+};
 addEventListener('resize', () => {
   placeTriggers();
   rememberStoryPositions();
