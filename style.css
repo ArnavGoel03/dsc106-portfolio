@@ -616,13 +616,15 @@ dl.info[hidden]:not(:hover, :focus-within) {
   align-self: flex-start;
 }
 
-/* Lab 8, Step 4: the files pin the same way. Taller than the screen, they show the biggest files
-   (sorted to the top) while pinned, and scroll up to reveal every file once the story ends */
+/* Lab 8, Step 4: the files pin the same way, one screen tall so the biggest files (sorted to the
+   top) stay in view for the whole story; the smaller ones are reached by scrolling the panel itself */
 #files-plot {
   flex: 2;
   position: sticky;
   top: 0;
   align-self: flex-start;
+  max-height: 100vh;
+  overflow-y: auto;
 }
 
 /* Room below the last step so it can reach the middle of the screen and show the full history */
