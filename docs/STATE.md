@@ -53,8 +53,12 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
 
 - Lab 8 (Animation and Scrollytelling): built 2026-11-14 on the Meta page, spec https://dsc106.com/labs/lab08/. Steps 1 to 3
   (commit time slider, one keyed and redrawn scatter plot with @starting-style grow, file unit visualization coloured by
-  language with a fixed key, Scrollama story beside a sticky chart that returns to full history above the story); optional
-  Step 4 (second scrolly for files) not built. Tooltip time cell renamed #commit-hour because the slider owns #commit-time.
+  language with a fixed key, Scrollama story beside a sticky chart that returns to full history above the story); ~~optional
+  Step 4 (second scrolly for files) not built.~~ Step 4 built 2026-11-15 (21425e4, owner asked; it earns no points, the
+  spec and syllabus mention no extra credit): #scrolly-2 repeats the story beside the pinned #files-plot and a second
+  scrollama moves the unit dots to each commit. Slider kept. Suite 31/31 live in IST and LA, live main.js, index.html,
+  style.css and loc.csv (6307042: 66 commits, 5,010 lines; style.css 656 leads app.js 626) = HEAD. Video script
+  updated for it (115 words, stop 0:52); a copy sits on ~/Desktop for AirDrop. Tooltip time cell renamed #commit-hour because the slider owns #commit-time.
   ~~Browser suite has 5 Lab 8 checks, 25/25 on the live page, live files = HEAD 2b346f5.~~ Superseded 2026-11-15:
   red-team (spec, code, script, Gradescope) fixed a stale tooltip, a blank one-commit x-axis, radii rescaling with the
   filter, mixed clocks (slider, filter, label and story now use wallClock like the dots) and sticky-box overflow
