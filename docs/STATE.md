@@ -74,9 +74,13 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   style.css 635 vs app.js 626. Suite 30/30 live in IST and LA, live files = HEAD. Codex audit report:
   ~/debug-reports/dsc106/lab8-redteam-2026-11-15.md. Script reordered to the spec's order (story, slider, unit viz, learned), 111 words,
   stop at 0:52, says "neck and neck" since one more style edit flips the leader.
-  Parked (phone only, not graded, the video is recorded on a laptop): x-axis labels render ~5px at 390px wide because
+  ~~Parked (phone only, not graded, the video is recorded on a laptop): x-axis labels render ~5px at 390px wide because
   the SVG scales its viewBox down; at 320x568 the pinned chart ends 7px below scrollama's midline. A fix needs a
-  responsive viewBox or a mobile scrollama offset.
+  responsive viewBox or a mobile scrollama offset.~~ Cleared 2026-11-15 in e6e0ce5 (owner: improve everything): labels
+  at least 10.5px on screen on narrow charts (laptop rendering compared identical at 1280, 1440, 1512), phone story
+  trigger at 75%, phone panels stretch to full width; also fixed a 00:00 vs first-date label collision on every screen
+  in filtered views, and file paths wrap at slashes. 4 new checks fail on bc5567b. 6aacd8b data: 69 commits, 5,087
+  lines, style.css 666 leads app.js 626. Suite 36/36 live in IST and LA, live files = HEAD.
   Gradescope Q1 links saved 2026-11-14 (submission 448373018). OWNER ACTION: record and upload the Q2 video from
   ~/Documents/Coursework/DSC106/DSC106-Lab8-Video-Script.pdf, due Fri Nov 20 11:59 PM PT.
 
