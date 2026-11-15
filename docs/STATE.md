@@ -88,6 +88,13 @@ Live: https://arnavgoel03.github.io/dsc106-portfolio/ (GitHub Pages, deploys on 
   Laptop rendering compared identical to bc5567b on the same data at 1280, 1440, 1512. 64c3b7b data: 71 commits,
   5,171 lines, style.css 696 leads app.js 626. Suite 38/38 live in IST and LA, live files = HEAD. Script PDF now has
   the checklist and the full timed table on page 1 (owner rule), detail on page 2; Desktop copy identical.
+  Final (owner, 2026-11-15: stop extras, improve only within the requirements): 8683ca5 keeps the chart's hour labels
+  out of the story text at laptop widths (visible in the video) and keeps a brush across a resize; b8e6967 data 72
+  commits, 5,179 lines. Suite 40/40 live in IST and LA, live files = HEAD. Script: no "stats" claim (the stats block
+  is off screen), no keyboard jumps or scroll back, names no file sizes; 113 words, two pages, Desktop copy identical.
+  Known and out of scope (phone only, reported by Codex): changing a phone's size or orientation, or brushing on a
+  phone where the summary moves the trigger line, can replay the current story step and reset a manual slider or
+  brush. A keyboard Home/End jump can leave the chart on a step it flew past. Neither affects the laptop recording.
   Gradescope Q1 links saved 2026-11-14 (submission 448373018). OWNER ACTION: record and upload the Q2 video from
   ~/Documents/Coursework/DSC106/DSC106-Lab8-Video-Script.pdf, due Fri Nov 20 11:59 PM PT.
 
