@@ -463,7 +463,8 @@ const timeScale = d3
   .domain(d3.extent(commits, (d) => d.wallClock))
   .range([0, 100]);
 let commitProgress = 100;
-let storyActive = false;
+// A slider move by hand holds until the reader scrolls the story to another step
+let manualSlider = false;
 let commitMaxTime = timeScale.invert(commitProgress);
 
 const slider = document.getElementById('commit-progress');
@@ -485,8 +486,7 @@ function showCommitsUntil(maxTime) {
 }
 
 function onTimeSliderChange() {
-  // A manual slider move takes over from the story, so scrolling above it later keeps this value
-  storyActive = false;
+  manualSlider = true;
   commitProgress = Number(slider.value);
   showCommitsUntil(timeScale.invert(commitProgress));
 }
@@ -494,6 +494,7 @@ function onTimeSliderChange() {
 renderScatterPlot(data, commits);
 slider.addEventListener('input', onTimeSliderChange);
 onTimeSliderChange();
+manualSlider = false;
 
 // Lab 8, Step 3.2: one story step per commit
 const fileCount = (commit) => {
@@ -513,34 +514,78 @@ for (const story of ['#scatter-story', '#files-story']) {
   d3.select(story).selectAll('.step').data(commits).join('div').attr('class', 'step').html(storyStepHtml);
 }
 
-// Lab 8, Step 3.3: scrolling a step into view moves the chart, the slider and the files to that commit
-function onStepEnter(response) {
-  const commit = response.element.__data__;
-  storyActive = true;
-  commitProgress = timeScale(commit.wallClock);
-  slider.value = commitProgress;
-  showCommitsUntil(commit.wallClock);
+// Lab 8, Step 3.3: scrolling a step onto the trigger line moves the chart, the slider and the files to
+// that commit. Which step is on the line is read from the page itself, not from scrollama's enter
+// events alone: a jump (Home, End, a scrollbar drag) skips those events, and a resize or a new offset
+// replays them, which left the chart on a step the page had flown past or undid a slider move or a
+// brush. A step is applied only when the step on the line actually changes.
+const scatterSteps = [...document.querySelectorAll('#scatter-story .step')];
+const filesSteps = [...document.querySelectorAll('#files-story .step')];
+
+// Index of the step on the trigger line: -1 above the first step, steps.length past the last. In the
+// gap between two steps the earlier one still counts, as with scrollama.
+function stepOnLine(steps, trigger) {
+  const line = innerHeight * trigger;
+  let lo = 0;
+  let hi = steps.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (steps[mid].getBoundingClientRect().bottom < line) lo = mid + 1;
+    else hi = mid;
+  }
+  if (lo === steps.length) return steps.length;
+  return steps[lo].getBoundingClientRect().top <= line ? lo : lo - 1;
 }
 
-// Scrolling back above the first step returns to the full history the page opened with. Scrollama
-// fires no exit on a fast jump (Home key, scrollbar drag), so a passive scroll listener checks where
-// step one sits against scrollama's trigger line (scatterTrigger).
-const firstStep = document.querySelector('#scatter-story .step');
+let scatterIndex = -1;
+function syncScatterStory() {
+  const index = Math.min(stepOnLine(scatterSteps, scatterTrigger), scatterSteps.length - 1);
+  if (index === scatterIndex) return;
+  scatterIndex = index;
+  // Back above the story the page returns to the full history it opened with, unless the slider was
+  // moved by hand since the last step
+  if (index < 0 && manualSlider) return;
+  manualSlider = false;
+  const cutoff = index < 0 ? timeScale.invert(100) : commits[index].wallClock;
+  commitProgress = timeScale(cutoff);
+  slider.value = commitProgress;
+  showCommitsUntil(cutoff);
+}
+
+// Lab 8, Step 4: the second story drives only the unit visualization, so the files race commit by
+// commit. Past its last step the files show the full history the story ends on; scrolled back above
+// its first step they follow the chart's filter again (the slider and the first story).
+let filesIndex = -1;
+function syncFilesStory() {
+  const index = Math.min(stepOnLine(filesSteps, filesTrigger), filesSteps.length - 1);
+  if (index === filesIndex) return;
+  const leftStory = index < 0 && filesIndex >= 0;
+  filesIndex = index;
+  if (index >= 0) updateFileDisplay(commits.filter((d) => d.wallClock <= commits[index].wallClock));
+  else if (leftStory) updateFileDisplay(filteredCommits);
+}
+
+function syncStories() {
+  syncScatterStory();
+  syncFilesStory();
+}
+let syncQueued = false;
 addEventListener(
   'scroll',
   () => {
-    if (storyActive && firstStep.getBoundingClientRect().top > innerHeight * scatterTrigger) {
-      storyActive = false;
-      commitProgress = 100;
-      slider.value = commitProgress;
-      showCommitsUntil(timeScale.invert(commitProgress));
-    }
+    if (syncQueued) return;
+    syncQueued = true;
+    requestAnimationFrame(() => {
+      syncQueued = false;
+      syncStories();
+    });
   },
   { passive: true },
 );
 
 scatterTrigger = storyTrigger('#scatter-plot', '#scatter-story');
 filesTrigger = storyTrigger('#files-plot', '#files-story');
+// Scrollama (as the lab sets up) still reports steps entering; each report just re-reads the page
 const scroller = scrollama();
 scroller
   .setup({
@@ -548,9 +593,8 @@ scroller
     step: '#scrolly-1 .step',
     offset: scatterTrigger,
   })
-  .onStepEnter(onStepEnter);
+  .onStepEnter(syncScatterStory);
 
-// Lab 8, Step 4: the second story drives only the unit visualization, so the files race commit by commit
 const filesScroller = scrollama();
 filesScroller
   .setup({
@@ -558,27 +602,7 @@ filesScroller
     step: '#scrolly-2 .step',
     offset: filesTrigger,
   })
-  .onStepEnter((response) => {
-    filesAtEnd = false;
-    const commit = response.element.__data__;
-    updateFileDisplay(commits.filter((d) => d.wallClock <= commit.wallClock));
-  });
-
-// Near the bottom of the page the last step cannot always reach scrollama's trigger line, and a fast
-// jump (End key) skips it, so once the last step has passed the trigger line the files show
-// the full history the story ends on.
-let filesAtEnd = false;
-const lastFilesStep = document.querySelector('#files-story .step:last-child');
-addEventListener(
-  'scroll',
-  () => {
-    if (!filesAtEnd && lastFilesStep.getBoundingClientRect().top < innerHeight * filesTrigger) {
-      filesAtEnd = true;
-      updateFileDisplay(commits);
-    }
-  },
-  { passive: true },
-);
+  .onStepEnter(syncFilesStory);
 
 // Resizing or rotating moves the pinned plots' edges and changes the chart's on-screen scale (labels
 // would shrink or balloon). The trigger lines move at once: scrollama re-measures its steps on the
@@ -595,8 +619,15 @@ function placeTriggers() {
   if (Math.abs(filesNext - filesTrigger) > 0.005) filesScroller.offset((filesTrigger = filesNext));
 }
 let renderedStacked = stackedLayout.matches;
+// After a resize the step on the line is re-read without being applied: a reflow is not the reader
+// scrolling, so it must not undo a slider move or a brush
+function rememberStoryPositions() {
+  scatterIndex = Math.min(stepOnLine(scatterSteps, scatterTrigger), scatterSteps.length - 1);
+  filesIndex = Math.min(stepOnLine(filesSteps, filesTrigger), filesSteps.length - 1);
+}
 addEventListener('resize', () => {
   placeTriggers();
+  rememberStoryPositions();
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     const svg = d3.select('#chart svg');
@@ -613,5 +644,6 @@ addEventListener('resize', () => {
     if (kept) d3.select('#chart svg').call(brush.move, kept.map(([t, h]) => [xScale(t), yScale(h)]));
     // The redrawn chart can change the pinned plot's height
     placeTriggers();
+    rememberStoryPositions();
   }, RESIZE_SETTLE_MS);
 });

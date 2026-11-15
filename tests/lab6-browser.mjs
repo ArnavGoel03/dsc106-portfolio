@@ -255,6 +255,66 @@ const OUTPUT = outputDirectory;
     check('Lab 8: resizing keeps a brushed selection', /\d+ commits? selected/.test(brushBefore) && brushAfter === brushBefore, { brushBefore, brushAfter });
     await page.setViewportSize(viewports.desktop);
     await page.waitForTimeout(800);
+    // Story state follows where the page is: jumps land on the step they reach, and a resize that
+    // reflows the page keeps a slider move and a brush (both used to be undone or left stale)
+    const jumps = [];
+    for (let run = 0; run < 3; run++) {
+      await page.evaluate(() => document.querySelectorAll('#scatter-story .step')[8].scrollIntoView({ block: 'center' }));
+      await page.waitForTimeout(700);
+      await page.locator('#scatter-story .step p').nth(9).click({ position: { x: 4, y: 4 } });
+      await page.keyboard.press('End');
+      await page.waitForTimeout(1200);
+      const atEnd = await page.evaluate(() => ({ locs: document.querySelectorAll('#files .loc').length, leadersVisible: (() => { const r = document.querySelector('#files > div:nth-child(2)').getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; })() }));
+      for (let k = 0; k < 6; k++) { await page.mouse.move(page.viewportSize().width * 0.85, 400); await page.mouse.wheel(0, -60); await page.waitForTimeout(80); }
+      await page.waitForTimeout(600);
+      await page.keyboard.press('End');
+      await page.waitForTimeout(1200);
+      await page.keyboard.press('Home');
+      await page.waitForTimeout(1200);
+      const atHome = await page.evaluate(() => ({ circles: document.querySelectorAll('#chart circle').length, slider: Number(document.querySelector('#commit-progress').value) }));
+      jumps.push({ atEnd, atHome });
+    }
+    // Scrolling back up out of the file story hands the files back to the chart's filter
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.waitForTimeout(600);
+    await page.evaluate(() => { const st = document.querySelectorAll('#files-story .step')[5]; scrollBy(0, st.getBoundingClientRect().top - innerHeight + 4); });
+    await page.waitForTimeout(400);
+    for (let k = 0; k < 8; k++) { await page.mouse.move(page.viewportSize().width * 0.85, 400); await page.mouse.wheel(0, 60); await page.waitForTimeout(80); }
+    await page.waitForTimeout(600);
+    const inFilesStory = await page.evaluate(() => document.querySelectorAll('#files .loc').length);
+    // Wheel back up into the gap between the two stories: the file story's first step below the line,
+    // the chart story already past its end
+    for (let k = 0; k < 80; k++) {
+      const top = await page.evaluate(() => document.querySelector('#files-story .step').getBoundingClientRect().top);
+      if (top > page.viewportSize().height * 0.5 + 80) break;
+      await page.mouse.move(page.viewportSize().width * 0.85, 400);
+      await page.mouse.wheel(0, -60);
+      await page.waitForTimeout(60);
+    }
+    await page.waitForTimeout(800);
+    const aboveFilesStory = await page.evaluate(() => ({ locs: document.querySelectorAll('#files .loc').length, chartCircles: document.querySelectorAll('#chart circle').length }));
+    check('Lab 8 Step 4: above the file story the files follow the chart again', inFilesStory < lab8Full.locs && aboveFilesStory.locs === lab8Full.locs && aboveFilesStory.chartCircles === lab8Full.circles, { inFilesStory, aboveFilesStory });
+    check('Lab 8: End and Home jumps land on the full history', jumps.every(({ atEnd, atHome }) => atEnd.locs === lab8Full.locs && atEnd.leadersVisible && atHome.circles === lab8Full.circles && atHome.slider === 100), jumps);
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.waitForTimeout(800);
+    await page.evaluate(() => document.querySelectorAll('#scatter-story .step')[15].scrollIntoView({ block: 'center' }));
+    await page.waitForTimeout(800);
+    await page.evaluate(() => { const s = document.querySelector('#commit-progress'); s.value = 30; s.dispatchEvent(new Event('input')); });
+    await page.waitForTimeout(300);
+    const manualBefore = await page.evaluate(() => ({ circles: document.querySelectorAll('#chart circle').length, slider: document.querySelector('#commit-progress').value }));
+    const sb = await page.locator('#chart svg').boundingBox();
+    await page.mouse.move(sb.x + sb.width * 0.3, sb.y + sb.height * 0.15);
+    await page.mouse.down();
+    await page.mouse.move(sb.x + sb.width * 0.9, sb.y + sb.height * 0.85, { steps: 8 });
+    await page.mouse.up();
+    await page.waitForTimeout(300);
+    const selBefore = await page.evaluate(() => document.querySelector('#selection-count').textContent);
+    await page.setViewportSize({ width: 800, height: 720 });
+    await page.waitForTimeout(1000);
+    const manualAfter = await page.evaluate(() => ({ circles: document.querySelectorAll('#chart circle').length, slider: document.querySelector('#commit-progress').value, selection: document.querySelector('#selection-count').textContent }));
+    check('Lab 8: a reflowing resize keeps a slider move and a brush', manualBefore.slider === '30' && manualAfter.slider === '30' && manualAfter.circles === manualBefore.circles && /\d+ commits? selected/.test(selBefore) && manualAfter.selection === selBefore, { manualBefore, selBefore, manualAfter });
+    await page.setViewportSize(viewports.desktop);
+    await page.waitForTimeout(800);
     const pathWraps = await page.evaluate(() => [...document.querySelectorAll('#files dt code')].filter(c => c.textContent.includes('/')).every(c => c.querySelector('wbr')));
     check('Lab 8: long file paths wrap after a slash, not mid-word', pathWraps, pathWraps);
     // Phone: the chart is drawn for its real width, so labels stay readable and the active paragraph
