@@ -394,6 +394,12 @@ const OUTPUT = outputDirectory;
       for (let k = 0; k < 6; k++) { await page.mouse.move(w / 2, h - 30); await page.mouse.wheel(0, 40); await page.waitForTimeout(60); }
       await page.waitForTimeout(600);
       const plotBefore = await page.evaluate(() => document.querySelector('#scatter-plot').getBoundingClientRect().height);
+      // A screen too short to pin the plot (taller font metrics, Linux CI) lets it scroll with the page,
+      // so bring it into view before brushing
+      if (await page.evaluate(() => getComputedStyle(document.querySelector('#scatter-plot')).position !== 'sticky')) {
+        await page.locator('#chart svg').scrollIntoViewIfNeeded();
+        await page.waitForTimeout(400);
+      }
       const svgBox = await page.locator('#chart svg').boundingBox();
       await page.mouse.move(svgBox.x + 2, svgBox.y + 2);
       await page.mouse.down();
