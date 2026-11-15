@@ -161,6 +161,27 @@ const OUTPUT = outputDirectory;
     await page.waitForTimeout(600);
     const back = await lab8State();
     check('Lab 8: scrolling back above the story restores the full history', back.circles === lab8Full.circles && back.slider === 100, back);
+    // Red-team regressions: a filtered-out hovered dot left its tooltip open, a one-commit domain left
+    // the x-axis blank, radii rescaled with the filter, and the label and story used another clock
+    const firstR = () => page.evaluate(() => { const c = [...document.querySelectorAll('#chart circle')].find(c => c.__data__ === document.querySelector('#scatter-story .step').__data__); return c && +c.getAttribute('r'); });
+    const rFull = await firstR();
+    await page.locator('#chart circle').last().hover();
+    await page.waitForTimeout(300);
+    await page.locator('#commit-progress').fill('0');
+    await page.waitForTimeout(600);
+    const zero = await page.evaluate(() => ({
+      tooltipHidden: document.querySelector('#commit-tooltip').hidden || getComputedStyle(document.querySelector('#commit-tooltip')).opacity === '0',
+      ticks: document.querySelectorAll('#chart .x-axis .tick text').length,
+      label: document.querySelector('#commit-time').textContent,
+      step: document.querySelector('#scatter-story .step p').textContent.replace(/\s+/g, ' '),
+      dotClock: document.querySelector('#scatter-story .step').__data__.wallClock.toLocaleTimeString('en', { timeStyle: 'short' }),
+    }));
+    const rZero = await firstR();
+    check('Lab 8: filtering away a hovered dot hides its tooltip', zero.tooltipHidden, zero);
+    check('Lab 8: x-axis keeps date ticks when one commit is shown', zero.ticks > 0, zero.ticks);
+    check('Lab 8: a dot keeps its radius whatever the filter', rFull === rZero, { rFull, rZero });
+    check('Lab 8: slider label and story use the dots\' clock', zero.step.includes(zero.dotClock) && zero.label.endsWith(zero.dotClock), zero);
+    await page.locator('#commit-progress').fill('100');
     check('No runtime/console errors',errors.length===0,errors);
     const result={url:URL_BASE+'meta/',checkedAt:new Date().toISOString(),checks,failures:checks.filter(c=>!c.pass),initial,errors};
 

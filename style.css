@@ -597,7 +597,10 @@ dl.info[hidden]:not(:hover, :focus-within) {
   top: 0;
   left: 0;
   bottom: auto;
-  height: 50vh;
+  /* At least half the viewport, growing to fit the slider, chart and brush stats instead of letting
+     them spill over the next section; align-self stops the flex row stretching it (which kills sticky) */
+  min-height: 50vh;
+  align-self: flex-start;
 }
 
 #scatter-story .step {
@@ -614,6 +617,8 @@ dl.info[hidden]:not(:hover, :focus-within) {
     order: -1;
     z-index: 1;
     height: auto;
+    /* Keep the pinned chart above scrollama's mid-screen trigger line so steps fire while visible */
+    min-height: 0;
     background: canvas;
   }
 }

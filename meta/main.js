@@ -137,6 +137,7 @@ let yScale;
 let commits;
 let filteredCommits;
 let brush;
+let rScale;
 
 function isCommitSelected(selection, commit) {
   if (!selection) {
@@ -214,8 +215,8 @@ function createBrushSelector(svg) {
 // Lab 6, Step 4 + Lab 8, Steps 1.2 and 1.3: dot area proportional to lines edited, biggest dots
 // drawn first, keyed by commit id so a dot keeps its element (and animates) as the filter changes
 function drawDots(svg, commits) {
-  const [minLines, maxLines] = d3.extent(commits, (d) => d.totalLines);
-  const rScale = d3.scaleSqrt().domain([minLines, maxLines]).range([2, 30]);
+  // A dot removed by the filter never fires mouseleave, so its tooltip would stay open
+  updateTooltipVisibility(false);
   const sortedCommits = d3.sort(commits, (d) => -d.totalLines);
 
   svg
@@ -281,8 +282,7 @@ function renderScatterPlot(data, commits) {
   gridlines.call(d3.axisLeft(yScale).tickFormat('').tickSize(-usableArea.width));
 
   // Step 2.2: axes
-  // Weekly ticks: d3's default 2-day ticks restart at each month, so Oct 31 and November collided
-  const xAxis = d3.axisBottom(xScale).ticks(d3.timeWeek).tickFormat(d3.timeFormat('%b %d'));
+  const xAxis = makeXAxis();
   const yAxis = d3
     .axisLeft(yScale)
     .tickFormat((d) => String(d % 24).padStart(2, '0') + ':00');
@@ -298,18 +298,34 @@ function renderScatterPlot(data, commits) {
     .attr('transform', `translate(${usableArea.left}, 0)`)
     .call(yAxis);
 
+  // Radius scale from the full history, so a commit keeps its size whatever the filter shows
+  rScale = d3
+    .scaleSqrt()
+    .domain(d3.extent(commits, (d) => d.totalLines))
+    .range([2, 30]);
   svg.append('g').attr('class', 'dots');
   drawDots(svg, commits);
 
   createBrushSelector(svg);
 }
 
+// Weekly ticks: d3's default 2-day ticks restart at each month, so Oct 31 and November collided.
+// A filtered domain shorter than two weeks has at most one Monday in it, so it falls back to days.
+const WEEKLY_TICKS_MIN_DAYS = 14;
+function makeXAxis() {
+  const [start, end] = xScale.domain();
+  const interval = d3.timeDay.count(start, end) >= WEEKLY_TICKS_MIN_DAYS ? d3.timeWeek : d3.timeDay;
+  return d3.axisBottom(xScale).ticks(interval).tickFormat(d3.timeFormat('%b %d'));
+}
+
 // Lab 8, Step 1.2: redraw the existing chart for the filtered commits instead of appending a new svg
 function updateScatterPlot(data, commits) {
   const svg = d3.select('#chart').select('svg');
-  xScale.domain(d3.extent(commits, (d) => d.wallClock)).nice();
+  // Rounded out to whole days: early in the story the domain is a single commit (zero width), which
+  // plain nice() leaves at zero width, so the axis had no ticks at all
+  xScale.domain(d3.extent(commits, (d) => d.wallClock)).nice(d3.timeDay);
 
-  const xAxis = d3.axisBottom(xScale).ticks(d3.timeWeek).tickFormat(d3.timeFormat('%b %d'));
+  const xAxis = makeXAxis();
   const xAxisGroup = svg.select('g.x-axis');
   xAxisGroup.selectAll('*').remove();
   xAxisGroup.call(xAxis);
@@ -367,11 +383,14 @@ d3.select('#files-legend')
   .attr('style', (d) => `--color: ${colors(d)}`)
   .html((d) => `<span class="swatch"></span>${d}`);
 
+// Slider, filter, label and story all use wallClock, the clock the dots and tooltip already show,
+// so a viewer in another time zone sees one consistent time (every commit is +05:30)
 const timeScale = d3
   .scaleTime()
-  .domain([d3.min(commits, (d) => d.datetime), d3.max(commits, (d) => d.datetime)])
+  .domain(d3.extent(commits, (d) => d.wallClock))
   .range([0, 100]);
 let commitProgress = 100;
+let storyActive = false;
 let commitMaxTime = timeScale.invert(commitProgress);
 
 const slider = document.getElementById('commit-progress');
@@ -385,13 +404,16 @@ function showCommitsUntil(maxTime) {
     dateStyle: 'long',
     timeStyle: 'short',
   });
-  filteredCommits = commits.filter((d) => d.datetime <= commitMaxTime);
+  slider.setAttribute('aria-valuetext', timeLabel.textContent);
+  filteredCommits = commits.filter((d) => d.wallClock <= commitMaxTime);
   renderCommitInfo(filteredCommits.flatMap((d) => d.lines), filteredCommits);
   updateScatterPlot(data, filteredCommits);
   updateFileDisplay(filteredCommits);
 }
 
 function onTimeSliderChange() {
+  // A manual slider move takes over from the story, so scrolling above it later keeps this value
+  storyActive = false;
   commitProgress = Number(slider.value);
   showCommitsUntil(timeScale.invert(commitProgress));
 }
@@ -412,7 +434,7 @@ d3.select('#scatter-story')
   .attr('class', 'step')
   .html(
     (d, i) => `
-      <p>On ${d.datetime.toLocaleString('en', { dateStyle: 'full', timeStyle: 'short' })},
+      <p>On ${d.wallClock.toLocaleString('en', { dateStyle: 'full', timeStyle: 'short' })},
       I made <a href="${d.url}" target="_blank">${
         i > 0 ? 'another glorious commit' : 'my first commit, and it was glorious'
       }</a>.
@@ -425,15 +447,14 @@ d3.select('#scatter-story')
 function onStepEnter(response) {
   const commit = response.element.__data__;
   storyActive = true;
-  commitProgress = timeScale(commit.datetime);
+  commitProgress = timeScale(commit.wallClock);
   slider.value = commitProgress;
-  showCommitsUntil(commit.datetime);
+  showCommitsUntil(commit.wallClock);
 }
 
 // Scrolling back above the first step returns to the full history the page opened with. Scrollama
 // fires no exit on a fast jump (Home key, scrollbar drag), so a passive scroll listener checks where
 // step one sits against scrollama's trigger line, the middle of the viewport.
-let storyActive = false;
 const firstStep = document.querySelector('#scatter-story .step');
 addEventListener(
   'scroll',
